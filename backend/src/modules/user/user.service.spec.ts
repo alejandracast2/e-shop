@@ -12,7 +12,14 @@ describe('UserService', () => {
     service = module.get<UserService>(UserService);
   });
 
-  it('should be defined', () => {
-    expect(service).toBeDefined();
+  it('creates and finds users', () => {
+    service.create({
+      name: 'Test',
+      email: 'a@test.com',
+      passwordHash: 'hash',
+      role: 'user',
+    });
+    expect(service.findAll()).toHaveLength(1);
+    expect(service.findByEmail('a@test.com')).toBeDefined();
   });
 });
