@@ -6,7 +6,7 @@
 # COPY . .
 # RUN npm run build
 
-# # Etapa 2: producción
+# # Etapa 2: produccion
 # FROM node:18-alpine
 # WORKDIR /app
 # COPY --from=builder /app/.output ./.output
