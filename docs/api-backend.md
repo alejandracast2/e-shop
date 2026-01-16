@@ -144,7 +144,3 @@ Payload create (ejemplo):
 npm run seed
 ```
 Incluye usuarios admin/staff, productos, clientes y pedidos de prueba.
-
-## datos para ropa
-cd backend
-npm run seed:clothing
