@@ -25,7 +25,7 @@ services:
       DB_PASS: ${DB_PASS}
       DB_NAME: ${DB_NAME}
       NODE_ENV: development
-      CORS_ORIGIN: http://localhost:3000,http://localhost:3001
+      CORS_ORIGIN: http://localhost:3000,http://localhost:3001,http://localhost:3002
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN}
     volumes:
@@ -60,6 +60,21 @@ services:
       NODE_ENV: development
     volumes:
       - ./frontend-admin:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+
+  frontend-vue:
+    build: ./frontend-vue
+    container_name: eshop-vue
+    command: npm run dev -- --host 0.0.0.0 --port 3002
+    ports:
+      - "3002:3002"
+    environment:
+      VITE_API_URL: http://localhost:4000
+      NODE_ENV: development
+    volumes:
+      - ./frontend-vue:/app
       - /app/node_modules
     depends_on:
       - backend
