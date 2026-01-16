@@ -10,7 +10,10 @@ import { UserModule } from './modules/user/user.module';
 import { Customer } from './modules/customer/entities/customer.entity';
 import { Order } from './modules/order/entities/order.entity';
 import { OrderItem } from './modules/order/entities/order-item.entity';
+import { Category } from './modules/product/entities/category.entity';
+import { Color } from './modules/product/entities/color.entity';
 import { Product } from './modules/product/entities/product.entity';
+import { ProductVariant } from './modules/product/entities/product-variant.entity';
 import { User } from './modules/user/entities/user.entity';
 import { AuthModule } from './auth/auth.module';
 
@@ -26,7 +29,16 @@ import { AuthModule } from './auth/auth.module';
         username: configService.get<string>('DB_USER', 'postgres'),
         password: configService.get<string>('DB_PASS', 'postgres'),
         database: configService.get<string>('DB_NAME', 'ecommerce'),
-        entities: [Product, Customer, User, Order, OrderItem],
+        entities: [
+          Product,
+          ProductVariant,
+          Category,
+          Color,
+          Customer,
+          User,
+          Order,
+          OrderItem,
+        ],
         synchronize: configService.get<string>('NODE_ENV') !== 'production',
       }),
     }),

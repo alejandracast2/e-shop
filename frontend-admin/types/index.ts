@@ -7,6 +7,16 @@ export type Product = {
   imageUrl?: string | null;
   stock: number;
   isActive: boolean;
+  category?: { id: number; name: string } | null;
+  variants?: ProductVariant[];
+};
+
+export type ProductVariant = {
+  id: number;
+  size: string;
+  stock: number;
+  sku?: string | null;
+  color?: { id: number; name: string; hex?: string | null } | string | null;
 };
 
 export type Customer = {
@@ -23,6 +33,7 @@ export type OrderItem = {
   unitPrice: number;
   lineTotal: number;
   product: Product;
+  variant?: ProductVariant;
 };
 
 export type Order = {

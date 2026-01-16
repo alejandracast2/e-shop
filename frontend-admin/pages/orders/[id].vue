@@ -47,9 +47,15 @@
   <section class="card fade-in">
     <h3>Items</h3>
     <div v-if="order?.items?.length" class="items">
-      <div v-for="item in order.items" :key="item.id" class="item-row">
+        <div v-for="item in order.items" :key="item.id" class="item-row">
         <div>
-          <strong>{{ item.product.name }}</strong>
+          <strong>
+            {{
+              item.variant?.size && (item.variant?.color?.name || item.variant?.color)
+                ? `${item.product.name} · ${item.variant.color?.name || item.variant.color} · ${item.variant.size}`
+                : item.product.name
+            }}
+          </strong>
           <div class="muted">Cantidad: {{ item.quantity }}</div>
         </div>
         <div>${{ Number(item.lineTotal).toFixed(2) }}</div>

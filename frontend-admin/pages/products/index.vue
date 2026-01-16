@@ -15,6 +15,7 @@
         <tr>
           <th>Producto</th>
           <th>SKU</th>
+          <th>Variantes</th>
           <th>Precio</th>
           <th>Stock</th>
           <th>Status</th>
@@ -28,6 +29,7 @@
             <div class="muted">{{ product.description || 'Sin descripcion' }}</div>
           </td>
           <td>{{ product.sku || '--' }}</td>
+          <td>{{ product.variants?.length ?? 0 }}</td>
           <td>${{ product.price.toFixed(2) }}</td>
           <td>{{ product.stock }}</td>
           <td>

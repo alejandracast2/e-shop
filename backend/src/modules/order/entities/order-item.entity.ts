@@ -1,5 +1,6 @@
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { Product } from '../../product/entities/product.entity';
+import { ProductVariant } from '../../product/entities/product-variant.entity';
 import { Order } from './order.entity';
 
 const priceTransformer = {
@@ -14,6 +15,9 @@ export class OrderItem {
 
   @ManyToOne(() => Order, (order) => order.items, { onDelete: 'CASCADE' })
   order: Order;
+
+  @ManyToOne(() => ProductVariant, { eager: true, nullable: true })
+  variant?: ProductVariant | null;
 
   @ManyToOne(() => Product, (product) => product.orderItems, { eager: true })
   product: Product;
