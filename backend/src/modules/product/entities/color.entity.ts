@@ -9,7 +9,7 @@ export class Color {
   @Column({ length: 80, unique: true })
   name: string;
 
-  @Column({ length: 16, nullable: true })
+  @Column({ type: 'varchar', length: 16, nullable: true })
   hex?: string | null;
 
   @OneToMany(() => ProductVariant, (variant) => variant.color)
