@@ -46,7 +46,7 @@
       <h3>Productos con poco stock</h3>
       <div v-if="lowStock.length" class="list">
         <div v-for="product in lowStock" :key="product.id" class="list-row">
-          <span>{{ product.name }}</span>
+          <span>{{ product.size ? `${product.name} · ${product.size}` : product.name }}</span>
           <span class="pill">{{ product.stock }} uds</span>
         </div>
       </div>

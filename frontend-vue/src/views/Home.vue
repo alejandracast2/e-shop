@@ -58,7 +58,11 @@ onMounted(store.loadProducts);
         </router-link>
         <div class="card-footer">
           <span class="price">{{ store.formatCurrency(product.price) }}</span>
-          <button class="btn btn-primary" @click="store.addToCart(product)">
+          <button
+            class="btn btn-primary"
+            :disabled="!product.variants?.length"
+            @click="store.addToCart(product, product.variants?.[0])"
+          >
             Add to cart
           </button>
         </div>

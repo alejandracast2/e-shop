@@ -33,17 +33,20 @@ async function loadProduct(id) {
   return product;
 }
 
-function addToCart(product) {
-  const existing = state.cart.find((item) => item.product.id === product.id);
+function addToCart(product, variant) {
+  if (!variant) {
+    return;
+  }
+  const existing = state.cart.find((item) => item.variant.id === variant.id);
   if (existing) {
     existing.quantity += 1;
     return;
   }
-  state.cart.push({ product, quantity: 1 });
+  state.cart.push({ product, variant, quantity: 1 });
 }
 
-function updateQuantity(productId, delta) {
-  const item = state.cart.find((entry) => entry.product.id === productId);
+function updateQuantity(variantId, delta) {
+  const item = state.cart.find((entry) => entry.variant.id === variantId);
   if (!item) {
     return;
   }
@@ -55,8 +58,8 @@ function updateQuantity(productId, delta) {
   item.quantity = next;
 }
 
-function removeFromCart(productId) {
-  state.cart = state.cart.filter((entry) => entry.product.id !== productId);
+function removeFromCart(variantId) {
+  state.cart = state.cart.filter((entry) => entry.variant.id !== variantId);
 }
 
 function clearCart() {
