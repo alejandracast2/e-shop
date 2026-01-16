@@ -1,29 +1,21 @@
 services:
-  db:
-    image: postgres:16-alpine
-    container_name: coffee-postgres
-    restart: unless-stopped 
-    environment:
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASS}
-      POSTGRES_DB: ${DB_NAME}
+  mongo:
+    image: mongo:7
+    container_name: e-shop-mongo
+    restart: unless-stopped
     ports:
-      - "5432:5432"
+      - "27017:27017"
     volumes:
-    - db-data:/var/lib/postgresql/data
-
+      - mongo-data:/data/db
 
   backend:
     build: ./backend
     container_name: eshop-nest
     command: npm run start:dev
     ports:
-    - "4000:4000"
+      - "4000:4000"
     environment:
-      DB_HOST: db
-      DB_PORT: 5432
-      DB_USER: ${DB_USER}
-      DB_PASS: ${DB_PASS}
+      MONGO_URI: ${MONGO_URI}
       DB_NAME: ${DB_NAME}
       NODE_ENV: development
       CORS_ORIGIN: http://localhost:3000,http://localhost:3001
@@ -33,7 +25,7 @@ services:
       - ./backend:/app
       - /app/node_modules
     depends_on:
-      - db
+      - mongo
 
   frontend-customer:
     build: ./frontend-customer

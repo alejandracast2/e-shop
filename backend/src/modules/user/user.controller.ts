@@ -18,6 +18,7 @@ import { RolesGuard } from '../../auth/roles.guard';
 import { UserRole } from './entities/user.entity';
 
 @Controller('users')
+@Controller('users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
@@ -28,6 +29,8 @@ export class UserController {
     return this.userService.create(createUserDto);
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
   @Get()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
