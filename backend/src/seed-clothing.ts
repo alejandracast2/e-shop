@@ -44,7 +44,7 @@ const seed = async () => {
   await ensureUser(staffEmail, UserRole.STAFF, 'Staff User');
 
   const productSeed: Array<{
-    base: Omit<Partial<Product>, 'category'> & { category?: string };
+    base: Partial<Product> & { category?: string };
     variants: Array<{ size: string; color: string; stock: number; sku?: string }>;
   }> = [
     {
