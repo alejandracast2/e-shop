@@ -62,7 +62,7 @@ async function submitOrder() {
         country: form.country.trim()
       },
       items: store.state.cart.map((item) => ({
-        variantId: item.variant.id,
+        productId: item.product.id,
         quantity: item.quantity
       })),
       notes: notes.value.trim() || undefined
@@ -95,20 +95,17 @@ async function submitOrder() {
       </div>
 
       <div v-else class="cart-list">
-        <div v-for="item in store.state.cart" :key="item.variant.id" class="cart-item">
+        <div v-for="item in store.state.cart" :key="item.product.id" class="cart-item">
           <div>
             <strong>{{ item.product.name }}</strong>
-            <div class="meta">
-              {{ item.variant.color?.name || item.variant.color }} · {{ item.variant.size }}
-            </div>
             <div class="price">{{ store.formatCurrency(item.product.price) }}</div>
           </div>
           <div class="quantity">
-            <button class="qty-btn" @click="store.updateQuantity(item.variant.id, -1)">-</button>
+            <button class="qty-btn" @click="store.updateQuantity(item.product.id, -1)">-</button>
             <span>{{ item.quantity }}</span>
-            <button class="qty-btn" @click="store.updateQuantity(item.variant.id, 1)">+</button>
+            <button class="qty-btn" @click="store.updateQuantity(item.product.id, 1)">+</button>
           </div>
-          <button class="link" @click="store.removeFromCart(item.variant.id)">Remove</button>
+          <button class="link" @click="store.removeFromCart(item.product.id)">Remove</button>
         </div>
       </div>
 
@@ -149,10 +146,3 @@ async function submitOrder() {
     </aside>
   </section>
 </template>
-
-<style scoped>
-.meta {
-  color: #8b8f97;
-  font-size: 0.85rem;
-}
-</style>

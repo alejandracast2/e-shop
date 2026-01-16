@@ -2,14 +2,11 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { OrderItem } from '../../order/entities/order-item.entity';
-import { Category } from './category.entity';
-import { ProductVariant } from './product-variant.entity';
 
 const priceTransformer = {
   to: (value: number) => value,
@@ -41,12 +38,6 @@ export class Product {
 
   @Column({ default: true })
   isActive: boolean;
-
-  @ManyToOne(() => Category, (category) => category.products, { eager: true, nullable: true })
-  category?: Category | null;
-
-  @OneToMany(() => ProductVariant, (variant) => variant.product, { cascade: true })
-  variants?: ProductVariant[];
 
   @OneToMany(() => OrderItem, (item) => item.product)
   orderItems?: OrderItem[];

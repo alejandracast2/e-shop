@@ -16,10 +16,6 @@
         SKU
         <input v-model="form.sku" />
       </label>
-      <label>
-        Categoria
-        <input v-model="form.category" />
-      </label>
       <label class="full">
         Descripcion
         <textarea v-model="form.description" rows="3" />
@@ -28,17 +24,10 @@
         Precio
         <input v-model.number="form.price" type="number" min="0" step="0.01" required />
       </label>
-      <div class="full variants">
-        <span class="muted">Variantes</span>
-        <div v-if="product?.variants?.length" class="variant-list">
-          <div v-for="variant in product.variants" :key="variant.id" class="variant-row">
-            <span>{{ variant.size }}</span>
-            <span>{{ variant.color?.name || variant.color }}</span>
-            <span>{{ variant.stock }} uds</span>
-          </div>
-        </div>
-        <div v-else class="muted">Sin variantes registradas.</div>
-      </div>
+      <label>
+        Stock
+        <input v-model.number="form.stock" type="number" min="0" required />
+      </label>
       <label class="full">
         Imagen (URL)
         <input v-model="form.imageUrl" />
@@ -77,7 +66,7 @@ const form = reactive({
   sku: '',
   description: '',
   price: 0,
-  category: '',
+  stock: 0,
   imageUrl: '',
   isActive: true,
 });
@@ -90,7 +79,7 @@ watch(
     form.sku = value.sku || '';
     form.description = value.description || '';
     form.price = value.price;
-    form.category = value.category?.name || '';
+    form.stock = value.stock;
     form.imageUrl = value.imageUrl || '';
     form.isActive = value.isActive;
   },
@@ -109,7 +98,7 @@ const updateProduct = async () => {
         sku: form.sku || undefined,
         description: form.description || undefined,
         price: form.price,
-        category: form.category || undefined,
+        stock: form.stock,
         imageUrl: form.imageUrl || undefined,
         isActive: form.isActive,
       },
@@ -147,25 +136,6 @@ label.full {
   align-items: center;
   gap: 10px;
   grid-column: 1 / -1;
-}
-
-.variants {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.variant-list {
-  display: grid;
-  gap: 6px;
-}
-
-.variant-row {
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-  font-size: 13px;
-  color: var(--muted);
 }
 
 input,

@@ -9,7 +9,6 @@ import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { Customer } from '../customer/entities/customer.entity';
 import { Product } from '../product/entities/product.entity';
-import { ProductVariant } from '../product/entities/product-variant.entity';
 import { Order, OrderStatus, PaymentStatus } from './entities/order.entity';
 import { OrderItem } from './entities/order-item.entity';
 
@@ -22,8 +21,6 @@ export class OrderService {
     private readonly orderItemRepository: Repository<OrderItem>,
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
-    @InjectRepository(ProductVariant)
-    private readonly variantRepository: Repository<ProductVariant>,
     @InjectRepository(Customer)
     private readonly customerRepository: Repository<Customer>,
     private readonly dataSource: DataSource,
@@ -36,7 +33,6 @@ export class OrderService {
 
     return this.dataSource.transaction(async (manager) => {
       const productRepo = manager.getRepository(Product);
-      const variantRepo = manager.getRepository(ProductVariant);
       const customerRepo = manager.getRepository(Customer);
       const orderRepo = manager.getRepository(Order);
 
@@ -46,41 +42,31 @@ export class OrderService {
       let subtotal = 0;
 
       for (const item of createOrderDto.items) {
-        const variant = await variantRepo.findOne({
-          where: { id: item.variantId },
-          relations: { product: true },
+        const product = await productRepo.findOne({
+          where: { id: item.productId },
         });
-        if (!variant || !variant.product?.isActive) {
+        if (!product || !product.isActive) {
           throw new BadRequestException(
-            `Variant ${item.variantId} is not available`,
+            `Product ${item.productId} is not available`,
           );
         }
-        if (variant.stock < item.quantity) {
+        if (product.stock < item.quantity) {
           throw new BadRequestException(
-            `Insufficient stock for ${variant.product.name}`,
+            `Insufficient stock for ${product.name}`,
           );
         }
 
-        variant.stock -= item.quantity;
-        await variantRepo.save(variant);
+        product.stock -= item.quantity;
+        await productRepo.save(product);
 
-        if (variant.product) {
-          variant.product.stock = Math.max(
-            0,
-            (variant.product.stock ?? 0) - item.quantity,
-          );
-          await productRepo.save(variant.product);
-        }
-
-        const lineTotal = variant.product.price * item.quantity;
+        const lineTotal = product.price * item.quantity;
         subtotal += lineTotal;
 
         items.push(
           this.orderItemRepository.create({
-            product: variant.product,
-            variant,
+            product,
             quantity: item.quantity,
-            unitPrice: variant.product.price,
+            unitPrice: product.price,
             lineTotal,
           }),
         );
@@ -119,8 +105,6 @@ export class OrderService {
     const query = this.orderRepository.createQueryBuilder('order');
     query.leftJoinAndSelect('order.items', 'items');
     query.leftJoinAndSelect('items.product', 'product');
-    query.leftJoinAndSelect('items.variant', 'variant');
-    query.leftJoinAndSelect('variant.color', 'variantColor');
     query.leftJoinAndSelect('order.customer', 'customer');
 
     if (status) {
@@ -133,7 +117,7 @@ export class OrderService {
   async findOne(id: number) {
     const order = await this.orderRepository.findOne({
       where: { id },
-      relations: { items: { product: true, variant: { color: true } }, customer: true },
+      relations: { items: { product: true }, customer: true },
     });
     if (!order) {
       throw new NotFoundException('Order not found');
@@ -154,19 +138,13 @@ export class OrderService {
     if (order.status !== OrderStatus.CANCELED) {
       return this.dataSource.transaction(async (manager) => {
         const productRepo = manager.getRepository(Product);
-        const variantRepo = manager.getRepository(ProductVariant);
         for (const item of order.items) {
-          const variant = await variantRepo.findOne({
-            where: { id: item.variant?.id },
-            relations: { product: true },
+          const product = await productRepo.findOne({
+            where: { id: item.product.id },
           });
-          if (variant) {
-            variant.stock += item.quantity;
-            await variantRepo.save(variant);
-            if (variant.product) {
-              variant.product.stock += item.quantity;
-              await productRepo.save(variant.product);
-            }
+          if (product) {
+            product.stock += item.quantity;
+            await productRepo.save(product);
           }
         }
         order.status = OrderStatus.CANCELED;

@@ -13,7 +13,7 @@ export class CreateOrderItemDto {
   @Type(() => Number)
   @IsInt()
   @Min(1)
-  variantId: number;
+  productId: number;
 
   @Type(() => Number)
   @IsInt()
