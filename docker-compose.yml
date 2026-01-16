@@ -1,12 +1,16 @@
 services:
-  mongo:
-    image: mongo:7
-    container_name: e-shop-mongo
+  db:
+    image: postgres:16-alpine
+    container_name: eshop-postgres
     restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASS}
+      POSTGRES_DB: ${DB_NAME}
     ports:
-      - "27017:27017"
+      - "5432:5432"
     volumes:
-      - mongo-data:/data/db
+      - db-data:/var/lib/postgresql/data
 
   backend:
     build: ./backend
@@ -15,7 +19,10 @@ services:
     ports:
       - "4000:4000"
     environment:
-      MONGO_URI: ${MONGO_URI}
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: ${DB_USER}
+      DB_PASS: ${DB_PASS}
       DB_NAME: ${DB_NAME}
       NODE_ENV: development
       CORS_ORIGIN: http://localhost:3000,http://localhost:3001
@@ -25,7 +32,7 @@ services:
       - ./backend:/app
       - /app/node_modules
     depends_on:
-      - mongo
+      - db
 
   frontend-customer:
     build: ./frontend-customer
