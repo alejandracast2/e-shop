@@ -5,7 +5,8 @@ const state = reactive({
   products: [],
   loading: false,
   error: '',
-  cart: []
+  cart: [],
+  cartOpen: false
 });
 
 async function loadProducts() {
@@ -37,9 +38,11 @@ function addToCart(product) {
   const existing = state.cart.find((item) => item.product.id === product.id);
   if (existing) {
     existing.quantity += 1;
+    state.cartOpen = true;
     return;
   }
   state.cart.push({ product, quantity: 1 });
+  state.cartOpen = true;
 }
 
 function updateQuantity(productId, delta) {
@@ -61,6 +64,14 @@ function removeFromCart(productId) {
 
 function clearCart() {
   state.cart = [];
+}
+
+function openCart() {
+  state.cartOpen = true;
+}
+
+function closeCart() {
+  state.cartOpen = false;
 }
 
 const cartCount = computed(() =>
@@ -92,6 +103,8 @@ export function useStore() {
     addToCart,
     updateQuantity,
     removeFromCart,
-    clearCart
+    clearCart,
+    openCart,
+    closeCart
   };
 }

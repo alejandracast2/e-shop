@@ -37,6 +37,60 @@ onMounted(store.loadProducts);
     </div>
   </section>
 
+  <section class="section collection">
+    <div class="section-title">
+      <div>
+        <p class="section-kicker">Collections</p>
+        <h2>Capsule wardrobe</h2>
+      </div>
+      <router-link class="link" to="/products">Explore</router-link>
+    </div>
+    <div class="collection-grid">
+      <article class="collection-card">
+        <div class="collection-media collection-media-one">
+          <span>City Tailoring</span>
+        </div>
+        <div class="collection-body">
+          <h3>City Tailoring</h3>
+          <p>Sharp shoulders, softened lines, and tones that move from day to night.</p>
+          <div class="tag-row">
+            <span class="tag">Blazers</span>
+            <span class="tag">Wide-leg</span>
+            <span class="tag">Midweight</span>
+          </div>
+        </div>
+      </article>
+      <article class="collection-card">
+        <div class="collection-media collection-media-two">
+          <span>Soft Geometry</span>
+        </div>
+        <div class="collection-body">
+          <h3>Soft Geometry</h3>
+          <p>Layered knits with sculpted seams. Designed to drape, not cling.</p>
+          <div class="tag-row">
+            <span class="tag">Knitwear</span>
+            <span class="tag">Texture</span>
+            <span class="tag">Neutral</span>
+          </div>
+        </div>
+      </article>
+      <article class="collection-card">
+        <div class="collection-media collection-media-three">
+          <span>Travel Ease</span>
+        </div>
+        <div class="collection-body">
+          <h3>Travel Ease</h3>
+          <p>Wrinkle-aware essentials built for movement, packing, and long days.</p>
+          <div class="tag-row">
+            <span class="tag">Stretch</span>
+            <span class="tag">Lightweight</span>
+            <span class="tag">Layering</span>
+          </div>
+        </div>
+      </article>
+    </div>
+  </section>
+
   <section class="section">
     <div class="section-title">
       <h2>Featured pieces</h2>
@@ -61,6 +115,36 @@ onMounted(store.loadProducts);
           <button class="btn btn-primary" @click="store.addToCart(product)">
             Add to cart
           </button>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section class="section lookbook">
+    <div class="section-title">
+      <div>
+        <p class="section-kicker">Lookbook</p>
+        <h2>Modern silhouettes</h2>
+      </div>
+      <span class="pill">Styled in studio</span>
+    </div>
+    <div class="lookbook-grid">
+      <article class="lookbook-card">
+        <div class="lookbook-media">
+          <span>Layered set</span>
+        </div>
+        <div>
+          <h3>Layered in motion</h3>
+          <p>Pair structured outerwear with soft knits for a balanced profile.</p>
+        </div>
+      </article>
+      <article class="lookbook-card">
+        <div class="lookbook-media alt">
+          <span>Studio light</span>
+        </div>
+        <div>
+          <h3>Monochrome depth</h3>
+          <p>Deep neutrals sharpen the silhouette while keeping the look quiet.</p>
         </div>
       </article>
     </div>

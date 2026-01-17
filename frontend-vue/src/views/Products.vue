@@ -22,7 +22,10 @@ onMounted(store.loadProducts);
 <template>
   <section class="section">
     <div class="section-title">
-      <h2>Products</h2>
+      <div>
+        <p class="section-kicker">Catalog</p>
+        <h2>Products</h2>
+      </div>
       <div class="search">
         <input
           v-model="search"
@@ -31,6 +34,13 @@ onMounted(store.loadProducts);
           aria-label="Search products"
         />
       </div>
+    </div>
+
+    <div class="product-toolbar">
+      <span class="pill">Tailored cuts</span>
+      <span class="pill">Soft structure</span>
+      <span class="pill">Natural fibers</span>
+      <span class="pill">Seasonal neutrals</span>
     </div>
 
     <div v-if="store.state.loading" class="loading">Loading products...</div>
