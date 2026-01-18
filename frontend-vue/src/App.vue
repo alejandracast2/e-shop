@@ -7,28 +7,33 @@ const store = useStore();
 
 <template>
   <div class="page">
-    <header class="topbar">
-      <div class="brand">
-        <BrandMark />
-        <div>
-          <div class="brand-title">Threadline</div>
-          <div class="brand-sub">atelier</div>
-        </div>
+    <header class="site-header">
+      <div class="promo-bar">
+        <div class="promo-inner">ENVIO GRATIS a toda COLOMBIA desde $199.000</div>
       </div>
-      <nav class="nav">
-        <router-link to="/" class="nav-link">Inicio</router-link>
-        <router-link to="/products" class="nav-link">Productos</router-link>
-        <router-link to="/cart" class="nav-link">Carrito</router-link>
-      </nav>
-      <div class="top-actions">
-        <button class="icon-btn cart-btn" type="button" aria-label="Cart" @click="store.openCart">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <circle cx="9" cy="20" r="1.6"></circle>
-            <circle cx="17" cy="20" r="1.6"></circle>
-            <path d="M3 4h2l2.2 10.5a2 2 0 0 0 2 1.5h7.5a2 2 0 0 0 2-1.5L21 7H6.2"></path>
-          </svg>
-          <span class="cart-badge">{{ store.cartCount }}</span>
-        </button>
+      <div class="header-main">
+        <div class="brand">
+          <BrandMark />
+          <div>
+            <div class="brand-title">Threadline</div>
+            <div class="brand-sub">atelier</div>
+          </div>
+        </div>
+        <nav class="nav">
+          <router-link to="/" class="nav-link">Inicio</router-link>
+          <router-link :to="{ path: '/products', query: { categoria: 'mujer' } }" class="nav-link">Mujer</router-link>
+          <router-link :to="{ path: '/products', query: { categoria: 'hombre' } }" class="nav-link">Hombre</router-link>
+        </nav>
+        <div class="top-actions">
+          <button class="icon-btn cart-btn" type="button" aria-label="Cart" @click="store.openCart">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="9" cy="20" r="1.6"></circle>
+              <circle cx="17" cy="20" r="1.6"></circle>
+              <path d="M3 4h2l2.2 10.5a2 2 0 0 0 2 1.5h7.5a2 2 0 0 0 2-1.5L21 7H6.2"></path>
+            </svg>
+            <span class="cart-badge">{{ store.cartCount }}</span>
+          </button>
+        </div>
       </div>
     </header>
 
