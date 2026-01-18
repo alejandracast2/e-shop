@@ -12,6 +12,7 @@
         <NuxtLink to="/">Inicio</NuxtLink>
         <NuxtLink to="/cart">Carrito</NuxtLink>
         <NuxtLink to="/checkout">Checkout</NuxtLink>
+        <NuxtLink to="/orders">Pedidos</NuxtLink>
       </nav>
       <NuxtLink to="/cart" class="cart">
         <span>Carrito</span>

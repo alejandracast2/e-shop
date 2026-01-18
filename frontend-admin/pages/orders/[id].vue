@@ -27,6 +27,16 @@
           <option value="refunded">refunded</option>
         </select>
       </label>
+      <label>
+        Fulfillment
+        <select v-model="form.fulfillmentStatus">
+          <option value="unfulfilled">unfulfilled</option>
+          <option value="partial">partial</option>
+          <option value="fulfilled">fulfilled</option>
+          <option value="shipped">shipped</option>
+          <option value="delivered">delivered</option>
+        </select>
+      </label>
       <button class="btn btn-primary" type="button" @click="updateOrder">
         Guardar cambios
       </button>
@@ -91,6 +101,7 @@ const { data: order, refresh } = await useFetch<Order>(
 const form = reactive({
   status: 'pending_payment',
   paymentStatus: 'pending',
+  fulfillmentStatus: 'unfulfilled',
 });
 
 watch(
@@ -99,6 +110,7 @@ watch(
     if (!value) return;
     form.status = value.status;
     form.paymentStatus = value.paymentStatus;
+    form.fulfillmentStatus = value.fulfillmentStatus;
   },
   { immediate: true },
 );
@@ -111,6 +123,7 @@ const updateOrder = async () => {
     body: {
       status: form.status,
       paymentStatus: form.paymentStatus,
+      fulfillmentStatus: form.fulfillmentStatus,
     },
     headers: apiHeaders.value,
   });

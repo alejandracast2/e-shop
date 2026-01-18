@@ -20,8 +20,12 @@ npm run dev
 - `/products` listado de productos.
 - `/products/new` alta de producto (crea variante base + stock).
 - `/products/:id` edicion de producto + variante principal.
+- `/categories` gestion de categorias.
+- `/attributes` gestion de atributos y opciones.
+- `/product-types` sets de atributos reutilizables.
 - `/orders` listado de pedidos.
 - `/orders/:id` detalle y actualizacion de status.
+- `/payments` revision de intents de pago y confirmacion/rechazo.
 - `/customers` listado de clientes.
 
 ## Headers de contexto
@@ -34,7 +38,11 @@ Todas las llamadas admin agregan:
 - `PATCH /admin/products/:id` editar datos del producto.
 - `PATCH /admin/variants/:id` editar SKU/precio.
 - `POST /admin/inventory/variants/:id/stock` ajustar stock.
+- `GET/POST /admin/categories` categorias.
+- `GET/POST /admin/attributes` atributos dinamicos.
+- `GET/POST /admin/product-types` tipos de producto.
 - `GET /admin/orders` y `PATCH /admin/orders/:id` para estados.
+- `GET /admin/payments` y `POST /admin/payments/:intentId/(confirm|reject)`.
 - `GET /admin/customers` para listado.
 
 ## Autenticacion
@@ -42,6 +50,12 @@ Credenciales seed:
 - `admin@cafedeorigen.com` / `admin123`
 - `staff@cafedeorigen.com` / `admin123`
 El token se guarda en `localStorage` y se envia en `Authorization`.
+
+## Flujos de trabajo
+- **Configuracion de catalogo**: crear categorias -> definir atributos -> crear tipos -> crear productos.
+- **Inventario**: ajustar stock desde productos o al crear nuevas variantes.
+- **Pedidos**: revisar pedidos y actualizar `status`, `paymentStatus`, `fulfillmentStatus`.
+- **Pagos offline**: revisar intents, confirmar o rechazar (actualiza orden e inventario).
 
 ## Componentes clave
 - `components/AdminSidebar.vue`: navegacion lateral.

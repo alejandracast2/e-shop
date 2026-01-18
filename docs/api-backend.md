@@ -31,7 +31,7 @@ npm run start:dev
 cd backend
 npm run seed
 ```
-Incluye tenant/store, roles, usuarios admin/staff, catalogo con variantes, inventario, cliente y una orden con pago pendiente.
+Incluye tenant/store, roles, usuarios admin/staff, catalogo amplio con categorias, atributos, tipos, variantes e inventario, clientes y multiples ordenes con distintos estados de pago.
 
 Credenciales seed:
 - `platform@eshop.com` / `admin123` (platform_admin)

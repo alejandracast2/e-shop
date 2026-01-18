@@ -197,6 +197,151 @@ const seed = async () => {
       }),
     ));
 
+  const categoryCafe =
+    (await categoryRepo.findOne({ where: { storeId: store.id, slug: 'cafe' } })) ??
+    (await categoryRepo.save(
+      categoryRepo.create({
+        tenantId: tenant.id,
+        storeId: store.id,
+        name: 'Cafe',
+        slug: 'cafe',
+        position: 0,
+      }),
+    ));
+
+  const categoryEquipos =
+    (await categoryRepo.findOne({
+      where: { storeId: store.id, slug: 'equipos' },
+    })) ??
+    (await categoryRepo.save(
+      categoryRepo.create({
+        tenantId: tenant.id,
+        storeId: store.id,
+        name: 'Equipos',
+        slug: 'equipos',
+        position: 3,
+      }),
+    ));
+
+  const categoryRegalos =
+    (await categoryRepo.findOne({
+      where: { storeId: store.id, slug: 'regalos' },
+    })) ??
+    (await categoryRepo.save(
+      categoryRepo.create({
+        tenantId: tenant.id,
+        storeId: store.id,
+        name: 'Regalos',
+        slug: 'regalos',
+        position: 4,
+      }),
+    ));
+
+  const categoryRemeras =
+    (await categoryRepo.findOne({
+      where: { storeId: store.id, slug: 'remeras' },
+    })) ??
+    (await categoryRepo.save(
+      categoryRepo.create({
+        tenantId: tenant.id,
+        storeId: store.id,
+        name: 'Remeras',
+        slug: 'remeras',
+        parentId: categoryRopa.id,
+        position: 1,
+      }),
+    ));
+
+  const categoryBuzos =
+    (await categoryRepo.findOne({
+      where: { storeId: store.id, slug: 'buzos' },
+    })) ??
+    (await categoryRepo.save(
+      categoryRepo.create({
+        tenantId: tenant.id,
+        storeId: store.id,
+        name: 'Buzos',
+        slug: 'buzos',
+        parentId: categoryRopa.id,
+        position: 2,
+      }),
+    ));
+
+  const categoryCafeGrano =
+    (await categoryRepo.findOne({
+      where: { storeId: store.id, slug: 'cafe-grano' },
+    })) ??
+    (await categoryRepo.save(
+      categoryRepo.create({
+        tenantId: tenant.id,
+        storeId: store.id,
+        name: 'Cafe en grano',
+        slug: 'cafe-grano',
+        parentId: categoryCafe.id,
+        position: 1,
+      }),
+    ));
+
+  const categoryCafeMolido =
+    (await categoryRepo.findOne({
+      where: { storeId: store.id, slug: 'cafe-molido' },
+    })) ??
+    (await categoryRepo.save(
+      categoryRepo.create({
+        tenantId: tenant.id,
+        storeId: store.id,
+        name: 'Cafe molido',
+        slug: 'cafe-molido',
+        parentId: categoryCafe.id,
+        position: 2,
+      }),
+    ));
+
+  const categoryMolinos =
+    (await categoryRepo.findOne({
+      where: { storeId: store.id, slug: 'molinillos' },
+    })) ??
+    (await categoryRepo.save(
+      categoryRepo.create({
+        tenantId: tenant.id,
+        storeId: store.id,
+        name: 'Molinillos',
+        slug: 'molinillos',
+        parentId: categoryEquipos.id,
+        position: 1,
+      }),
+    ));
+
+  const categoryCafeteras =
+    (await categoryRepo.findOne({
+      where: { storeId: store.id, slug: 'cafeteras' },
+    })) ??
+    (await categoryRepo.save(
+      categoryRepo.create({
+        tenantId: tenant.id,
+        storeId: store.id,
+        name: 'Cafeteras',
+        slug: 'cafeteras',
+        parentId: categoryEquipos.id,
+        position: 2,
+      }),
+    ));
+
+  const categoryGiftCards =
+    (await categoryRepo.findOne({
+      where: { storeId: store.id, slug: 'tarjetas-regalo' },
+    })) ??
+    (await categoryRepo.save(
+      categoryRepo.create({
+        tenantId: tenant.id,
+        storeId: store.id,
+        name: 'Tarjetas regalo',
+        slug: 'tarjetas-regalo',
+        parentId: categoryRegalos.id,
+        position: 1,
+      }),
+    ));
+
   const colorAttr =
     (await attributeRepo.findOne({ where: { storeId: store.id, code: 'color' } })) ??
     (await attributeRepo.save(
@@ -244,6 +389,110 @@ const seed = async () => {
       }),
     ));
 
+  const roastAttr =
+    (await attributeRepo.findOne({
+      where: { storeId: store.id, code: 'roast' },
+    })) ??
+    (await attributeRepo.save(
+      attributeRepo.create({
+        tenantId: tenant.id,
+        storeId: store.id,
+        code: 'roast',
+        name: 'Tostado',
+        type: 'select',
+        isVariantAxis: false,
+        isFilterable: true,
+        isRequired: true,
+      }),
+    ));
+
+  const originAttr =
+    (await attributeRepo.findOne({
+      where: { storeId: store.id, code: 'origin' },
+    })) ??
+    (await attributeRepo.save(
+      attributeRepo.create({
+        tenantId: tenant.id,
+        storeId: store.id,
+        code: 'origin',
+        name: 'Origen',
+        type: 'select',
+        isVariantAxis: false,
+        isFilterable: true,
+        isRequired: true,
+      }),
+    ));
+
+  const grindAttr =
+    (await attributeRepo.findOne({
+      where: { storeId: store.id, code: 'grind' },
+    })) ??
+    (await attributeRepo.save(
+      attributeRepo.create({
+        tenantId: tenant.id,
+        storeId: store.id,
+        code: 'grind',
+        name: 'Molienda',
+        type: 'select',
+        isVariantAxis: true,
+        isFilterable: true,
+        isRequired: true,
+      }),
+    ));
+
+  const volumeAttr =
+    (await attributeRepo.findOne({
+      where: { storeId: store.id, code: 'volume_ml' },
+    })) ??
+    (await attributeRepo.save(
+      attributeRepo.create({
+        tenantId: tenant.id,
+        storeId: store.id,
+        code: 'volume_ml',
+        name: 'Volumen',
+        type: 'number',
+        isVariantAxis: false,
+        isFilterable: true,
+        isRequired: false,
+        unit: 'ml',
+      }),
+    ));
+
+  const weightAttr =
+    (await attributeRepo.findOne({
+      where: { storeId: store.id, code: 'weight_g' },
+    })) ??
+    (await attributeRepo.save(
+      attributeRepo.create({
+        tenantId: tenant.id,
+        storeId: store.id,
+        code: 'weight_g',
+        name: 'Peso',
+        type: 'number',
+        isVariantAxis: false,
+        isFilterable: true,
+        isRequired: false,
+        unit: 'g',
+      }),
+    ));
+
+  const genderAttr =
+    (await attributeRepo.findOne({
+      where: { storeId: store.id, code: 'gender' },
+    })) ??
+    (await attributeRepo.save(
+      attributeRepo.create({
+        tenantId: tenant.id,
+        storeId: store.id,
+        code: 'gender',
+        name: 'Genero',
+        type: 'select',
+        isVariantAxis: false,
+        isFilterable: true,
+        isRequired: false,
+      }),
+    ));
+
   const ensureOption = async (definitionId: string, value: string) => {
     const existing = await optionRepo.findOne({
       where: { attributeDefinitionId: definitionId, value },
@@ -260,9 +509,28 @@ const seed = async () => {
   const colorRed = await ensureOption(colorAttr.id, 'Red');
   const colorBlack = await ensureOption(colorAttr.id, 'Black');
   const colorBlue = await ensureOption(colorAttr.id, 'Blue');
+  const colorWhite = await ensureOption(colorAttr.id, 'White');
+  const colorSand = await ensureOption(colorAttr.id, 'Sand');
   const sizeS = await ensureOption(sizeAttr.id, 'S');
   const sizeM = await ensureOption(sizeAttr.id, 'M');
   const sizeL = await ensureOption(sizeAttr.id, 'L');
+  const sizeXL = await ensureOption(sizeAttr.id, 'XL');
+
+  const roastLight = await ensureOption(roastAttr.id, 'Claro');
+  const roastMedium = await ensureOption(roastAttr.id, 'Medio');
+  const roastDark = await ensureOption(roastAttr.id, 'Oscuro');
+
+  const originColombia = await ensureOption(originAttr.id, 'Colombia');
+  const originEthiopia = await ensureOption(originAttr.id, 'Etiopia');
+  const originBrazil = await ensureOption(originAttr.id, 'Brasil');
+
+  const grindGrain = await ensureOption(grindAttr.id, 'Grano');
+  const grindEspresso = await ensureOption(grindAttr.id, 'Espresso');
+  const grindFilter = await ensureOption(grindAttr.id, 'Filtro');
+
+  const genderUnisex = await ensureOption(genderAttr.id, 'Unisex');
+  const genderWomen = await ensureOption(genderAttr.id, 'Mujer');
+  const genderMen = await ensureOption(genderAttr.id, 'Hombre');
 
   const tshirtType =
     (await productTypeRepo.findOne({
@@ -273,6 +541,42 @@ const seed = async () => {
         tenantId: tenant.id,
         storeId: store.id,
         name: 'Tshirt',
+      }),
+    ));
+
+  const coffeeType =
+    (await productTypeRepo.findOne({
+      where: { storeId: store.id, name: 'Cafe' },
+    })) ??
+    (await productTypeRepo.save(
+      productTypeRepo.create({
+        tenantId: tenant.id,
+        storeId: store.id,
+        name: 'Cafe',
+      }),
+    ));
+
+  const drinkwareType =
+    (await productTypeRepo.findOne({
+      where: { storeId: store.id, name: 'Drinkware' },
+    })) ??
+    (await productTypeRepo.save(
+      productTypeRepo.create({
+        tenantId: tenant.id,
+        storeId: store.id,
+        name: 'Drinkware',
+      }),
+    ));
+
+  const equipmentType =
+    (await productTypeRepo.findOne({
+      where: { storeId: store.id, name: 'Equipamiento' },
+    })) ??
+    (await productTypeRepo.save(
+      productTypeRepo.create({
+        tenantId: tenant.id,
+        storeId: store.id,
+        name: 'Equipamiento',
       }),
     ));
 
@@ -299,6 +603,18 @@ const seed = async () => {
   await ensureProductTypeAttr(tshirtType.id, colorAttr.id, true, true);
   await ensureProductTypeAttr(tshirtType.id, sizeAttr.id, true, true);
   await ensureProductTypeAttr(tshirtType.id, materialAttr.id, false, false);
+  await ensureProductTypeAttr(tshirtType.id, genderAttr.id, false, false);
+
+  await ensureProductTypeAttr(coffeeType.id, roastAttr.id, false, true);
+  await ensureProductTypeAttr(coffeeType.id, originAttr.id, false, true);
+  await ensureProductTypeAttr(coffeeType.id, grindAttr.id, true, true);
+  await ensureProductTypeAttr(coffeeType.id, weightAttr.id, false, false);
+
+  await ensureProductTypeAttr(drinkwareType.id, colorAttr.id, false, false);
+  await ensureProductTypeAttr(drinkwareType.id, materialAttr.id, false, false);
+  await ensureProductTypeAttr(drinkwareType.id, volumeAttr.id, false, false);
+
+  await ensureProductTypeAttr(equipmentType.id, materialAttr.id, false, false);
 
   const ensureProduct = async (payload: {
     title: string;
@@ -331,7 +647,7 @@ const seed = async () => {
     title: 'Basic Tshirt',
     slug: 'basic-tshirt',
     description: 'Soft cotton tshirt for daily use.',
-    categoryId: categoryRopa.id,
+    categoryId: categoryRemeras.id,
     productTypeId: tshirtType.id,
     brand: 'Cafe Lab',
   });
@@ -340,7 +656,7 @@ const seed = async () => {
     title: 'Urban Hoodie',
     slug: 'urban-hoodie',
     description: 'Warm hoodie for cool nights.',
-    categoryId: categoryRopa.id,
+    categoryId: categoryBuzos.id,
     productTypeId: tshirtType.id,
     brand: 'Cafe Lab',
   });
@@ -350,6 +666,78 @@ const seed = async () => {
     slug: 'origen-mug',
     description: 'Ceramic mug with matte finish.',
     categoryId: categoryAccesorios.id,
+    productTypeId: drinkwareType.id,
+    brand: 'Cafe de Origen',
+  });
+
+  const espressoBlend = await ensureProduct({
+    title: 'Espresso Blend',
+    slug: 'espresso-blend',
+    description: 'Blend intenso con notas de cacao.',
+    categoryId: categoryCafeGrano.id,
+    productTypeId: coffeeType.id,
+    brand: 'Cafe de Origen',
+  });
+
+  const andesFilter = await ensureProduct({
+    title: 'Andes Filter',
+    slug: 'andes-filter',
+    description: 'Tueste medio con notas citricas.',
+    categoryId: categoryCafeMolido.id,
+    productTypeId: coffeeType.id,
+    brand: 'Cafe de Origen',
+  });
+
+  const ethiopiaOrigin = await ensureProduct({
+    title: 'Ethiopia Yirgacheffe',
+    slug: 'ethiopia-yirgacheffe',
+    description: 'Cafe floral con acidez brillante.',
+    categoryId: categoryCafeGrano.id,
+    productTypeId: coffeeType.id,
+    brand: 'Origen Select',
+  });
+
+  const travelTumbler = await ensureProduct({
+    title: 'Travel Tumbler',
+    slug: 'travel-tumbler',
+    description: 'Termo doble pared para llevar tu cafe.',
+    categoryId: categoryAccesorios.id,
+    productTypeId: drinkwareType.id,
+    brand: 'Cafe Lab',
+  });
+
+  const canvasTote = await ensureProduct({
+    title: 'Canvas Tote',
+    slug: 'canvas-tote',
+    description: 'Bolsa de lona resistente para el dia a dia.',
+    categoryId: categoryAccesorios.id,
+    productTypeId: null,
+    brand: 'Cafe Lab',
+  });
+
+  const handGrinder = await ensureProduct({
+    title: 'Molinillo Manual',
+    slug: 'molinillo-manual',
+    description: 'Molienda ajustable para metodos manuales.',
+    categoryId: categoryMolinos.id,
+    productTypeId: equipmentType.id,
+    brand: 'Barista Pro',
+  });
+
+  const pourOverKit = await ensureProduct({
+    title: 'Kit Pour Over',
+    slug: 'kit-pour-over',
+    description: 'Set completo con dripper y filtro.',
+    categoryId: categoryCafeteras.id,
+    productTypeId: equipmentType.id,
+    brand: 'Brew Lab',
+  });
+
+  const giftCard = await ensureProduct({
+    title: 'Gift Card 50',
+    slug: 'gift-card-50',
+    description: 'Tarjeta regalo digital de $50.',
+    categoryId: categoryGiftCards.id,
     productTypeId: null,
     brand: 'Cafe de Origen',
   });
@@ -372,8 +760,64 @@ const seed = async () => {
     );
   };
 
+  const ensureProductAttrOption = async (
+    productId: string,
+    attributeDefinitionId: string,
+    valueOptionId: string,
+  ) => {
+    const existing = await productAttrRepo.findOne({
+      where: { productId, attributeDefinitionId },
+    });
+    if (existing) return existing;
+    return productAttrRepo.save(
+      productAttrRepo.create({
+        productId,
+        attributeDefinitionId,
+        valueOptionId,
+      }),
+    );
+  };
+
+  const ensureProductAttrNumber = async (
+    productId: string,
+    attributeDefinitionId: string,
+    valueNumber: number,
+  ) => {
+    const existing = await productAttrRepo.findOne({
+      where: { productId, attributeDefinitionId },
+    });
+    if (existing) return existing;
+    return productAttrRepo.save(
+      productAttrRepo.create({
+        productId,
+        attributeDefinitionId,
+        valueNumber,
+      }),
+    );
+  };
+
   await ensureProductAttr(tshirt.id, materialAttr.id, 'Cotton 95%');
   await ensureProductAttr(hoodie.id, materialAttr.id, 'Cotton blend');
+  await ensureProductAttrOption(tshirt.id, genderAttr.id, genderUnisex.id);
+  await ensureProductAttrOption(hoodie.id, genderAttr.id, genderUnisex.id);
+
+  await ensureProductAttrOption(espressoBlend.id, roastAttr.id, roastDark.id);
+  await ensureProductAttrOption(espressoBlend.id, originAttr.id, originBrazil.id);
+  await ensureProductAttrNumber(espressoBlend.id, weightAttr.id, 250);
+
+  await ensureProductAttrOption(andesFilter.id, roastAttr.id, roastMedium.id);
+  await ensureProductAttrOption(andesFilter.id, originAttr.id, originColombia.id);
+  await ensureProductAttrNumber(andesFilter.id, weightAttr.id, 250);
+
+  await ensureProductAttrOption(ethiopiaOrigin.id, roastAttr.id, roastLight.id);
+  await ensureProductAttrOption(ethiopiaOrigin.id, originAttr.id, originEthiopia.id);
+  await ensureProductAttrNumber(ethiopiaOrigin.id, weightAttr.id, 250);
+
+  await ensureProductAttr(mug.id, materialAttr.id, 'Ceramic');
+  await ensureProductAttrNumber(mug.id, volumeAttr.id, 320);
+
+  await ensureProductAttr(travelTumbler.id, materialAttr.id, 'Stainless steel');
+  await ensureProductAttrNumber(travelTumbler.id, volumeAttr.id, 480);
 
   const ensureVariant = async (payload: {
     productId: string;
@@ -449,6 +893,84 @@ const seed = async () => {
     price: 18,
   });
 
+  const tumblerBlack = await ensureVariant({
+    productId: travelTumbler.id,
+    sku: 'TUM-BLK',
+    price: 32,
+  });
+  const tumblerWhite = await ensureVariant({
+    productId: travelTumbler.id,
+    sku: 'TUM-WHT',
+    price: 32,
+  });
+
+  await ensureVariantAttr(tumblerBlack.id, colorAttr.id, colorBlack.id);
+  await ensureVariantAttr(tumblerWhite.id, colorAttr.id, colorWhite.id);
+
+  const toteSand = await ensureVariant({
+    productId: canvasTote.id,
+    sku: 'TOTE-SAND',
+    price: 22,
+  });
+  await ensureVariantAttr(toteSand.id, colorAttr.id, colorSand.id);
+
+  const espressoGrain = await ensureVariant({
+    productId: espressoBlend.id,
+    sku: 'ESP-GRAIN',
+    price: 16,
+  });
+  const espressoEspresso = await ensureVariant({
+    productId: espressoBlend.id,
+    sku: 'ESP-ESP',
+    price: 16,
+  });
+  await ensureVariantAttr(espressoGrain.id, grindAttr.id, grindGrain.id);
+  await ensureVariantAttr(espressoEspresso.id, grindAttr.id, grindEspresso.id);
+
+  const andesFilterGrain = await ensureVariant({
+    productId: andesFilter.id,
+    sku: 'AND-GRAIN',
+    price: 15.5,
+  });
+  const andesFilterBrew = await ensureVariant({
+    productId: andesFilter.id,
+    sku: 'AND-FILTER',
+    price: 15.5,
+  });
+  await ensureVariantAttr(andesFilterGrain.id, grindAttr.id, grindGrain.id);
+  await ensureVariantAttr(andesFilterBrew.id, grindAttr.id, grindFilter.id);
+
+  const ethiopiaGrain = await ensureVariant({
+    productId: ethiopiaOrigin.id,
+    sku: 'ETH-GRAIN',
+    price: 18.5,
+  });
+  const ethiopiaFilter = await ensureVariant({
+    productId: ethiopiaOrigin.id,
+    sku: 'ETH-FILTER',
+    price: 18.5,
+  });
+  await ensureVariantAttr(ethiopiaGrain.id, grindAttr.id, grindGrain.id);
+  await ensureVariantAttr(ethiopiaFilter.id, grindAttr.id, grindFilter.id);
+
+  const grinderVariant = await ensureVariant({
+    productId: handGrinder.id,
+    sku: 'GRN-HAND',
+    price: 68,
+  });
+
+  const pourOverVariant = await ensureVariant({
+    productId: pourOverKit.id,
+    sku: 'POUR-KIT',
+    price: 54,
+  });
+
+  const giftCardVariant = await ensureVariant({
+    productId: giftCard.id,
+    sku: 'GIFT-50',
+    price: 50,
+  });
+
   const ensureProductImage = async (productId: string, url: string) => {
     const existing = await productImageRepo.findOne({
       where: { productId },
@@ -484,6 +1006,38 @@ const seed = async () => {
   await ensureProductImage(
     mug.id,
     'https://images.unsplash.com/photo-1486427944299-d1955d23e34d?auto=format&fit=crop&w=900&q=80',
+  );
+  await ensureProductImage(
+    espressoBlend.id,
+    'https://images.unsplash.com/photo-1447933601403-0c6688de566e?auto=format&fit=crop&w=900&q=80',
+  );
+  await ensureProductImage(
+    andesFilter.id,
+    'https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=900&q=80',
+  );
+  await ensureProductImage(
+    ethiopiaOrigin.id,
+    'https://images.unsplash.com/photo-1459755486867-b55449bb39ff?auto=format&fit=crop&w=900&q=80',
+  );
+  await ensureProductImage(
+    travelTumbler.id,
+    'https://images.unsplash.com/photo-1523362628745-0c100150b504?auto=format&fit=crop&w=900&q=80',
+  );
+  await ensureProductImage(
+    canvasTote.id,
+    'https://images.unsplash.com/photo-1523292562811-8fa7962a78c8?auto=format&fit=crop&w=900&q=80',
+  );
+  await ensureProductImage(
+    handGrinder.id,
+    'https://images.unsplash.com/photo-1511920170033-f8396924c348?auto=format&fit=crop&w=900&q=80',
+  );
+  await ensureProductImage(
+    pourOverKit.id,
+    'https://images.unsplash.com/photo-1461988091159-192b6df7054f?auto=format&fit=crop&w=900&q=80',
+  );
+  await ensureProductImage(
+    giftCard.id,
+    'https://images.unsplash.com/photo-1512436991641-6745cdb1723f?auto=format&fit=crop&w=900&q=80',
   );
 
   const warehouse =
@@ -523,6 +1077,18 @@ const seed = async () => {
   await ensureInventory(tshirtBlackM.id, 14);
   await ensureInventory(hoodieBlueL.id, 9);
   await ensureInventory(mugVariant.id, 20);
+  await ensureInventory(tumblerBlack.id, 15);
+  await ensureInventory(tumblerWhite.id, 11);
+  await ensureInventory(toteSand.id, 8);
+  await ensureInventory(espressoGrain.id, 30);
+  await ensureInventory(espressoEspresso.id, 22);
+  await ensureInventory(andesFilterGrain.id, 25);
+  await ensureInventory(andesFilterBrew.id, 19);
+  await ensureInventory(ethiopiaGrain.id, 18);
+  await ensureInventory(ethiopiaFilter.id, 14);
+  await ensureInventory(grinderVariant.id, 6);
+  await ensureInventory(pourOverVariant.id, 5);
+  await ensureInventory(giftCardVariant.id, 100);
 
   const paymentMethod =
     (await paymentMethodRepo.findOne({
@@ -538,6 +1104,22 @@ const seed = async () => {
           accountName: 'Cafe de Origen',
           accountNumber: '1234567890',
           instructions: 'Send proof with the reference code.',
+        },
+        isActive: true,
+      }),
+    ));
+
+  const cashMethod =
+    (await paymentMethodRepo.findOne({
+      where: { storeId: store.id, type: 'cash' },
+    })) ??
+    (await paymentMethodRepo.save(
+      paymentMethodRepo.create({
+        tenantId: tenant.id,
+        storeId: store.id,
+        type: 'cash',
+        configJson: {
+          instructions: 'Pago en efectivo al retirar.',
         },
         isActive: true,
       }),
@@ -575,15 +1157,115 @@ const seed = async () => {
     );
   }
 
-  const existingOrder = await orderRepo.findOne({
-    where: { storeId: store.id, orderNumber: 1001 },
-  });
-  if (!existingOrder) {
-    const itemsForOrder = [
-      { variant: tshirtRedM, quantity: 2 },
-      { variant: mugVariant, quantity: 1 },
-    ];
-    const subtotal = itemsForOrder.reduce(
+  const extraCustomers = [
+    { fullName: 'Mateo Ruiz', email: 'mateo@mail.com', phone: '+54 11 4555-2222' },
+    { fullName: 'Valentina Paz', email: 'valen@mail.com', phone: '+54 11 4666-3333' },
+    { fullName: 'Julia Rios', email: 'julia@mail.com', phone: '+54 11 4777-4444' },
+  ];
+
+  for (const entry of extraCustomers) {
+    const existingCustomer =
+      (await customerRepo.findOne({
+        where: { storeId: store.id, email: entry.email },
+      })) ??
+      (await customerRepo.save(
+        customerRepo.create({
+          tenantId: tenant.id,
+          storeId: store.id,
+          fullName: entry.fullName,
+          email: entry.email,
+          phone: entry.phone,
+        }),
+      ));
+
+    const existingCustomerAddress = await customerAddressRepo.findOne({
+      where: { customerId: existingCustomer.id },
+    });
+    if (!existingCustomerAddress) {
+      await customerAddressRepo.save(
+        customerAddressRepo.create({
+          customerId: existingCustomer.id,
+          label: 'Casa',
+          address1: 'Av. Central 500',
+          city: 'Buenos Aires',
+          state: 'BA',
+          zip: '1000',
+          country: 'AR',
+          isDefault: true,
+        }),
+      );
+    }
+  }
+
+  const orderSeeds = [
+    {
+      orderNumber: 1001,
+      customerEmail: customer.email!,
+      status: 'pending_payment' as const,
+      paymentStatus: 'pending' as const,
+      fulfillmentStatus: 'unfulfilled' as const,
+      items: [
+        { variant: tshirtRedM, quantity: 2 },
+        { variant: mugVariant, quantity: 1 },
+      ],
+      paymentIntentStatus: 'pending' as const,
+      methodId: paymentMethod.id,
+      note: 'Leave at reception',
+      reserveStock: true,
+    },
+    {
+      orderNumber: 1002,
+      customerEmail: 'mateo@mail.com',
+      status: 'pending_payment' as const,
+      paymentStatus: 'pending' as const,
+      fulfillmentStatus: 'unfulfilled' as const,
+      items: [
+        { variant: espressoGrain, quantity: 1 },
+        { variant: tumblerBlack, quantity: 1 },
+      ],
+      paymentIntentStatus: 'submitted' as const,
+      methodId: paymentMethod.id,
+      note: 'Enviar por la manana',
+      reserveStock: true,
+    },
+    {
+      orderNumber: 1003,
+      customerEmail: 'valen@mail.com',
+      status: 'processing' as const,
+      paymentStatus: 'paid' as const,
+      fulfillmentStatus: 'unfulfilled' as const,
+      items: [{ variant: hoodieBlueL, quantity: 1 }],
+      paymentIntentStatus: 'confirmed' as const,
+      methodId: paymentMethod.id,
+      note: null,
+      reserveStock: false,
+    },
+    {
+      orderNumber: 1004,
+      customerEmail: 'julia@mail.com',
+      status: 'cancelled' as const,
+      paymentStatus: 'failed' as const,
+      fulfillmentStatus: 'unfulfilled' as const,
+      items: [{ variant: toteSand, quantity: 1 }],
+      paymentIntentStatus: 'rejected' as const,
+      methodId: cashMethod.id,
+      note: 'Cancelado por el cliente',
+      reserveStock: false,
+    },
+  ];
+
+  for (const seed of orderSeeds) {
+    const existingOrder = await orderRepo.findOne({
+      where: { storeId: store.id, orderNumber: seed.orderNumber },
+    });
+    if (existingOrder) continue;
+
+    const orderCustomer =
+      (await customerRepo.findOne({
+        where: { storeId: store.id, email: seed.customerEmail },
+      })) ?? customer;
+
+    const subtotal = seed.items.reduce(
       (sum, item) => sum + item.variant.price * item.quantity,
       0,
     );
@@ -591,22 +1273,22 @@ const seed = async () => {
       orderRepo.create({
         tenantId: tenant.id,
         storeId: store.id,
-        orderNumber: 1001,
-        customerId: customer.id,
-        status: 'pending_payment',
-        paymentStatus: 'pending',
-        fulfillmentStatus: 'unfulfilled',
+        orderNumber: seed.orderNumber,
+        customerId: orderCustomer.id,
+        status: seed.status,
+        paymentStatus: seed.paymentStatus,
+        fulfillmentStatus: seed.fulfillmentStatus,
         currency: store.currency,
         subtotalAmount: subtotal,
         discountAmount: 0,
         shippingAmount: 0,
         taxAmount: 0,
         totalAmount: subtotal,
-        customerNote: 'Leave at reception',
+        customerNote: seed.note,
       }),
     );
 
-    const orderItems = itemsForOrder.map((item) =>
+    const orderItems = seed.items.map((item) =>
       orderItemRepo.create({
         orderId: order.id,
         variantId: item.variant.id,
@@ -633,46 +1315,47 @@ const seed = async () => {
       }),
     );
 
-    const existingIntent = await paymentIntentRepo.findOne({
-      where: { orderId: order.id },
-    });
-    if (!existingIntent) {
-      await paymentIntentRepo.save(
-        paymentIntentRepo.create({
-          tenantId: tenant.id,
-          storeId: store.id,
-          orderId: order.id,
-          methodId: paymentMethod.id,
-          status: 'pending',
-          amount: order.totalAmount,
-          currency: order.currency,
-          referenceCode: `REF-${order.id.slice(0, 6).toUpperCase()}`,
-        }),
-      );
-    }
+    await paymentIntentRepo.save(
+      paymentIntentRepo.create({
+        tenantId: tenant.id,
+        storeId: store.id,
+        orderId: order.id,
+        methodId: seed.methodId,
+        status: seed.paymentIntentStatus,
+        amount: order.totalAmount,
+        currency: order.currency,
+        referenceCode: `REF-${order.id.slice(0, 6).toUpperCase()}`,
+      }),
+    );
 
-    for (const item of itemsForOrder) {
+    for (const item of seed.items) {
       const level = await inventoryRepo.findOne({
         where: { warehouseId: warehouse.id, variantId: item.variant.id },
       });
-      if (level) {
+      if (!level) continue;
+      if (seed.reserveStock) {
         level.reserved += item.quantity;
-        await inventoryRepo.save(level);
+      } else if (seed.paymentStatus === 'paid') {
+        level.onHand = Math.max(0, level.onHand - item.quantity);
       }
-      const existingReservation = await reservationRepo.findOne({
-        where: { orderId: order.id, variantId: item.variant.id },
-      });
-      if (!existingReservation) {
-        await reservationRepo.save(
-          reservationRepo.create({
-            tenantId: tenant.id,
-            storeId: store.id,
-            warehouseId: warehouse.id,
-            variantId: item.variant.id,
-            orderId: order.id,
-            quantity: item.quantity,
-          }),
-        );
+      await inventoryRepo.save(level);
+
+      if (seed.reserveStock) {
+        const existingReservation = await reservationRepo.findOne({
+          where: { orderId: order.id, variantId: item.variant.id },
+        });
+        if (!existingReservation) {
+          await reservationRepo.save(
+            reservationRepo.create({
+              tenantId: tenant.id,
+              storeId: store.id,
+              warehouseId: warehouse.id,
+              variantId: item.variant.id,
+              orderId: order.id,
+              quantity: item.quantity,
+            }),
+          );
+        }
       }
     }
   }

@@ -10,7 +10,19 @@
     <nav class="nav">
       <NuxtLink to="/" :class="{ active: isActive('/') }">Dashboard</NuxtLink>
       <NuxtLink to="/products" :class="{ active: isActive('/products') }">Productos</NuxtLink>
+      <NuxtLink to="/categories" :class="{ active: isActive('/categories') }">
+        Categorias
+      </NuxtLink>
+      <NuxtLink to="/attributes" :class="{ active: isActive('/attributes') }">
+        Atributos
+      </NuxtLink>
+      <NuxtLink to="/product-types" :class="{ active: isActive('/product-types') }">
+        Tipos de producto
+      </NuxtLink>
       <NuxtLink to="/orders" :class="{ active: isActive('/orders') }">Pedidos</NuxtLink>
+      <NuxtLink to="/payments" :class="{ active: isActive('/payments') }">
+        Pagos
+      </NuxtLink>
       <NuxtLink to="/customers" :class="{ active: isActive('/customers') }">Clientes</NuxtLink>
     </nav>
     <div class="sidebar-footer">

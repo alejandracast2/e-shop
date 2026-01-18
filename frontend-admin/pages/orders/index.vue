@@ -17,6 +17,7 @@
           <th>Total</th>
           <th>Status</th>
           <th>Pago</th>
+          <th>Fulfillment</th>
           <th></th>
         </tr>
       </thead>
@@ -27,6 +28,7 @@
           <td>${{ Number(order.totalAmount).toFixed(2) }}</td>
           <td><span class="pill">{{ order.status }}</span></td>
           <td><span class="pill">{{ order.paymentStatus }}</span></td>
+          <td><span class="pill">{{ order.fulfillmentStatus || '-' }}</span></td>
           <td>
             <NuxtLink class="btn btn-ghost" :to="`/orders/${order.id}`">Ver</NuxtLink>
           </td>

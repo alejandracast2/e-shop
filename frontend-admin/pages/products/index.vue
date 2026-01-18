@@ -14,6 +14,7 @@
       <thead>
         <tr>
           <th>Producto</th>
+          <th>Categoria</th>
           <th>SKU</th>
           <th>Precio</th>
           <th>Stock</th>
@@ -26,6 +27,10 @@
           <td>
             <strong>{{ product.title }}</strong>
             <div class="muted">{{ product.description || 'Sin descripcion' }}</div>
+          </td>
+          <td>
+            <div>{{ product.category?.name || 'Sin categoria' }}</div>
+            <div class="muted">{{ product.brand || '' }}</div>
           </td>
           <td>{{ primaryVariant(product)?.sku || '--' }}</td>
           <td>

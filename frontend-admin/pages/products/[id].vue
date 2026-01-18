@@ -17,8 +17,30 @@
         <input v-model="form.slug" required />
       </label>
       <label>
+        Marca
+        <input v-model="form.brand" />
+      </label>
+      <label>
         SKU
         <input v-model="form.sku" />
+      </label>
+      <label>
+        Categoria
+        <select v-model="form.categoryId">
+          <option value="">Sin categoria</option>
+          <option v-for="category in categories" :key="category.id" :value="category.id">
+            {{ category.name }}
+          </option>
+        </select>
+      </label>
+      <label>
+        Tipo de producto
+        <select v-model="form.productTypeId">
+          <option value="">Sin tipo</option>
+          <option v-for="type in productTypes" :key="type.id" :value="type.id">
+            {{ type.name }}
+          </option>
+        </select>
       </label>
       <label class="full">
         Descripcion
@@ -49,7 +71,7 @@
 </template>
 
 <script setup lang="ts">
-import type { Product } from '~/types';
+import type { Category, Product, ProductType } from '~/types';
 
 definePageMeta({ middleware: 'auth' });
 
@@ -65,6 +87,23 @@ const apiHeaders = computed(() => ({
   'x-store-slug': config.public.storeSlug,
 }));
 
+const { data: categoryData } = await useFetch<Category[]>('/admin/categories', {
+  baseURL: config.public.apiUrl,
+  server: false,
+  headers: apiHeaders,
+});
+const { data: productTypeData } = await useFetch<ProductType[]>(
+  '/admin/product-types',
+  {
+    baseURL: config.public.apiUrl,
+    server: false,
+    headers: apiHeaders,
+  },
+);
+
+const categories = computed(() => categoryData.value ?? []);
+const productTypes = computed(() => productTypeData.value ?? []);
+
 const { data: product, pending, error } = await useFetch<Product>(
   `/admin/products/${route.params.id}`,
   { baseURL: config.public.apiUrl, server: false, headers: apiHeaders },
@@ -73,7 +112,10 @@ const { data: product, pending, error } = await useFetch<Product>(
 const form = reactive({
   title: '',
   slug: '',
+  brand: '',
   sku: '',
+  categoryId: '',
+  productTypeId: '',
   description: '',
   price: 0,
   stock: 0,
@@ -93,6 +135,9 @@ watch(
     form.slug = value.slug;
     form.description = value.description || '';
     form.status = value.status || 'active';
+    form.brand = value.brand || '';
+    form.categoryId = value.category?.id || '';
+    form.productTypeId = value.productTypeId || '';
     form.sku = variant?.sku || '';
     form.price = variant?.price ?? 0;
     form.stock = variant?.availableStock ?? 0;
@@ -110,8 +155,11 @@ const updateProduct = async () => {
       body: {
         title: form.title,
         slug: form.slug,
+        brand: form.brand || undefined,
         description: form.description || undefined,
         status: form.status,
+        categoryId: form.categoryId || undefined,
+        productTypeId: form.productTypeId || undefined,
       },
       headers: apiHeaders.value,
     });

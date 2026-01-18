@@ -13,6 +13,7 @@
         </div>
         <div class="detail-info">
           <div class="eyebrow">Producto</div>
+          <p v-if="product.category" class="category">{{ product.category.name }}</p>
           <h1>{{ product.title }}</h1>
           <p class="subtitle">
             {{ product.description || 'Disenado para elevar tu rutina diaria.' }}
@@ -22,6 +23,12 @@
           </div>
           <div v-if="selectedVariant?.availableStock !== undefined" class="stock">
             {{ selectedVariant.availableStock }} disponibles
+          </div>
+          <div v-if="variantAttributes.length" class="attributes">
+            <div v-for="attr in variantAttributes" :key="attr.id" class="attr-row">
+              <span>{{ attr.attributeDefinition?.name }}</span>
+              <strong>{{ attr.valueOption?.value || attr.valueText }}</strong>
+            </div>
           </div>
           <div v-if="product.variants?.length" class="variant-select">
             <label>
@@ -98,6 +105,10 @@ const selectedVariant = computed<ProductVariant | null>(() => {
   return variants.find((variant) => variant.id === selectedVariantId.value) ?? variants[0];
 });
 
+const variantAttributes = computed(() =>
+  selectedVariant.value?.attributes?.filter((attr) => attr.attributeDefinition?.name) ?? [],
+);
+
 watchEffect(() => {
   if (!selectedVariantId.value && product.value?.variants?.length) {
     selectedVariantId.value = product.value.variants[0].id;
@@ -165,6 +176,14 @@ const addToCart = () => {
   font-size: 32px;
 }
 
+.category {
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  margin: 0 0 6px;
+}
+
 .price {
   font-size: 24px;
   font-weight: 700;
@@ -174,6 +193,20 @@ const addToCart = () => {
 .stock {
   color: var(--muted);
   font-size: 14px;
+}
+
+.attributes {
+  margin-top: 12px;
+  display: grid;
+  gap: 6px;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.attr-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
 }
 
 .variant-select {
