@@ -1,34 +1,62 @@
-export type Product = {
-  id: number;
-  name: string;
-  description?: string | null;
-  price: number;
-  sku?: string | null;
-  imageUrl?: string | null;
-  stock: number;
-  isActive: boolean;
+export type ProductImage = {
+  id: string;
+  file?: { url?: string | null } | null;
 };
 
-export type OrderItemInput = {
-  productId: number;
+export type ProductVariant = {
+  id: string;
+  sku?: string | null;
+  price: number;
+  compareAtPrice?: number | null;
+  availableStock?: number;
+};
+
+export type Product = {
+  id: string;
+  title: string;
+  slug: string;
+  description?: string | null;
+  variants?: ProductVariant[];
+  images?: ProductImage[];
+};
+
+export type CartItem = {
+  variantId: string;
+  title: string;
+  price: number;
+  imageUrl?: string;
   quantity: number;
 };
 
-export type CustomerInput = {
-  firstName: string;
-  lastName: string;
-  email: string;
+export type CheckoutCustomerInput = {
+  fullName: string;
+  email?: string;
   phone?: string;
-  addressLine1?: string;
-  addressLine2?: string;
-  city?: string;
-  state?: string;
-  postalCode?: string;
-  country?: string;
 };
 
-export type OrderResponse = {
-  id: number;
-  status: string;
-  total: number;
+export type CheckoutAddressInput = {
+  address1: string;
+  address2?: string;
+  city: string;
+  state: string;
+  zip: string;
+  country: string;
+};
+
+export type CheckoutResponse = {
+  order: {
+    id: string;
+    orderNumber: number;
+    status: string;
+    totalAmount: number;
+  };
+  paymentIntent: {
+    id: string;
+    status: string;
+    referenceCode?: string | null;
+  };
+  paymentMethod: {
+    type: string;
+    configJson?: Record<string, unknown> | null;
+  };
 };

@@ -87,10 +87,15 @@
 import type { Product } from '~/types';
 
 const config = useRuntimeConfig();
-const { data: products, pending, error } = await useFetch<Product[]>('/products', {
-  baseURL: config.public.apiUrl,
-  query: { active: 'true' },
-});
+const { data: products, pending, error } = await useFetch<Product[]>(
+  '/storefront/products',
+  {
+    baseURL: config.public.apiUrl,
+    headers: {
+      'x-store-slug': config.public.storeSlug,
+    },
+  },
+);
 
 const safeProducts = computed(() => products.value ?? []);
 </script>

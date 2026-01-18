@@ -1,75 +1,23 @@
-# Nuxt Minimal Starter
+# Frontend Customer
 
-Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
+Nuxt storefront para clientes. Consume endpoints `storefront` del backend.
 
 ## Setup
-
-Make sure to install dependencies:
-
 ```bash
-# npm
 npm install
-
-# pnpm
-pnpm install
-
-# yarn
-yarn install
-
-# bun
-bun install
 ```
 
-## Development Server
+## Variables
+- `NUXT_PUBLIC_API_URL` (default `http://localhost:4000`)
+- `NUXT_PUBLIC_STORE_SLUG` (default `default`)
 
-Start the development server on `http://localhost:3000`:
-
+## Development
 ```bash
-# npm
 npm run dev
-
-# pnpm
-pnpm dev
-
-# yarn
-yarn dev
-
-# bun
-bun run dev
 ```
 
-## Production
-
-Build the application for production:
-
-```bash
-# npm
-npm run build
-
-# pnpm
-pnpm build
-
-# yarn
-yarn build
-
-# bun
-bun run build
-```
-
-Locally preview production build:
-
-```bash
-# npm
-npm run preview
-
-# pnpm
-pnpm preview
-
-# yarn
-yarn preview
-
-# bun
-bun run preview
-```
-
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+## Rutas
+- `/` catalogo
+- `/product/:slug` detalle
+- `/cart` carrito
+- `/checkout` checkout + transferencia

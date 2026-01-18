@@ -4,13 +4,15 @@ import * as bcrypt from 'bcrypt';
 import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { User, UserRole } from './entities/user.entity';
+import { User } from './entities/user.entity';
+import { IamService } from '../iam/iam.service';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    private readonly iamService: IamService,
   ) {}
 
   async create(createUserDto: CreateUserDto) {
@@ -25,12 +27,20 @@ export class UserService {
     const user = this.userRepository.create({
       name: createUserDto.name,
       email: createUserDto.email,
+      phone: createUserDto.phone ?? null,
       passwordHash,
-      role: createUserDto.role ?? UserRole.ADMIN,
       isActive: createUserDto.isActive ?? true,
     });
 
     const saved = await this.userRepository.save(user);
+    if (createUserDto.roleName) {
+      await this.iamService.assignRoleToUser({
+        userId: saved.id,
+        roleName: createUserDto.roleName,
+        tenantId: createUserDto.tenantId ?? null,
+        storeId: createUserDto.storeId ?? null,
+      });
+    }
     return this.stripSensitive(saved);
   }
 
@@ -38,7 +48,7 @@ export class UserService {
     return this.userRepository.find();
   }
 
-  async findOne(id: number) {
+  async findOne(id: string) {
     const user = await this.userRepository.findOne({ where: { id } });
     if (!user) {
       throw new NotFoundException('User not found');
@@ -54,10 +64,10 @@ export class UserService {
       .getOne();
   }
 
-  async update(id: number, updateUserDto: UpdateUserDto) {
+  async update(id: string, updateUserDto: UpdateUserDto) {
     const user = await this.userRepository.findOne({
       where: { id },
-      select: ['id', 'name', 'email', 'passwordHash', 'role', 'isActive'],
+      select: ['id', 'name', 'email', 'phone', 'passwordHash', 'isActive'],
     });
 
     if (!user) {
@@ -70,17 +80,21 @@ export class UserService {
 
     user.name = updateUserDto.name ?? user.name;
     user.email = updateUserDto.email ?? user.email;
-    user.role = updateUserDto.role ?? user.role;
+    user.phone = updateUserDto.phone ?? user.phone;
     user.isActive = updateUserDto.isActive ?? user.isActive;
 
     const saved = await this.userRepository.save(user);
     return this.stripSensitive(saved);
   }
 
-  async remove(id: number) {
+  async remove(id: string) {
     const user = await this.findOne(id);
     await this.userRepository.remove(user);
     return { deleted: true };
+  }
+
+  async updateLastLogin(id: string) {
+    await this.userRepository.update(id, { lastLoginAt: new Date() });
   }
 
   private stripSensitive(user: User) {

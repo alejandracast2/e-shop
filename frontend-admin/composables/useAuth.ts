@@ -1,8 +1,8 @@
 type AuthUser = {
-  id: number;
+  id: string;
   name: string;
   email: string;
-  role: string;
+  roles?: Array<{ role: string; tenantId?: string; storeId?: string }>;
 };
 
 const TOKEN_KEY = 'eshop-admin-token';

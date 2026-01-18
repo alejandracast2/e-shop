@@ -23,8 +23,8 @@
         <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
       </form>
       <div class="hint">
-        <div class="pill">admin@eshop.com / admin123</div>
-        <div class="pill">staff@eshop.com / admin123</div>
+        <div class="pill">admin@cafedeorigen.com / admin123</div>
+        <div class="pill">staff@cafedeorigen.com / admin123</div>
       </div>
     </div>
   </section>

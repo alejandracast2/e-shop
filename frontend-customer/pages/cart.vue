@@ -14,31 +14,31 @@
 
       <div v-else class="cart-grid">
         <div class="cart-items">
-          <article v-for="item in items" :key="item.productId" class="cart-row">
+          <article v-for="item in items" :key="item.variantId" class="cart-row">
             <div class="thumb">
-              <img v-if="item.imageUrl" :src="item.imageUrl" :alt="item.name" />
-              <div v-else class="thumb-placeholder">{{ initials(item.name) }}</div>
+              <img v-if="item.imageUrl" :src="item.imageUrl" :alt="item.title" />
+              <div v-else class="thumb-placeholder">{{ initials(item.title) }}</div>
             </div>
             <div class="info">
-              <h3>{{ item.name }}</h3>
+              <h3>{{ item.title }}</h3>
               <span class="muted">${{ item.price.toFixed(2) }}</span>
             </div>
             <div class="qty">
-              <button type="button" @click="updateQuantity(item.productId, item.quantity - 1)">
+              <button type="button" @click="updateQuantity(item.variantId, item.quantity - 1)">
                 -
               </button>
               <input
                 v-model.number="item.quantity"
                 type="number"
                 min="1"
-                @change="updateQuantity(item.productId, item.quantity)"
+                @change="updateQuantity(item.variantId, item.quantity)"
               />
-              <button type="button" @click="updateQuantity(item.productId, item.quantity + 1)">
+              <button type="button" @click="updateQuantity(item.variantId, item.quantity + 1)">
                 +
               </button>
             </div>
             <div class="line-total">${{ (item.price * item.quantity).toFixed(2) }}</div>
-            <button class="remove" type="button" @click="removeItem(item.productId)">
+            <button class="remove" type="button" @click="removeItem(item.variantId)">
               Quitar
             </button>
           </article>

@@ -1,49 +1,50 @@
 # Database Models
 
-## Relaciones principales
-- `Customer 1:N Order`
-- `Order 1:N OrderItem`
-- `OrderItem N:1 Product`
-- `User` es independiente para administracion
+## Multi-tenancy
+- Todas las entidades operativas incluyen `tenantId` y `storeId`.
+- `tenants` y `stores` definen el contexto de datos.
 
-## Product
-- `id` (PK)
-- `name`, `description`
-- `price` (numeric)
-- `sku`, `imageUrl`
-- `stock`, `isActive`
-- `createdAt`, `updatedAt`
+## Tenancy
+- `tenants`: name, status, ownerUserId.
+- `stores`: tenantId, name, slug, status, currency, timezone.
+- `store_settings`: brandingJson, checkoutSettingsJson, paymentSettingsJson.
 
-## Customer
-- `id` (PK)
-- `firstName`, `lastName`, `email` (unique)
-- `phone`
-- `addressLine1`, `addressLine2`, `city`, `state`, `postalCode`, `country`
-- `createdAt`, `updatedAt`
+## IAM / Users
+- `users`: email, passwordHash, isActive, lastLoginAt.
+- `roles`: platform_admin, tenant_owner, store_admin, store_staff, customer.
+- `user_roles`: scope por tenant/store.
 
-## Order
-- `id` (PK)
-- `customerId` (FK)
-- `status`: pending | paid | shipped | completed | canceled
-- `paymentStatus`: unpaid | paid | refunded
-- `currency`, `subtotal`, `total`
-- `shippingName`, `shippingEmail`, `shippingPhone`
-- `shippingAddressLine1`, `shippingAddressLine2`, `shippingCity`, `shippingState`, `shippingPostalCode`, `shippingCountry`
-- `notes`
-- `createdAt`, `updatedAt`
+## Catalogo
+- `categories`: jerarquia con `parentId`, `slug`.
+- `attribute_definitions`: code, type, flags (`isVariantAxis`, etc).
+- `attribute_options`: values para select/multiselect.
+- `product_types` + `product_type_attributes`.
+- `products`: title, slug, status, categoryId, productTypeId.
+- `product_variants`: sku, price, compareAtPrice.
+- `product_attribute_values` (EAV) y `variant_attribute_values`.
+- `files` + `product_images`.
 
-## OrderItem
-- `id` (PK)
-- `orderId` (FK)
-- `productId` (FK)
-- `quantity`
-- `unitPrice`
-- `lineTotal`
+## Inventario
+- `warehouses`
+- `inventory_levels`: onHand, reserved.
+- `inventory_movements`
+- `inventory_reservations`
 
-## User
-- `id` (PK)
-- `name`, `email` (unique)
-- `passwordHash`
-- `role`: admin | staff
-- `isActive`
-- `createdAt`, `updatedAt`
+## Customers
+- `customers`: perfil por store.
+- `customer_addresses`
+
+## Cart y Checkout
+- `carts` + `cart_items`
+- `checkout_sessions`: snapshots de direcciones y totales.
+
+## Orders
+- `orders`: orderNumber, status, paymentStatus, totals.
+- `order_items`: sku/title snapshot.
+- `order_addresses`
+- `order_status_events`
+
+## Payments
+- `payment_methods`: configJson para transferencia.
+- `payment_intents`
+- `payment_proofs`

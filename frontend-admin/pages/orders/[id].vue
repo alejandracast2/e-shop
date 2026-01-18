@@ -10,18 +10,20 @@
       <label>
         Status
         <select v-model="form.status">
-          <option value="pending">pending</option>
+          <option value="pending_payment">pending_payment</option>
           <option value="paid">paid</option>
-          <option value="shipped">shipped</option>
-          <option value="completed">completed</option>
-          <option value="canceled">canceled</option>
+          <option value="processing">processing</option>
+          <option value="fulfilled">fulfilled</option>
+          <option value="cancelled">cancelled</option>
+          <option value="refunded">refunded</option>
         </select>
       </label>
       <label>
         Pago
         <select v-model="form.paymentStatus">
-          <option value="unpaid">unpaid</option>
+          <option value="pending">pending</option>
           <option value="paid">paid</option>
+          <option value="failed">failed</option>
           <option value="refunded">refunded</option>
         </select>
       </label>
@@ -33,14 +35,16 @@
 
     <div class="card">
       <h3>Cliente</h3>
-      <p><strong>{{ order?.customer.firstName }} {{ order?.customer.lastName }}</strong></p>
-      <p class="muted">{{ order?.customer.email }}</p>
+      <p><strong>{{ order?.customer?.fullName || 'Sin cliente' }}</strong></p>
+      <p class="muted">{{ order?.customer?.email }}</p>
     </div>
 
     <div class="card">
       <h3>Total</h3>
-      <p class="total">${{ Number(order?.total || 0).toFixed(2) }}</p>
-      <p class="muted">Subtotal: ${{ Number(order?.subtotal || 0).toFixed(2) }}</p>
+      <p class="total">${{ Number(order?.totalAmount || 0).toFixed(2) }}</p>
+      <p class="muted">
+        Subtotal: ${{ Number(order?.subtotalAmount || 0).toFixed(2) }}
+      </p>
     </div>
   </section>
 
@@ -49,10 +53,10 @@
     <div v-if="order?.items?.length" class="items">
       <div v-for="item in order.items" :key="item.id" class="item-row">
         <div>
-          <strong>{{ item.product.name }}</strong>
+          <strong>{{ item.titleSnapshot }}</strong>
           <div class="muted">Cantidad: {{ item.quantity }}</div>
         </div>
-        <div>${{ Number(item.lineTotal).toFixed(2) }}</div>
+        <div>${{ Number(item.totalPrice).toFixed(2) }}</div>
       </div>
     </div>
     <p v-else class="muted">No hay items registrados.</p>
@@ -70,15 +74,23 @@ const message = ref('');
 const { authHeaders, hydrate } = useAuth();
 hydrate();
 
-const { data: order, refresh } = await useFetch<Order>(`/orders/${route.params.id}`, {
-  baseURL: config.public.apiUrl,
-  server: false,
-  headers: authHeaders.value,
-});
+const apiHeaders = computed(() => ({
+  ...authHeaders.value,
+  'x-store-slug': config.public.storeSlug,
+}));
+
+const { data: order, refresh } = await useFetch<Order>(
+  `/admin/orders/${route.params.id}`,
+  {
+    baseURL: config.public.apiUrl,
+    server: false,
+    headers: apiHeaders,
+  },
+);
 
 const form = reactive({
-  status: 'pending',
-  paymentStatus: 'unpaid',
+  status: 'pending_payment',
+  paymentStatus: 'pending',
 });
 
 watch(
@@ -93,14 +105,14 @@ watch(
 
 const updateOrder = async () => {
   message.value = '';
-  await $fetch(`/orders/${route.params.id}`, {
+  await $fetch(`/admin/orders/${route.params.id}`, {
     baseURL: config.public.apiUrl,
     method: 'PATCH',
     body: {
       status: form.status,
       paymentStatus: form.paymentStatus,
     },
-    headers: authHeaders.value,
+    headers: apiHeaders.value,
   });
   message.value = 'Cambios guardados.';
   await refresh();

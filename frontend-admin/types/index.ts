@@ -1,37 +1,49 @@
-export type Product = {
-  id: number;
-  name: string;
-  description?: string | null;
-  price: number;
+export type ProductImage = {
+  id: string;
+  file?: { url?: string | null } | null;
+};
+
+export type ProductVariant = {
+  id: string;
   sku?: string | null;
-  imageUrl?: string | null;
-  stock: number;
-  isActive: boolean;
+  price: number;
+  availableStock?: number;
+};
+
+export type Product = {
+  id: string;
+  title: string;
+  slug: string;
+  description?: string | null;
+  status: string;
+  variants?: ProductVariant[];
+  images?: ProductImage[];
 };
 
 export type Customer = {
-  id: number;
-  firstName: string;
-  lastName: string;
-  email: string;
+  id: string;
+  fullName: string;
+  email?: string | null;
   phone?: string | null;
 };
 
 export type OrderItem = {
-  id: number;
+  id: string;
   quantity: number;
   unitPrice: number;
-  lineTotal: number;
-  product: Product;
+  totalPrice: number;
+  skuSnapshot?: string | null;
+  titleSnapshot: string;
 };
 
 export type Order = {
-  id: number;
+  id: string;
+  orderNumber: number;
   status: string;
   paymentStatus: string;
-  subtotal: number;
-  total: number;
+  subtotalAmount: number;
+  totalAmount: number;
   createdAt: string;
-  customer: Customer;
-  items: OrderItem[];
+  customer?: Customer | null;
+  items?: OrderItem[];
 };
