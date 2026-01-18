@@ -45,6 +45,22 @@
         </p>
       </div>
 
+      <div class="filters card">
+        <label>
+          Buscar
+          <input v-model="filters.search" placeholder="Busca por nombre" />
+        </label>
+        <label>
+          Categoria
+          <select v-model="filters.categoryId">
+            <option value="">Todas</option>
+            <option v-for="category in categories" :key="category.id" :value="category.id">
+              {{ category.name }}
+            </option>
+          </select>
+        </label>
+      </div>
+
       <div v-if="pending" class="loading">Cargando productos...</div>
       <div v-else-if="error" class="loading error">
         No se pudo cargar el catalogo.
@@ -84,20 +100,42 @@
 </template>
 
 <script setup lang="ts">
-import type { Product } from '~/types';
+import type { Category, Product } from '~/types';
 
 const config = useRuntimeConfig();
+const headers = {
+  'x-store-slug': config.public.storeSlug,
+};
+
+const { data: categoryData } = await useFetch<Category[]>(
+  '/storefront/categories',
+  {
+    baseURL: config.public.apiUrl,
+    headers,
+  },
+);
+
+const filters = reactive({
+  search: '',
+  categoryId: '',
+});
+
 const { data: products, pending, error } = await useFetch<Product[]>(
   '/storefront/products',
   {
     baseURL: config.public.apiUrl,
-    headers: {
-      'x-store-slug': config.public.storeSlug,
-    },
+    headers,
+    query: computed(() => ({
+      search: filters.search || undefined,
+      category: filters.categoryId || undefined,
+    })),
+    watch: [() => filters.search, () => filters.categoryId],
+    server: false,
   },
 );
 
 const safeProducts = computed(() => products.value ?? []);
+const categories = computed(() => categoryData.value ?? []);
 </script>
 
 <style scoped>
@@ -154,6 +192,29 @@ const safeProducts = computed(() => products.value ?? []);
   gap: 24px;
   margin-bottom: 32px;
   flex-wrap: wrap;
+}
+
+.filters {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  margin-bottom: 24px;
+}
+
+.filters label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.filters input,
+.filters select {
+  border: 1px solid var(--outline);
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-family: inherit;
 }
 
 .loading {

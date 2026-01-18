@@ -6,6 +6,7 @@
     </NuxtLink>
     <div class="product-body">
       <div>
+        <p v-if="product.category" class="category">{{ product.category.name }}</p>
         <h3>{{ product.title }}</h3>
         <p>{{ product.description || 'Detalles curados para tu rutina diaria.' }}</p>
       </div>
@@ -108,6 +109,14 @@ const addToCart = () => {
 .product-body h3 {
   margin: 0 0 6px;
   font-size: 18px;
+}
+
+.category {
+  margin: 0 0 4px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
 }
 
 .product-body p {

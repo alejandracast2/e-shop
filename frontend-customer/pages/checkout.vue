@@ -29,7 +29,33 @@
             Cuando completes la transferencia, el administrador confirmara tu pago.
           </p>
         </div>
+
+        <form class="card proof" @submit.prevent="submitProof">
+          <h3>Subir comprobante</h3>
+          <p class="muted">
+            Comparte un link de tu comprobante o los datos de la transferencia.
+          </p>
+          <label>
+            URL del comprobante
+            <input v-model="proofForm.fileUrl" type="url" placeholder="https://..." />
+          </label>
+          <div class="form-grid">
+            <label>
+              Banco emisor
+              <input v-model="proofForm.bank" />
+            </label>
+            <label>
+              Fecha de transferencia
+              <input v-model="proofForm.transferDate" type="date" />
+            </label>
+          </div>
+          <button class="btn btn-primary" type="submit" :disabled="proofSubmitting">
+            {{ proofSubmitting ? 'Enviando...' : 'Enviar comprobante' }}
+          </button>
+          <p v-if="proofMessage" class="muted">{{ proofMessage }}</p>
+        </form>
         <NuxtLink class="btn btn-primary" to="/">Seguir comprando</NuxtLink>
+        <NuxtLink class="btn btn-ghost" to="/orders">Consultar pedido</NuxtLink>
       </div>
 
       <div v-else class="checkout-grid">
@@ -83,6 +109,19 @@
             <textarea v-model="form.notes" rows="3" />
           </label>
 
+          <label class="full">
+            Metodo de pago
+            <select v-model="form.paymentMethod">
+              <option
+                v-for="method in availableMethods"
+                :key="method.id"
+                :value="method.type"
+              >
+                {{ formatPaymentMethod(method.type) }}
+              </option>
+            </select>
+          </label>
+
           <button class="btn btn-primary" type="submit" :disabled="isSubmitting">
             {{ isSubmitting ? 'Enviando...' : 'Confirmar pedido' }}
           </button>
@@ -101,13 +140,25 @@
 </template>
 
 <script setup lang="ts">
-import type { CheckoutResponse } from '~/types';
+import type { CheckoutResponse, PaymentMethod } from '~/types';
 
 const { items, total, clear } = useCart();
 const config = useRuntimeConfig();
 const isSubmitting = ref(false);
 const checkoutResult = ref<CheckoutResponse | null>(null);
 const submitError = ref('');
+const proofSubmitting = ref(false);
+const proofMessage = ref('');
+
+const { data: paymentMethodData } = await useFetch<PaymentMethod[]>(
+  '/storefront/payments/methods',
+  {
+    baseURL: config.public.apiUrl,
+    headers: {
+      'x-store-slug': config.public.storeSlug,
+    },
+  },
+);
 
 const form = reactive({
   fullName: '',
@@ -120,11 +171,25 @@ const form = reactive({
   zip: '',
   country: '',
   notes: '',
+  paymentMethod: 'bank_transfer',
 });
 
 const bankInfo = computed(() => {
   const configJson = checkoutResult.value?.paymentMethod?.configJson;
   return configJson && typeof configJson === 'object' ? configJson : null;
+});
+
+const paymentMethods = computed(() => paymentMethodData.value ?? []);
+const availableMethods = computed(() =>
+  paymentMethods.value.length
+    ? paymentMethods.value
+    : [{ id: 'bank_transfer', type: 'bank_transfer' }],
+);
+
+watchEffect(() => {
+  if (!form.paymentMethod) {
+    form.paymentMethod = availableMethods.value[0].type;
+  }
 });
 
 const submitOrder = async () => {
@@ -168,7 +233,7 @@ const submitOrder = async () => {
           country: form.country,
         },
         notes: form.notes || undefined,
-        paymentMethod: 'bank_transfer',
+        paymentMethod: form.paymentMethod,
       },
     });
 
@@ -179,6 +244,45 @@ const submitOrder = async () => {
   } finally {
     isSubmitting.value = false;
   }
+};
+
+const proofForm = reactive({
+  fileUrl: '',
+  bank: '',
+  transferDate: '',
+});
+
+const submitProof = async () => {
+  if (!checkoutResult.value) return;
+  proofMessage.value = '';
+  proofSubmitting.value = true;
+  try {
+    await $fetch(`/storefront/payments/${checkoutResult.value.paymentIntent.id}/proof`, {
+      baseURL: config.public.apiUrl,
+      method: 'POST',
+      headers: {
+        'x-store-slug': config.public.storeSlug,
+      },
+      body: {
+        fileUrl: proofForm.fileUrl || undefined,
+        metadata: {
+          bank: proofForm.bank || undefined,
+          transferDate: proofForm.transferDate || undefined,
+        },
+      },
+    });
+    proofMessage.value = 'Comprobante enviado. Te avisaremos cuando se confirme.';
+  } catch (error) {
+    proofMessage.value = 'No se pudo enviar el comprobante.';
+  } finally {
+    proofSubmitting.value = false;
+  }
+};
+
+const formatPaymentMethod = (value: string) => {
+  if (value === 'bank_transfer') return 'Transferencia bancaria';
+  if (value === 'cash') return 'Pago en efectivo';
+  return value.replace(/_/g, ' ');
 };
 </script>
 
@@ -227,6 +331,13 @@ textarea {
   font-family: inherit;
 }
 
+select {
+  border: 1px solid var(--outline);
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-family: inherit;
+}
+
 .success {
   margin-top: 24px;
   display: flex;
@@ -241,6 +352,13 @@ textarea {
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+
+.proof {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .bank-info p {
