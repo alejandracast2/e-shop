@@ -24,19 +24,24 @@
       <tbody>
         <tr v-for="product in products || []" :key="product.id">
           <td>
-            <strong>{{ product.name }}</strong>
+            <strong>{{ product.title }}</strong>
             <div class="muted">{{ product.description || 'Sin descripcion' }}</div>
           </td>
-          <td>{{ product.sku || '--' }}</td>
-          <td>${{ product.price.toFixed(2) }}</td>
-          <td>{{ product.stock }}</td>
+          <td>{{ primaryVariant(product)?.sku || '--' }}</td>
           <td>
-            <span class="pill">{{ product.isActive ? 'Activo' : 'Archivado' }}</span>
+            <span v-if="primaryVariant(product)">
+              ${{ primaryVariant(product)?.price.toFixed(2) }}
+            </span>
+            <span v-else>--</span>
+          </td>
+          <td>{{ totalStock(product) }}</td>
+          <td>
+            <span class="pill">{{ product.status }}</span>
           </td>
           <td class="actions">
             <NuxtLink class="btn btn-ghost" :to="`/products/${product.id}`">Editar</NuxtLink>
             <button class="btn btn-ghost" type="button" @click="toggleActive(product)">
-              {{ product.isActive ? 'Archivar' : 'Reactivar' }}
+              {{ product.status === 'active' ? 'Archivar' : 'Reactivar' }}
             </button>
           </td>
         </tr>
@@ -54,20 +59,34 @@ const config = useRuntimeConfig();
 const { authHeaders, hydrate } = useAuth();
 hydrate();
 
-const { data: products, refresh } = await useFetch<Product[]>('/products', {
+const apiHeaders = computed(() => ({
+  ...authHeaders.value,
+  'x-store-slug': config.public.storeSlug,
+}));
+
+const { data: products, refresh } = await useFetch<Product[]>('/admin/products', {
   baseURL: config.public.apiUrl,
   server: false,
+  headers: apiHeaders,
 });
 
 const toggleActive = async (product: Product) => {
-  await $fetch(`/products/${product.id}`, {
+  const nextStatus = product.status === 'active' ? 'archived' : 'active';
+  await $fetch(`/admin/products/${product.id}`, {
     baseURL: config.public.apiUrl,
     method: 'PATCH',
-    body: { isActive: !product.isActive },
-    headers: authHeaders.value,
+    body: { status: nextStatus },
+    headers: apiHeaders.value,
   });
   await refresh();
 };
+
+const primaryVariant = (product: Product) => product.variants?.[0] ?? null;
+const totalStock = (product: Product) =>
+  product.variants?.reduce(
+    (sum, variant) => sum + (variant.availableStock ?? 0),
+    0,
+  ) ?? 0;
 </script>
 
 <style scoped>

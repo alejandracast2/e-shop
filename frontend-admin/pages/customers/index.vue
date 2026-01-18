@@ -15,7 +15,7 @@
       </thead>
       <tbody>
         <tr v-for="customer in customers || []" :key="customer.id">
-          <td>{{ customer.firstName }} {{ customer.lastName }}</td>
+          <td>{{ customer.fullName }}</td>
           <td>{{ customer.email }}</td>
           <td>{{ customer.phone || '--' }}</td>
         </tr>
@@ -32,10 +32,16 @@ definePageMeta({ middleware: 'auth' });
 const config = useRuntimeConfig();
 const { authHeaders, hydrate } = useAuth();
 hydrate();
-const { data: customers } = await useFetch<Customer[]>('/customers', {
+
+const apiHeaders = computed(() => ({
+  ...authHeaders.value,
+  'x-store-slug': config.public.storeSlug,
+}));
+
+const { data: customers } = await useFetch<Customer[]>('/admin/customers', {
   baseURL: config.public.apiUrl,
   server: false,
-  headers: authHeaders.value,
+  headers: apiHeaders,
 });
 </script>
 

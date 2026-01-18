@@ -1,39 +1,27 @@
-import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  PrimaryGeneratedColumn,
-  UpdateDateColumn,
-} from 'typeorm';
-
-export enum UserRole {
-  ADMIN = 'admin',
-  STAFF = 'staff',
-}
+import { Column, Entity, OneToMany } from 'typeorm';
+import { BaseEntity } from '../../../shared/entities/base.entity';
+import { UserRole } from '../../iam/entities/user-role.entity';
 
 @Entity('users')
-export class User {
-  @PrimaryGeneratedColumn()
-  id: number;
-
+export class User extends BaseEntity {
   @Column({ length: 140 })
   name: string;
 
   @Column({ length: 160, unique: true })
   email: string;
 
+  @Column({ type: 'varchar', length: 40, nullable: true })
+  phone?: string | null;
+
   @Column({ select: false })
   passwordHash: string;
-
-  @Column({ type: 'enum', enum: UserRole, default: UserRole.ADMIN })
-  role: UserRole;
 
   @Column({ default: true })
   isActive: boolean;
 
-  @CreateDateColumn()
-  createdAt: Date;
+  @Column({ type: 'timestamptz', nullable: true })
+  lastLoginAt?: Date | null;
 
-  @UpdateDateColumn()
-  updatedAt: Date;
+  @OneToMany(() => UserRole, (userRole) => userRole.user)
+  roles?: UserRole[];
 }

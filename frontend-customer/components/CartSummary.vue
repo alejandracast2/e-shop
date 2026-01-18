@@ -2,8 +2,8 @@
   <div class="summary card">
     <h3>Resumen</h3>
     <div v-if="items.length" class="summary-items">
-      <div v-for="item in items" :key="item.productId" class="summary-row">
-        <span>{{ item.name }} x{{ item.quantity }}</span>
+      <div v-for="item in items" :key="item.variantId" class="summary-row">
+        <span>{{ item.title }} x{{ item.quantity }}</span>
         <span>${{ (item.price * item.quantity).toFixed(2) }}</span>
       </div>
     </div>
@@ -16,7 +16,7 @@
 </template>
 
 <script setup lang="ts">
-import type { CartItem } from '~/composables/useCart';
+import type { CartItem } from '~/types';
 
 defineProps<{
   items: CartItem[];

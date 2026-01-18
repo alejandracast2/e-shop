@@ -1,12 +1,5 @@
 import { computed, watch } from 'vue';
-
-export type CartItem = {
-  productId: number;
-  name: string;
-  price: number;
-  imageUrl?: string;
-  quantity: number;
-};
+import type { CartItem } from '~/types';
 
 const STORAGE_KEY = 'eshop-cart';
 
@@ -42,7 +35,7 @@ export const useCart = () => {
   );
 
   const addItem = (item: CartItem) => {
-    const existing = items.value.find((entry) => entry.productId === item.productId);
+    const existing = items.value.find((entry) => entry.variantId === item.variantId);
     if (existing) {
       existing.quantity += item.quantity;
     } else {
@@ -50,14 +43,14 @@ export const useCart = () => {
     }
   };
 
-  const updateQuantity = (productId: number, quantity: number) => {
-    const entry = items.value.find((item) => item.productId === productId);
+  const updateQuantity = (variantId: string, quantity: number) => {
+    const entry = items.value.find((item) => item.variantId === variantId);
     if (!entry) return;
     entry.quantity = Math.max(1, quantity);
   };
 
-  const removeItem = (productId: number) => {
-    items.value = items.value.filter((item) => item.productId !== productId);
+  const removeItem = (variantId: string) => {
+    items.value = items.value.filter((item) => item.variantId !== variantId);
   };
 
   const clear = () => {

@@ -7,9 +7,28 @@
         Completa tus datos y envia tu pedido. Recibiras confirmacion al instante.
       </p>
 
-      <div v-if="orderId" class="success card">
+      <div v-if="checkoutResult" class="success card">
         <h2>Pedido confirmado</h2>
-        <p>Gracias por tu compra. Tu numero de orden es #{{ orderId }}.</p>
+        <p>
+          Gracias por tu compra. Tu numero de orden es
+          #{{ checkoutResult.order.orderNumber }}.
+        </p>
+        <div class="payment-box">
+          <h3>Pago por transferencia</h3>
+          <p v-if="checkoutResult.paymentIntent.referenceCode">
+            Referencia:
+            <strong>{{ checkoutResult.paymentIntent.referenceCode }}</strong>
+          </p>
+          <div v-if="bankInfo" class="bank-info">
+            <p v-if="bankInfo.bank">Banco: {{ bankInfo.bank }}</p>
+            <p v-if="bankInfo.accountName">Titular: {{ bankInfo.accountName }}</p>
+            <p v-if="bankInfo.accountNumber">Cuenta: {{ bankInfo.accountNumber }}</p>
+            <p v-if="bankInfo.instructions">{{ bankInfo.instructions }}</p>
+          </div>
+          <p class="muted">
+            Cuando completes la transferencia, el administrador confirmara tu pago.
+          </p>
+        </div>
         <NuxtLink class="btn btn-primary" to="/">Seguir comprando</NuxtLink>
       </div>
 
@@ -17,17 +36,13 @@
         <form class="card form" @submit.prevent="submitOrder">
           <h3>Datos del cliente</h3>
           <div class="form-grid">
-            <label>
-              Nombre
-              <input v-model="form.firstName" required />
-            </label>
-            <label>
-              Apellido
-              <input v-model="form.lastName" required />
+            <label class="full">
+              Nombre completo
+              <input v-model="form.fullName" required />
             </label>
             <label>
               Email
-              <input v-model="form.email" type="email" required />
+              <input v-model="form.email" type="email" />
             </label>
             <label>
               Telefono
@@ -39,11 +54,11 @@
           <div class="form-grid">
             <label class="full">
               Direccion
-              <input v-model="form.addressLine1" required />
+              <input v-model="form.address1" required />
             </label>
             <label class="full">
               Departamento o referencia
-              <input v-model="form.addressLine2" />
+              <input v-model="form.address2" />
             </label>
             <label>
               Ciudad
@@ -55,7 +70,7 @@
             </label>
             <label>
               Codigo postal
-              <input v-model="form.postalCode" required />
+              <input v-model="form.zip" required />
             </label>
             <label>
               Pais
@@ -77,7 +92,7 @@
         <CartSummary :items="items" :total="total" />
       </div>
 
-      <div v-if="!items.length && !orderId" class="empty card">
+      <div v-if="!items.length && !checkoutResult" class="empty card">
         <p>No hay productos en el carrito.</p>
         <NuxtLink class="btn btn-primary" to="/">Explorar productos</NuxtLink>
       </div>
@@ -86,26 +101,30 @@
 </template>
 
 <script setup lang="ts">
-import type { CustomerInput, OrderItemInput, OrderResponse } from '~/types';
+import type { CheckoutResponse } from '~/types';
 
 const { items, total, clear } = useCart();
 const config = useRuntimeConfig();
 const isSubmitting = ref(false);
-const orderId = ref<number | null>(null);
+const checkoutResult = ref<CheckoutResponse | null>(null);
 const submitError = ref('');
 
-const form = reactive<CustomerInput & { notes?: string }>({
-  firstName: '',
-  lastName: '',
+const form = reactive({
+  fullName: '',
   email: '',
   phone: '',
-  addressLine1: '',
-  addressLine2: '',
+  address1: '',
+  address2: '',
   city: '',
   state: '',
-  postalCode: '',
+  zip: '',
   country: '',
   notes: '',
+});
+
+const bankInfo = computed(() => {
+  const configJson = checkoutResult.value?.paymentMethod?.configJson;
+  return configJson && typeof configJson === 'object' ? configJson : null;
 });
 
 const submitOrder = async () => {
@@ -113,35 +132,47 @@ const submitOrder = async () => {
   if (!items.value.length) return;
   isSubmitting.value = true;
   try {
-    const orderItems: OrderItemInput[] = items.value.map((item) => ({
-      productId: item.productId,
-      quantity: item.quantity,
-    }));
-
-    const payload = {
-      customer: {
-        firstName: form.firstName,
-        lastName: form.lastName,
-        email: form.email,
-        phone: form.phone || undefined,
-        addressLine1: form.addressLine1,
-        addressLine2: form.addressLine2 || undefined,
-        city: form.city,
-        state: form.state,
-        postalCode: form.postalCode,
-        country: form.country,
-      },
-      items: orderItems,
-      notes: form.notes || undefined,
-    };
-
-    const response = await $fetch<OrderResponse>('/orders', {
+    const cart = await $fetch<{ id: string }>('/storefront/cart', {
       baseURL: config.public.apiUrl,
       method: 'POST',
-      body: payload,
+      headers: {
+        'x-store-slug': config.public.storeSlug,
+      },
+      body: {
+        items: items.value.map((item) => ({
+          variantId: item.variantId,
+          quantity: item.quantity,
+        })),
+      },
     });
 
-    orderId.value = response.id;
+    const response = await $fetch<CheckoutResponse>('/storefront/checkout/confirm', {
+      baseURL: config.public.apiUrl,
+      method: 'POST',
+      headers: {
+        'x-store-slug': config.public.storeSlug,
+      },
+      body: {
+        cartId: cart.id,
+        customer: {
+          fullName: form.fullName,
+          email: form.email || undefined,
+          phone: form.phone || undefined,
+        },
+        shippingAddress: {
+          address1: form.address1,
+          address2: form.address2 || undefined,
+          city: form.city,
+          state: form.state,
+          zip: form.zip,
+          country: form.country,
+        },
+        notes: form.notes || undefined,
+        paymentMethod: 'bank_transfer',
+      },
+    });
+
+    checkoutResult.value = response;
     clear();
   } catch (error) {
     submitError.value = 'No se pudo enviar el pedido. Intenta de nuevo.';
@@ -201,6 +232,19 @@ textarea {
   display: flex;
   flex-direction: column;
   gap: 12px;
+}
+
+.payment-box {
+  background: var(--surface);
+  border-radius: 14px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.bank-info p {
+  margin: 0;
 }
 
 .error {

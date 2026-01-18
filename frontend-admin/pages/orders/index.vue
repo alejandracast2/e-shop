@@ -22,9 +22,9 @@
       </thead>
       <tbody>
         <tr v-for="order in orders || []" :key="order.id">
-          <td>#{{ order.id }}</td>
-          <td>{{ order.customer.firstName }} {{ order.customer.lastName }}</td>
-          <td>${{ Number(order.total).toFixed(2) }}</td>
+          <td>#{{ order.orderNumber }}</td>
+          <td>{{ order.customer?.fullName || 'Sin cliente' }}</td>
+          <td>${{ Number(order.totalAmount).toFixed(2) }}</td>
           <td><span class="pill">{{ order.status }}</span></td>
           <td><span class="pill">{{ order.paymentStatus }}</span></td>
           <td>
@@ -44,10 +44,15 @@ definePageMeta({ middleware: 'auth' });
 const config = useRuntimeConfig();
 const { authHeaders, hydrate } = useAuth();
 hydrate();
-const { data: orders } = await useFetch<Order[]>('/orders', {
+const apiHeaders = computed(() => ({
+  ...authHeaders.value,
+  'x-store-slug': config.public.storeSlug,
+}));
+
+const { data: orders } = await useFetch<Order[]>('/admin/orders', {
   baseURL: config.public.apiUrl,
   server: false,
-  headers: authHeaders.value,
+  headers: apiHeaders,
 });
 </script>
 

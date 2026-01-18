@@ -1,17 +1,25 @@
 <template>
   <article class="product-card">
-    <NuxtLink :to="`/product/${product.id}`" class="product-image">
-      <img v-if="product.imageUrl" :src="product.imageUrl" :alt="product.name" />
+    <NuxtLink :to="`/product/${product.slug}`" class="product-image">
+      <img v-if="coverImage" :src="coverImage" :alt="product.title" />
       <div v-else class="placeholder">{{ initials }}</div>
     </NuxtLink>
     <div class="product-body">
       <div>
-        <h3>{{ product.name }}</h3>
+        <h3>{{ product.title }}</h3>
         <p>{{ product.description || 'Detalles curados para tu rutina diaria.' }}</p>
       </div>
       <div class="product-footer">
-        <span class="price">${{ product.price.toFixed(2) }}</span>
-        <button class="btn btn-primary" type="button" @click="addToCart">
+        <span v-if="primaryVariant" class="price">
+          ${{ primaryVariant.price.toFixed(2) }}
+        </span>
+        <span v-else class="price">Sin precio</span>
+        <button
+          class="btn btn-primary"
+          type="button"
+          :disabled="!primaryVariant"
+          @click="addToCart"
+        >
           Agregar
         </button>
       </div>
@@ -25,8 +33,13 @@ import type { Product } from '~/types';
 const props = defineProps<{ product: Product }>();
 const { addItem } = useCart();
 
+const primaryVariant = computed(() => props.product.variants?.[0] ?? null);
+const coverImage = computed(
+  () => props.product.images?.[0]?.file?.url ?? null,
+);
+
 const initials = computed(() =>
-  props.product.name
+  props.product.title
     .split(' ')
     .slice(0, 2)
     .map((part) => part[0])
@@ -35,11 +48,12 @@ const initials = computed(() =>
 );
 
 const addToCart = () => {
+  if (!primaryVariant.value) return;
   addItem({
-    productId: props.product.id,
-    name: props.product.name,
-    price: props.product.price,
-    imageUrl: props.product.imageUrl ?? undefined,
+    variantId: primaryVariant.value.id,
+    title: props.product.title,
+    price: primaryVariant.value.price,
+    imageUrl: coverImage.value ?? undefined,
     quantity: 1,
   });
 };

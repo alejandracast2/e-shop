@@ -6,9 +6,13 @@
 
   <section class="card fade-in">
     <form class="form" @submit.prevent="createProduct">
+      <label class="full">
+        Titulo
+        <input v-model="form.title" required />
+      </label>
       <label>
-        Nombre
-        <input v-model="form.name" required />
+        Slug
+        <input v-model="form.slug" required />
       </label>
       <label>
         SKU
@@ -23,12 +27,8 @@
         <input v-model.number="form.price" type="number" min="0" step="0.01" required />
       </label>
       <label>
-        Stock
+        Stock inicial
         <input v-model.number="form.stock" type="number" min="0" required />
-      </label>
-      <label class="full">
-        Imagen (URL)
-        <input v-model="form.imageUrl" />
       </label>
       <button class="btn btn-primary" type="submit" :disabled="isSaving">
         {{ isSaving ? 'Guardando...' : 'Crear producto' }}
@@ -39,6 +39,8 @@
 </template>
 
 <script setup lang="ts">
+import type { Product } from '~/types';
+
 definePageMeta({ middleware: 'auth' });
 
 const config = useRuntimeConfig();
@@ -48,32 +50,53 @@ const errorMessage = ref('');
 const { authHeaders, hydrate } = useAuth();
 hydrate();
 
+const apiHeaders = computed(() => ({
+  ...authHeaders.value,
+  'x-store-slug': config.public.storeSlug,
+}));
+
 const form = reactive({
-  name: '',
+  title: '',
+  slug: '',
   sku: '',
   description: '',
   price: 0,
   stock: 0,
-  imageUrl: '',
 });
 
 const createProduct = async () => {
   isSaving.value = true;
   errorMessage.value = '';
   try {
-    await $fetch('/products', {
+    const response = await $fetch<Product>('/admin/products', {
       baseURL: config.public.apiUrl,
       method: 'POST',
+      headers: apiHeaders.value,
       body: {
-        name: form.name,
-        sku: form.sku || undefined,
+        title: form.title,
+        slug: form.slug,
         description: form.description || undefined,
-        price: form.price,
-        stock: form.stock,
-        imageUrl: form.imageUrl || undefined,
+        status: 'active',
+        variants: [
+          {
+            sku: form.sku || undefined,
+            price: form.price,
+            isActive: true,
+          },
+        ],
       },
-      headers: authHeaders.value,
     });
+
+    const variantId = response.variants?.[0]?.id;
+    if (variantId) {
+      await $fetch(`/admin/inventory/variants/${variantId}/stock`, {
+        baseURL: config.public.apiUrl,
+        method: 'POST',
+        headers: apiHeaders.value,
+        body: { onHand: form.stock },
+      });
+    }
+
     await router.push('/products');
   } catch (error) {
     errorMessage.value = 'No se pudo crear el producto.';

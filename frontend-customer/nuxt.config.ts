@@ -7,6 +7,7 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       apiUrl: process.env.NUXT_PUBLIC_API_URL ?? 'http://localhost:4000',
+      storeSlug: process.env.NUXT_PUBLIC_STORE_SLUG ?? 'default',
     },
   },
 })

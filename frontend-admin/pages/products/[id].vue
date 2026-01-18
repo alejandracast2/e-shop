@@ -8,9 +8,13 @@
     <div v-if="pending" class="muted">Cargando...</div>
     <div v-else-if="error" class="error">Producto no encontrado.</div>
     <form v-else class="form" @submit.prevent="updateProduct">
+      <label class="full">
+        Titulo
+        <input v-model="form.title" required />
+      </label>
       <label>
-        Nombre
-        <input v-model="form.name" required />
+        Slug
+        <input v-model="form.slug" required />
       </label>
       <label>
         SKU
@@ -29,12 +33,12 @@
         <input v-model.number="form.stock" type="number" min="0" required />
       </label>
       <label class="full">
-        Imagen (URL)
-        <input v-model="form.imageUrl" />
-      </label>
-      <label class="toggle">
-        <input v-model="form.isActive" type="checkbox" />
-        Activo en tienda
+        Estado
+        <select v-model="form.status">
+          <option value="active">active</option>
+          <option value="draft">draft</option>
+          <option value="archived">archived</option>
+        </select>
       </label>
       <button class="btn btn-primary" type="submit" :disabled="isSaving">
         {{ isSaving ? 'Guardando...' : 'Guardar cambios' }}
@@ -56,32 +60,42 @@ const errorMessage = ref('');
 const { authHeaders, hydrate } = useAuth();
 hydrate();
 
+const apiHeaders = computed(() => ({
+  ...authHeaders.value,
+  'x-store-slug': config.public.storeSlug,
+}));
+
 const { data: product, pending, error } = await useFetch<Product>(
-  `/products/${route.params.id}`,
-  { baseURL: config.public.apiUrl, server: false },
+  `/admin/products/${route.params.id}`,
+  { baseURL: config.public.apiUrl, server: false, headers: apiHeaders },
 );
 
 const form = reactive({
-  name: '',
+  title: '',
+  slug: '',
   sku: '',
   description: '',
   price: 0,
   stock: 0,
-  imageUrl: '',
-  isActive: true,
+  status: 'active',
 });
+
+const primaryVariantId = computed(
+  () => product.value?.variants?.[0]?.id ?? null,
+);
 
 watch(
   () => product.value,
   (value) => {
     if (!value) return;
-    form.name = value.name;
-    form.sku = value.sku || '';
+    const variant = value.variants?.[0];
+    form.title = value.title;
+    form.slug = value.slug;
     form.description = value.description || '';
-    form.price = value.price;
-    form.stock = value.stock;
-    form.imageUrl = value.imageUrl || '';
-    form.isActive = value.isActive;
+    form.status = value.status || 'active';
+    form.sku = variant?.sku || '';
+    form.price = variant?.price ?? 0;
+    form.stock = variant?.availableStock ?? 0;
   },
   { immediate: true },
 );
@@ -90,20 +104,36 @@ const updateProduct = async () => {
   isSaving.value = true;
   errorMessage.value = '';
   try {
-    await $fetch(`/products/${route.params.id}`, {
+    await $fetch(`/admin/products/${route.params.id}`, {
       baseURL: config.public.apiUrl,
       method: 'PATCH',
       body: {
-        name: form.name,
-        sku: form.sku || undefined,
+        title: form.title,
+        slug: form.slug,
         description: form.description || undefined,
-        price: form.price,
-        stock: form.stock,
-        imageUrl: form.imageUrl || undefined,
-        isActive: form.isActive,
+        status: form.status,
       },
-      headers: authHeaders.value,
+      headers: apiHeaders.value,
     });
+
+    if (primaryVariantId.value) {
+      await $fetch(`/admin/variants/${primaryVariantId.value}`, {
+        baseURL: config.public.apiUrl,
+        method: 'PATCH',
+        body: {
+          sku: form.sku || undefined,
+          price: form.price,
+        },
+        headers: apiHeaders.value,
+      });
+
+      await $fetch(`/admin/inventory/variants/${primaryVariantId.value}/stock`, {
+        baseURL: config.public.apiUrl,
+        method: 'POST',
+        body: { onHand: form.stock },
+        headers: apiHeaders.value,
+      });
+    }
   } catch (err) {
     errorMessage.value = 'No se pudieron guardar los cambios.';
   } finally {
@@ -131,15 +161,9 @@ label.full {
   grid-column: 1 / -1;
 }
 
-.toggle {
-  flex-direction: row;
-  align-items: center;
-  gap: 10px;
-  grid-column: 1 / -1;
-}
-
 input,
-textarea {
+textarea,
+select {
   border: 1px solid var(--outline);
   border-radius: 12px;
   padding: 10px 12px;
