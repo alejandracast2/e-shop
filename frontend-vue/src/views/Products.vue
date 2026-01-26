@@ -11,7 +11,7 @@ const filtered = computed(() => {
     return store.state.products;
   }
   return store.state.products.filter((product) => {
-    const haystack = `${product.name} ${product.description || ''}`.toLowerCase();
+    const haystack = `${product.title} ${product.description || ''}`.toLowerCase();
     return haystack.includes(term);
   });
 });
@@ -53,33 +53,35 @@ onMounted(store.loadProducts);
         class="product-card"
       >
         <div class="product-media">
-          <router-link class="product-link" :to="`/products/${product.id}`">
-            <img v-if="product.imageUrl" :src="product.imageUrl" :alt="product.name" />
+          <router-link class="product-link" :to="`/products/${product.slug}`">
+            <img v-if="product.imageUrl" :src="product.imageUrl" :alt="product.title" />
             <span v-else>THREADLINE</span>
           </router-link>
           <div class="product-overlay">
             <button
+              v-if="(product.variants || []).length <= 1"
               class="add-to-cart"
               type="button"
               @click="store.addToCart(product)"
             >
               Agregar al carrito
             </button>
-            <div class="size-row">
-              <button type="button" class="size-btn" @click="store.addToCart(product)">S</button>
-              <button type="button" class="size-btn" @click="store.addToCart(product)">M</button>
-              <button type="button" class="size-btn" @click="store.addToCart(product)">L</button>
-              <button type="button" class="size-btn" @click="store.addToCart(product)">XL</button>
-            </div>
+            <router-link
+              v-else
+              class="add-to-cart"
+              :to="`/products/${product.slug}`"
+            >
+              Elegir talla o color
+            </router-link>
           </div>
         </div>
         <div class="product-info">
           <h3 class="product-title">
-            <router-link class="product-title-link" :to="`/products/${product.id}`">
-              {{ product.name }}
+            <router-link class="product-title-link" :to="`/products/${product.slug}`">
+              {{ product.title }}
             </router-link>
           </h3>
-          <div class="product-price">{{ store.formatCurrency(product.price) }}</div>
+          <div class="product-price">{{ store.formatCurrency(product.displayPrice) }}</div>
         </div>
       </article>
     </div>

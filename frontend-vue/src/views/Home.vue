@@ -102,17 +102,21 @@ onMounted(store.loadProducts);
 
     <div v-else class="grid">
       <article v-for="product in featured" :key="product.id" class="card">
-        <router-link class="card-link" :to="`/products/${product.id}`">
+        <router-link class="card-link" :to="`/products/${product.slug}`">
           <div class="card-image">
-            <img v-if="product.imageUrl" :src="product.imageUrl" :alt="product.name" />
+            <img v-if="product.imageUrl" :src="product.imageUrl" :alt="product.title" />
             <span v-else>THREADLINE</span>
           </div>
-          <h3>{{ product.name }}</h3>
+          <h3>{{ product.title }}</h3>
           <p>{{ product.description || 'Limited run with crafted finish.' }}</p>
         </router-link>
         <div class="card-footer">
-          <span class="price">{{ store.formatCurrency(product.price) }}</span>
-          <button class="btn btn-primary" @click="store.addToCart(product)">
+          <span class="price">{{ store.formatCurrency(product.displayPrice) }}</span>
+          <button
+            class="btn btn-primary"
+            :disabled="(product.variants || []).length > 1"
+            @click="store.addToCart(product)"
+          >
             Add to cart
           </button>
         </div>

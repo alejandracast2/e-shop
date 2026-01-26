@@ -1,9 +1,13 @@
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
+const STORE_SLUG = import.meta.env.VITE_STORE_SLUG;
+const STORE_ID = import.meta.env.VITE_STORE_ID;
 
 async function request(path, options = {}) {
   const response = await fetch(`${API_URL}${path}`, {
     headers: {
       'Content-Type': 'application/json',
+      ...(STORE_SLUG ? { 'x-store-slug': STORE_SLUG } : {}),
+      ...(STORE_ID ? { 'x-store-id': STORE_ID } : {}),
       ...(options.headers || {})
     },
     ...options
@@ -28,15 +32,22 @@ async function request(path, options = {}) {
 }
 
 export async function fetchProducts() {
-  return request('/products?active=true');
+  return request('/storefront/products');
 }
 
-export async function fetchProduct(id) {
-  return request(`/products/${id}`);
+export async function fetchProduct(slug) {
+  return request(`/storefront/products/${slug}`);
 }
 
-export async function createOrder(payload) {
-  return request('/orders', {
+export async function createCart(payload) {
+  return request('/storefront/cart', {
+    method: 'POST',
+    body: JSON.stringify(payload)
+  });
+}
+
+export async function confirmCheckout(payload) {
+  return request('/storefront/checkout/confirm', {
     method: 'POST',
     body: JSON.stringify(payload)
   });

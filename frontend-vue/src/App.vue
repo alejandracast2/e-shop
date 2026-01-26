@@ -3,6 +3,17 @@ import { useStore } from './store';
 import BrandMark from './components/BrandMark.vue';
 
 const store = useStore();
+
+function formatVariantLabel(item) {
+  const values = (item.variant?.attributes || [])
+    .filter((attr) => attr.attributeDefinition?.isVariantAxis)
+    .map((attr) => attr.valueOption?.value || attr.valueText)
+    .filter(Boolean);
+  if (values.length) {
+    return values.join(' / ');
+  }
+  return item.variant?.sku || item.product.sku || 'TL-ESSENTIAL';
+}
 </script>
 
 <template>
@@ -67,23 +78,25 @@ const store = useStore();
         </div>
 
         <div v-else class="drawer-list">
-          <div v-for="item in store.state.cart" :key="item.product.id" class="drawer-item">
+          <div v-for="item in store.state.cart" :key="item.key" class="drawer-item">
             <div class="drawer-thumb">
-              <img v-if="item.product.imageUrl" :src="item.product.imageUrl" :alt="item.product.name" />
+              <img v-if="item.product.imageUrl" :src="item.product.imageUrl" :alt="item.product.title" />
               <span v-else>THREADLINE</span>
             </div>
             <div class="drawer-info">
-              <strong>{{ item.product.name }}</strong>
-              <span class="drawer-muted">{{ item.product.sku || 'TL-ESSENTIAL' }}</span>
+              <strong>{{ item.product.title }}</strong>
+              <span class="drawer-muted">{{ formatVariantLabel(item) }}</span>
               <div class="quantity">
-                <button class="qty-btn" @click="store.updateQuantity(item.product.id, -1)">-</button>
+                <button class="qty-btn" @click="store.updateQuantity(item.key, -1)">-</button>
                 <span>{{ item.quantity }}</span>
-                <button class="qty-btn" @click="store.updateQuantity(item.product.id, 1)">+</button>
+                <button class="qty-btn" @click="store.updateQuantity(item.key, 1)">+</button>
               </div>
             </div>
             <div class="drawer-price">
-              <span class="price">{{ store.formatCurrency(item.product.price) }}</span>
-              <button class="link" @click="store.removeFromCart(item.product.id)">Remove</button>
+              <span class="price">
+                {{ store.formatCurrency(item.variant?.price ?? item.product.displayPrice) }}
+              </span>
+              <button class="link" @click="store.removeFromCart(item.key)">Remove</button>
             </div>
           </div>
         </div>

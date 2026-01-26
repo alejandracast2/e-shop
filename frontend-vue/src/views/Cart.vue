@@ -1,6 +1,6 @@
 <script setup>
 import { reactive, ref } from 'vue';
-import { createOrder } from '../api';
+import { confirmCheckout, createCart } from '../api';
 import { useStore } from '../store';
 
 const store = useStore();
@@ -48,28 +48,37 @@ async function submitOrder() {
 
   isSubmitting.value = true;
   try {
+    const missingVariant = store.state.cart.some((item) => !item.variant?.id);
+    if (missingVariant) {
+      throw new Error('Please select size/color before checkout.');
+    }
+    const cartPayload = {
+      items: store.state.cart.map((item) => ({
+        variantId: item.variant?.id,
+        quantity: item.quantity
+      }))
+    };
+    const cart = await createCart(cartPayload);
     const payload = {
+      cartId: cart.id,
       customer: {
-        firstName: form.firstName.trim(),
-        lastName: form.lastName.trim(),
-        email: form.email.trim(),
-        phone: form.phone.trim() || undefined,
-        addressLine1: form.addressLine1.trim(),
-        addressLine2: form.addressLine2.trim() || undefined,
+        fullName: `${form.firstName.trim()} ${form.lastName.trim()}`.trim(),
+        email: form.email.trim() || undefined,
+        phone: form.phone.trim() || undefined
+      },
+      shippingAddress: {
+        address1: form.addressLine1.trim(),
+        address2: form.addressLine2.trim() || undefined,
         city: form.city.trim(),
         state: form.state.trim(),
-        postalCode: form.postalCode.trim(),
+        zip: form.postalCode.trim(),
         country: form.country.trim()
       },
-      items: store.state.cart.map((item) => ({
-        productId: item.product.id,
-        quantity: item.quantity
-      })),
       notes: notes.value.trim() || undefined
     };
 
-    const order = await createOrder(payload);
-    orderNotice.value = `Order ${order.id} created. We will email you soon.`;
+    const checkout = await confirmCheckout(payload);
+    orderNotice.value = `Order ${checkout.order.orderNumber} created. We will email you soon.`;
     store.clearCart();
     notes.value = '';
   } catch (error) {
@@ -95,17 +104,28 @@ async function submitOrder() {
       </div>
 
       <div v-else class="cart-list">
-        <div v-for="item in store.state.cart" :key="item.product.id" class="cart-item">
+        <div v-for="item in store.state.cart" :key="item.key" class="cart-item">
           <div>
-            <strong>{{ item.product.name }}</strong>
-            <div class="price">{{ store.formatCurrency(item.product.price) }}</div>
+            <strong>{{ item.product.title }}</strong>
+            <div class="drawer-muted" v-if="item.variant?.attributes?.length">
+              {{
+                item.variant.attributes
+                  .filter((attr) => attr.attributeDefinition?.isVariantAxis)
+                  .map((attr) => attr.valueOption?.value || attr.valueText)
+                  .filter(Boolean)
+                  .join(' / ')
+              }}
+            </div>
+            <div class="price">
+              {{ store.formatCurrency(item.variant?.price ?? item.product.displayPrice) }}
+            </div>
           </div>
           <div class="quantity">
-            <button class="qty-btn" @click="store.updateQuantity(item.product.id, -1)">-</button>
+            <button class="qty-btn" @click="store.updateQuantity(item.key, -1)">-</button>
             <span>{{ item.quantity }}</span>
-            <button class="qty-btn" @click="store.updateQuantity(item.product.id, 1)">+</button>
+            <button class="qty-btn" @click="store.updateQuantity(item.key, 1)">+</button>
           </div>
-          <button class="link" @click="store.removeFromCart(item.product.id)">Remove</button>
+          <button class="link" @click="store.removeFromCart(item.key)">Remove</button>
         </div>
       </div>
 

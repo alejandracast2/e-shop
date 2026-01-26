@@ -7,7 +7,7 @@ import Cart from './views/Cart.vue';
 const routes = [
   { path: '/', name: 'home', component: Home },
   { path: '/products', name: 'products', component: Products },
-  { path: '/products/:id', name: 'product-detail', component: ProductDetail },
+  { path: '/products/:slug', name: 'product-detail', component: ProductDetail },
   { path: '/cart', name: 'cart', component: Cart }
 ];
 

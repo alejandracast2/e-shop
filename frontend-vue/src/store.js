@@ -9,6 +9,23 @@ const state = reactive({
   cartOpen: false
 });
 
+function getImageUrl(product) {
+  const cover = product.images?.find((image) => image.isCover) || product.images?.[0];
+  return cover?.file?.url || null;
+}
+
+function normalizeProduct(product) {
+  const variants = product.variants || [];
+  const prices = variants.map((variant) => Number(variant.price || 0)).filter((price) => price > 0);
+  const displayPrice = prices.length ? Math.min(...prices) : Number(product.price || 0);
+
+  return {
+    ...product,
+    imageUrl: getImageUrl(product),
+    displayPrice
+  };
+}
+
 async function loadProducts() {
   if (state.products.length) {
     return;
@@ -16,7 +33,8 @@ async function loadProducts() {
   state.loading = true;
   state.error = '';
   try {
-    state.products = await fetchProducts();
+    const products = await fetchProducts();
+    state.products = products.map((product) => normalizeProduct(product));
   } catch (error) {
     state.error = error.message || 'Failed to load products.';
   } finally {
@@ -24,29 +42,63 @@ async function loadProducts() {
   }
 }
 
-async function loadProduct(id) {
-  const existing = state.products.find((product) => product.id === id);
-  if (existing) {
+async function loadProduct(slug) {
+  const existing = state.products.find((product) => product.slug === slug);
+  const hasVariantDetails = existing?.variants?.some(
+    (variant) => variant.attributes && variant.attributes.length
+  );
+  if (existing && hasVariantDetails) {
     return existing;
   }
-  const product = await fetchProduct(id);
-  state.products.push(product);
-  return product;
+  const product = await fetchProduct(slug);
+  const normalized = normalizeProduct(product);
+  if (existing) {
+    state.products = state.products.map((item) =>
+      item.slug === slug ? normalized : item
+    );
+  } else {
+    state.products.push(normalized);
+  }
+  return normalized;
 }
 
-function addToCart(product) {
-  const existing = state.cart.find((item) => item.product.id === product.id);
+function getCartKey(productId, variantId) {
+  return `${productId}:${variantId || 'default'}`;
+}
+
+function resolveVariant(product, variant) {
+  if (variant) {
+    return variant;
+  }
+  if (product.variants?.length === 1) {
+    return product.variants[0];
+  }
+  return null;
+}
+
+function addToCart(product, variant) {
+  const resolvedVariant = resolveVariant(product, variant);
+  if (product.variants?.length && !resolvedVariant) {
+    return;
+  }
+  const key = getCartKey(product.id, resolvedVariant?.id);
+  const existing = state.cart.find((item) => item.key === key);
   if (existing) {
     existing.quantity += 1;
     state.cartOpen = true;
     return;
   }
-  state.cart.push({ product, quantity: 1 });
+  state.cart.push({
+    key,
+    product,
+    variant: resolvedVariant,
+    quantity: 1
+  });
   state.cartOpen = true;
 }
 
-function updateQuantity(productId, delta) {
-  const item = state.cart.find((entry) => entry.product.id === productId);
+function updateQuantity(key, delta) {
+  const item = state.cart.find((entry) => entry.key === key);
   if (!item) {
     return;
   }
@@ -58,8 +110,8 @@ function updateQuantity(productId, delta) {
   item.quantity = next;
 }
 
-function removeFromCart(productId) {
-  state.cart = state.cart.filter((entry) => entry.product.id !== productId);
+function removeFromCart(key) {
+  state.cart = state.cart.filter((entry) => entry.key !== key);
 }
 
 function clearCart() {
@@ -80,7 +132,8 @@ const cartCount = computed(() =>
 
 const subtotal = computed(() =>
   state.cart.reduce(
-    (total, item) => total + item.quantity * Number(item.product.price || 0),
+    (total, item) =>
+      total + item.quantity * Number(item.variant?.price ?? item.product.displayPrice ?? 0),
     0
   )
 );
