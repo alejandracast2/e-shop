@@ -1,7 +1,13 @@
 import 'dotenv/config';
+import * as bcrypt from 'bcrypt';
 import { AppDataSource } from './data-source';
+import { IsNull } from 'typeorm';
 import { Tenant } from './modules/tenancy/entities/tenant.entity';
 import { Store } from './modules/tenancy/entities/store.entity';
+import { StoreSettings } from './modules/tenancy/entities/store-settings.entity';
+import { User } from './modules/user/entities/user.entity';
+import { Role } from './modules/iam/entities/role.entity';
+import { UserRole } from './modules/iam/entities/user-role.entity';
 import { Category } from './modules/catalog/entities/category.entity';
 import { AttributeDefinition } from './modules/catalog/entities/attribute-definition.entity';
 import { AttributeOption } from './modules/catalog/entities/attribute-option.entity';
@@ -32,6 +38,10 @@ const seedClothes = async () => {
 
   const tenantRepo = AppDataSource.getRepository(Tenant);
   const storeRepo = AppDataSource.getRepository(Store);
+  const storeSettingsRepo = AppDataSource.getRepository(StoreSettings);
+  const userRepo = AppDataSource.getRepository(User);
+  const roleRepo = AppDataSource.getRepository(Role);
+  const userRoleRepo = AppDataSource.getRepository(UserRole);
   const categoryRepo = AppDataSource.getRepository(Category);
   const attributeRepo = AppDataSource.getRepository(AttributeDefinition);
   const optionRepo = AppDataSource.getRepository(AttributeOption);
@@ -68,6 +78,87 @@ const seedClothes = async () => {
         timezone: 'UTC',
       }),
     ));
+
+  const existingSettings = await storeSettingsRepo.findOne({
+    where: { storeId: store.id },
+  });
+  if (!existingSettings) {
+    await storeSettingsRepo.save(
+      storeSettingsRepo.create({
+        storeId: store.id,
+        brandingJson: { logoUrl: null, primaryColor: '#1F2937' },
+        checkoutSettingsJson: { allowGuestCheckout: true },
+        paymentSettingsJson: { note: 'Transfer and upload proof' },
+      }),
+    );
+  }
+
+  const passwordHash = await bcrypt.hash('admin123', 10);
+
+  const ensureRole = async (name: string) => {
+    const existing = await roleRepo.findOne({ where: { name } });
+    if (existing) return existing;
+    return roleRepo.save(roleRepo.create({ name }));
+  };
+
+  const ensureUser = async (email: string, name: string) => {
+    const existing = await userRepo.findOne({ where: { email } });
+    if (existing) return existing;
+    return userRepo.save(
+      userRepo.create({
+        name,
+        email,
+        passwordHash,
+        isActive: true,
+      }),
+    );
+  };
+
+  const ensureUserRole = async (
+    userId: string,
+    roleId: string,
+    tenantId?: string | null,
+    storeId?: string | null,
+  ) => {
+    const existing = await userRoleRepo.findOne({
+      where: {
+        userId,
+        roleId,
+        tenantId: tenantId ?? IsNull(),
+        storeId: storeId ?? IsNull(),
+      },
+    });
+    if (existing) return existing;
+    return userRoleRepo.save(
+      userRoleRepo.create({
+        userId,
+        roleId,
+        tenantId: tenantId ?? null,
+        storeId: storeId ?? null,
+      }),
+    );
+  };
+
+  const rolePlatform = await ensureRole('platform_admin');
+  const roleTenantOwner = await ensureRole('tenant_owner');
+  const roleStoreAdmin = await ensureRole('store_admin');
+  const roleStoreStaff = await ensureRole('store_staff');
+  await ensureRole('customer');
+
+  const platformUser = await ensureUser('platform@eshop.com', 'Platform Admin');
+  const ownerUser = await ensureUser('owner@cafedeorigen.com', 'Tenant Owner');
+  const adminUser = await ensureUser('admin@cafedeorigen.com', 'Store Admin');
+  const staffUser = await ensureUser('staff@cafedeorigen.com', 'Store Staff');
+
+  await ensureUserRole(platformUser.id, rolePlatform.id);
+  await ensureUserRole(ownerUser.id, roleTenantOwner.id, tenant.id);
+  await ensureUserRole(adminUser.id, roleStoreAdmin.id, tenant.id, store.id);
+  await ensureUserRole(staffUser.id, roleStoreStaff.id, tenant.id, store.id);
+
+  if (!tenant.ownerUserId) {
+    tenant.ownerUserId = ownerUser.id;
+    await tenantRepo.save(tenant);
+  }
 
   const categoryRopa =
     (await categoryRepo.findOne({

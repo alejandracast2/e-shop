@@ -1,0 +1,130 @@
+{\rtf1\ansi\deff0
+{\fonttbl{\f0 Calibri;}}
+\fs24
+\b Endpoints del Backend ? E-Shop\b0\par
+\par
+\b 1. Idea general\b0\par
+Este backend es multi-tenant (tenant + store) y usa Postgres con TypeORM.\par
+Expone endpoints para tres tipos de uso: platform (global), admin (operaci?n interna) y storefront (cliente final).\par
+\par
+\b 2. Base URL\b0\par
+En local: http://localhost:4000\par
+\par
+\b 3. Contexto de tenant/store\b0\par
+El store se resuelve por:\par
+- Header x-store-id\par
+- Header x-store-slug\par
+- Subdominio slug.dominio.com\par
+- Fallback DEFAULT_STORE_SLUG (configurado en .env)\par
+\par
+\b 4. Autenticaci?n\b0\par
+POST /auth/login\par
+\i Para qu? sirve:\i0 iniciar sesi?n y obtener JWT.\par
+\i Uso t?pico:\i0 enviar email y password, recibir accessToken y usarlo en Authorization: Bearer <token>.\par
+\par
+\b 5. Platform (gesti?n global)\b0\par
+POST /platform/tenants\par
+- Crea un tenant (empresa).\par
+GET /platform/tenants\par
+- Lista tenants.\par
+POST /platform/tenants/:tenantId/stores\par
+- Crea una tienda dentro de un tenant.\par
+GET /platform/tenants/:tenantId/stores\par
+- Lista tiendas de un tenant.\par
+\par
+\b 6. Admin (requiere JWT y rol)\b0\par
+\b Cat?logo\b0\par
+GET /admin/products\par
+- Lista productos.\par
+POST /admin/products\par
+- Crea producto.\par
+PATCH /admin/products/:id\par
+- Edita producto.\par
+POST /admin/products/:id/variants\par
+- Crea variantes (SKUs).\par
+PATCH /admin/variants/:id\par
+- Edita variantes.\par
+\par
+\b Categor?as\b0\par
+GET /admin/categories\par
+- Lista categor?as.\par
+POST /admin/categories\par
+- Crea categor?a.\par
+\par
+\b Atributos\b0\par
+GET /admin/attributes\par
+- Lista atributos.\par
+POST /admin/attributes\par
+- Crea atributo.\par
+\par
+\b Product Types\b0\par
+GET /admin/product-types\par
+- Lista tipos.\par
+POST /admin/product-types\par
+- Crea tipo.\par
+\par
+\b Inventario\b0\par
+POST /admin/inventory/variants/:variantId/stock\par
+- Ajusta stock de una variante.\par
+\par
+\b ?rdenes\b0\par
+GET /admin/orders\par
+- Lista ?rdenes.\par
+GET /admin/orders/:id\par
+- Ver detalle.\par
+PATCH /admin/orders/:id\par
+- Cambiar estado (pago, env?o, etc.).\par
+\par
+\b Pagos\b0\par
+GET /admin/payments\par
+- Lista pagos.\par
+POST /admin/payments/:intentId/confirm\par
+- Confirmar pago.\par
+POST /admin/payments/:intentId/reject\par
+- Rechazar pago.\par
+\par
+\b Clientes\b0\par
+GET /admin/customers\par
+- Lista clientes.\par
+GET /admin/customers/:id\par
+- Detalle de cliente.\par
+\par
+\b 7. Storefront (p?blico/cliente)\b0\par
+\b Cat?logo\b0\par
+GET /storefront/categories\par
+- Lista categor?as visibles.\par
+GET /storefront/products\par
+- Lista productos.\par
+GET /storefront/products/:slug\par
+- Detalle de producto.\par
+\par
+\b Carrito\b0\par
+POST /storefront/cart\par
+- Crea carrito.\par
+POST /storefront/cart/items\par
+- Agrega item.\par
+PATCH /storefront/cart/items/:id\par
+- Cambia cantidad.\par
+\par
+\b Checkout\b0\par
+POST /storefront/checkout/confirm\par
+- Confirma checkout y genera orden/pago.\par
+\par
+\b ?rdenes\b0\par
+GET /storefront/orders/:orderNumber\par
+- Consulta una orden.\par
+\par
+\b Pagos\b0\par
+GET /storefront/payments/methods\par
+- M?todos disponibles.\par
+POST /storefront/payments/:intentId/proof\par
+- Subir comprobante.\par
+\par
+\b 8. Flujo t?pico\b0\par
+1) Admin inicia sesi?n con /auth/login.\par
+2) Admin crea cat?logo y stock con endpoints /admin.\par
+3) Cliente navega cat?logo con /storefront/products.\par
+4) Cliente agrega al carrito y confirma checkout.\par
+5) Admin confirma pago o lo rechaza.\par
+\par
+}

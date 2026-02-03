@@ -25,6 +25,10 @@
         <input v-model="form.sku" />
       </label>
       <label>
+        Codigo de barras
+        <input v-model="form.barcode" />
+      </label>
+      <label>
         Categoria
         <select v-model="form.categoryId">
           <option value="">Sin categoria</option>
@@ -114,6 +118,7 @@ const form = reactive({
   slug: '',
   brand: '',
   sku: '',
+  barcode: '',
   categoryId: '',
   productTypeId: '',
   description: '',
@@ -139,6 +144,7 @@ watch(
     form.categoryId = value.category?.id || '';
     form.productTypeId = value.productTypeId || '';
     form.sku = variant?.sku || '';
+    form.barcode = variant?.barcode || '';
     form.price = variant?.price ?? 0;
     form.stock = variant?.availableStock ?? 0;
   },
@@ -170,6 +176,7 @@ const updateProduct = async () => {
         method: 'PATCH',
         body: {
           sku: form.sku || undefined,
+          barcode: form.barcode || undefined,
           price: form.price,
         },
         headers: apiHeaders.value,

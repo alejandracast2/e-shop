@@ -45,6 +45,7 @@ export type ProductType = {
 export type ProductVariant = {
   id: string;
   sku?: string | null;
+  barcode?: string | null;
   price: number;
   availableStock?: number;
 };

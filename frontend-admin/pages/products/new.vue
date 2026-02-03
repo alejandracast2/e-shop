@@ -23,6 +23,10 @@
         <input v-model="form.sku" />
       </label>
       <label>
+        Codigo de barras
+        <input v-model="form.barcode" />
+      </label>
+      <label>
         Categoria
         <select v-model="form.categoryId">
           <option value="">Sin categoria</option>
@@ -107,6 +111,7 @@ const form = reactive({
   slug: '',
   brand: '',
   sku: '',
+  barcode: '',
   categoryId: '',
   productTypeId: '',
   description: '',
@@ -134,6 +139,7 @@ const createProduct = async () => {
         variants: [
           {
             sku: form.sku || undefined,
+            barcode: form.barcode || undefined,
             price: form.price,
             isActive: true,
           },
