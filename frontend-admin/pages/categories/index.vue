@@ -52,25 +52,84 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="category in categories" :key="category.id">
-            <td>{{ category.name }}</td>
-            <td>{{ category.slug }}</td>
-            <td>{{ parentName(category.parentId) }}</td>
-            <td>{{ category.position ?? 0 }}</td>
+          <tr v-for="row in visibleRows" :key="row.id">
             <td>
-              <span class="pill" :class="{ muted: !isActive(category) }">
-                {{ isActive(category) ? 'Activa' : 'Bloqueada' }}
+              <div class="name-cell" :style="{ paddingLeft: `${row.depth * 18}px` }">
+                <button
+                  v-if="row.hasChildren"
+                  class="btn btn-ghost btn-icon"
+                  type="button"
+                  @click="toggleChildren(row.id)"
+                >
+                  {{ isExpanded(row.id) ? '▾' : '▸' }}
+                </button>
+                <span v-else class="spacer"></span>
+                <template v-if="editingId === row.id">
+                  <input v-model="editForm.name" required />
+                </template>
+                <template v-else>
+                  {{ row.name }}
+                </template>
+              </div>
+            </td>
+            <td>{{ row.slug }}</td>
+            <td>
+              <template v-if="editingId === row.id">
+                <select v-model="editForm.parentId">
+                  <option value="">Sin padre</option>
+                  <option
+                    v-for="option in parentOptions(row.id)"
+                    :key="option.id"
+                    :value="option.id"
+                  >
+                    {{ option.name }}
+                  </option>
+                </select>
+              </template>
+              <template v-else>
+                {{ parentName(row.parentId) }}
+              </template>
+            </td>
+            <td>
+              <template v-if="editingId === row.id">
+                <input v-model.number="editForm.position" type="number" min="0" />
+              </template>
+              <template v-else>
+                {{ row.position ?? 0 }}
+              </template>
+            </td>
+            <td>
+              <span class="pill" :class="{ muted: !isActive(row) }">
+                {{ isActive(row) ? 'Activa' : 'Bloqueada' }}
               </span>
             </td>
             <td class="actions">
-              <button
-                class="btn btn-ghost"
-                type="button"
-                :disabled="togglingId === category.id"
-                @click="toggleCategory(category)"
-              >
-                {{ isActive(category) ? 'Bloquear' : 'Reactivar' }}
-              </button>
+              <template v-if="editingId === row.id">
+                <button
+                  class="btn btn-ghost"
+                  type="button"
+                  :disabled="savingEdit"
+                  @click="saveEdit(row)"
+                >
+                  Guardar
+                </button>
+                <button class="btn btn-ghost" type="button" :disabled="savingEdit" @click="cancelEdit">
+                  Cancelar
+                </button>
+              </template>
+              <template v-else>
+                <button class="btn btn-ghost" type="button" @click="startEdit(row)">
+                  Editar
+                </button>
+                <button
+                  class="btn btn-ghost"
+                  type="button"
+                  :disabled="togglingId === row.id"
+                  @click="toggleCategory(row)"
+                >
+                  {{ isActive(row) ? 'Bloquear' : 'Reactivar' }}
+                </button>
+              </template>
             </td>
           </tr>
         </tbody>
@@ -90,6 +149,18 @@ hydrate();
 const saving = ref(false);
 const message = ref('');
 const togglingId = ref<string | null>(null);
+const editingId = ref<string | null>(null);
+const savingEdit = ref(false);
+const expandedIds = ref<Set<string>>(new Set());
+
+const editForm = reactive({
+  name: '',
+  parentId: '',
+  position: 0,
+});
+
+type CategoryNode = Category & { children: CategoryNode[] };
+type CategoryRow = Category & { depth: number; hasChildren: boolean };
 
 const apiHeaders = computed(() => ({
   ...authHeaders.value,
@@ -102,7 +173,68 @@ const { data, refresh } = await useFetch<Category[]>('/admin/categories', {
   headers: apiHeaders,
 });
 
-const categories = computed(() => data.value ?? []);
+const flattenCategories = (items: Category[]) => {
+  const rows: Category[] = [];
+  const visit = (category: Category) => {
+    rows.push(category);
+    if (Array.isArray(category.children)) {
+      category.children.forEach((child) => visit(child));
+    }
+  };
+  items.forEach((category) => visit(category));
+  return rows;
+};
+
+const categoriesTree = computed(() => data.value ?? []);
+const categories = computed(() => flattenCategories(categoriesTree.value));
+
+const categoryTree = computed<CategoryNode[]>(() => {
+  const byId = new Map<string, CategoryNode>();
+  categories.value.forEach((category) => {
+    byId.set(category.id, { ...category, children: [] });
+  });
+
+  const roots: CategoryNode[] = [];
+  categories.value.forEach((category) => {
+    const node = byId.get(category.id);
+    if (!node) return;
+    if (category.parentId) {
+      const parent = byId.get(category.parentId);
+      if (parent) {
+        parent.children.push(node);
+      } else {
+        roots.push(node);
+      }
+    } else {
+      roots.push(node);
+    }
+  });
+
+  const sortChildren = (nodes: CategoryNode[]) => {
+    nodes.sort(
+      (a, b) => (a.position ?? 0) - (b.position ?? 0) || a.name.localeCompare(b.name),
+    );
+    nodes.forEach((node) => sortChildren(node.children));
+  };
+  sortChildren(roots);
+  return roots;
+});
+
+const visibleRows = computed<CategoryRow[]>(() => {
+  const rows: CategoryRow[] = [];
+  const visit = (node: CategoryNode, depth: number) => {
+    rows.push({
+      ...node,
+      depth,
+      hasChildren: node.children.length > 0,
+    });
+    if (expandedIds.value.has(node.id)) {
+      node.children.forEach((child) => visit(child, depth + 1));
+    }
+  };
+  categoryTree.value.forEach((root) => visit(root, 0));
+  return rows;
+});
 
 const form = reactive({
   name: '',
@@ -169,7 +301,60 @@ const toggleCategory = async (category: Category) => {
   }
 };
 
+const startEdit = (category: Category) => {
+  editingId.value = category.id;
+  editForm.name = category.name;
+  editForm.parentId = category.parentId ?? '';
+  editForm.position = category.position ?? 0;
+};
+
+const cancelEdit = () => {
+  editingId.value = null;
+};
+
+const saveEdit = async (category: Category) => {
+  if (!editForm.name.trim()) {
+    message.value = 'El nombre es obligatorio.';
+    return;
+  }
+  message.value = '';
+  savingEdit.value = true;
+  try {
+    await $fetch(`/admin/categories/${category.id}`, {
+      baseURL: config.public.apiUrl,
+      method: 'PATCH',
+      headers: apiHeaders.value,
+      body: {
+        name: editForm.name.trim(),
+        parentId: editForm.parentId || undefined,
+        position: editForm.position || 0,
+      },
+    });
+    await refresh();
+    editingId.value = null;
+  } catch (error) {
+    message.value = 'No se pudo actualizar la categoria.';
+  } finally {
+    savingEdit.value = false;
+  }
+};
+
 const isActive = (category: Category) => category.isActive !== false;
+
+const toggleChildren = (categoryId: string) => {
+  const next = new Set(expandedIds.value);
+  if (next.has(categoryId)) {
+    next.delete(categoryId);
+  } else {
+    next.add(categoryId);
+  }
+  expandedIds.value = next;
+};
+
+const isExpanded = (categoryId: string) => expandedIds.value.has(categoryId);
+
+const parentOptions = (categoryId: string) =>
+  categories.value.filter((category) => category.id !== categoryId);
 
 const parentName = (parentId?: string | null) => {
   if (!parentId) return '-';
@@ -227,8 +412,26 @@ td {
   border-bottom: 1px solid var(--outline);
 }
 
+.name-cell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-icon {
+  padding: 4px 6px;
+  min-width: 26px;
+  line-height: 1;
+}
+
+.spacer {
+  display: inline-block;
+  width: 26px;
+}
+
 .actions {
   display: flex;
+  gap: 8px;
   justify-content: flex-end;
 }
 </style>

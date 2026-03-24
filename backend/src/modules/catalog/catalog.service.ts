@@ -65,10 +65,11 @@ export class CatalogService {
 
   async listCategories() {
     const { tenantId, storeId } = this.getContext();
-    return this.categoryRepository.find({
+    const categories = await this.categoryRepository.find({
       where: { tenantId, storeId },
       order: { position: 'ASC', name: 'ASC' },
     });
+    return this.buildCategoryTree(categories);
   }
 
   async updateCategory(categoryId: string, dto: UpdateCategoryDto) {
@@ -97,60 +98,8 @@ export class CatalogService {
       order: { position: 'ASC', name: 'ASC' },
     });
 
-    type CategoryNode = Category & { children: CategoryNode[] };
-
-    const byIdCategory = new Map<string, Category>();
-    categories.forEach((category) => {
-      byIdCategory.set(category.id, category);
-    });
-
-    const visibleCache = new Map<string, boolean>();
-    const isVisible = (category: Category): boolean => {
-      if (visibleCache.has(category.id)) {
-        return visibleCache.get(category.id) ?? false;
-      }
-      if (category.isActive === false) {
-        visibleCache.set(category.id, false);
-        return false;
-      }
-      if (!category.parentId) {
-        visibleCache.set(category.id, true);
-        return true;
-      }
-      const parent = byIdCategory.get(category.parentId);
-      if (!parent) {
-        visibleCache.set(category.id, true);
-        return true;
-      }
-      const visible = isVisible(parent);
-      visibleCache.set(category.id, visible);
-      return visible;
-    };
-
-    const visibleCategories = categories.filter((category) => isVisible(category));
-
-    const byId = new Map<string, CategoryNode>();
-    visibleCategories.forEach((category) => {
-      byId.set(category.id, { ...category, children: [] });
-    });
-
-    const roots: CategoryNode[] = [];
-    visibleCategories.forEach((category) => {
-      const node = byId.get(category.id);
-      if (!node) return;
-      if (category.parentId) {
-        const parent = byId.get(category.parentId);
-        if (parent) {
-          parent.children.push(node);
-        } else {
-          roots.push(node);
-        }
-      } else {
-        roots.push(node);
-      }
-    });
-
-    return roots;
+    const visibleCategories = this.filterVisibleCategories(categories);
+    return this.buildCategoryTree(visibleCategories);
   }
 
   async createAttribute(dto: CreateAttributeDto) {
@@ -467,6 +416,65 @@ export class CatalogService {
       throw new BadRequestException('Store context missing');
     }
     return { tenantId, storeId };
+  }
+
+  private filterVisibleCategories(categories: Category[]) {
+    const byIdCategory = new Map<string, Category>();
+    categories.forEach((category) => {
+      byIdCategory.set(category.id, category);
+    });
+
+    const visibleCache = new Map<string, boolean>();
+    const isVisible = (category: Category): boolean => {
+      if (visibleCache.has(category.id)) {
+        return visibleCache.get(category.id) ?? false;
+      }
+      if (category.isActive === false) {
+        visibleCache.set(category.id, false);
+        return false;
+      }
+      if (!category.parentId) {
+        visibleCache.set(category.id, true);
+        return true;
+      }
+      const parent = byIdCategory.get(category.parentId);
+      if (!parent) {
+        visibleCache.set(category.id, true);
+        return true;
+      }
+      const visible = isVisible(parent);
+      visibleCache.set(category.id, visible);
+      return visible;
+    };
+
+    return categories.filter((category) => isVisible(category));
+  }
+
+  private buildCategoryTree(categories: Category[]) {
+    type CategoryNode = Category & { children: CategoryNode[] };
+
+    const byId = new Map<string, CategoryNode>();
+    categories.forEach((category) => {
+      byId.set(category.id, { ...category, children: [] });
+    });
+
+    const roots: CategoryNode[] = [];
+    categories.forEach((category) => {
+      const node = byId.get(category.id);
+      if (!node) return;
+      if (category.parentId) {
+        const parent = byId.get(category.parentId);
+        if (parent) {
+          parent.children.push(node);
+        } else {
+          roots.push(node);
+        }
+      } else {
+        roots.push(node);
+      }
+    });
+
+    return roots;
   }
 
   private async createVariantInternal(

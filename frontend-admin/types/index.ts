@@ -10,6 +10,7 @@ export type Category = {
   parentId?: string | null;
   position?: number;
   isActive?: boolean;
+  children?: Category[];
 };
 
 export type AttributeOption = {
