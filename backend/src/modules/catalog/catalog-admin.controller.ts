@@ -4,6 +4,7 @@ import { Roles } from '../../auth/roles.decorator';
 import { RolesGuard } from '../../auth/roles.guard';
 import { CatalogService } from './catalog.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
+import { UpdateCategoryDto } from './dto/update-category.dto';
 import { CreateAttributeDto } from './dto/create-attribute.dto';
 import { CreateProductTypeDto } from './dto/create-product-type.dto';
 import { CreateProductDto, CreateVariantDto } from './dto/create-product.dto';
@@ -24,6 +25,11 @@ export class CatalogAdminController {
   @Get('categories')
   listCategories() {
     return this.catalogService.listCategories();
+  }
+
+  @Patch('categories/:id')
+  updateCategory(@Param('id') id: string, @Body() dto: UpdateCategoryDto) {
+    return this.catalogService.updateCategory(id, dto);
   }
 
   @Post('attributes')

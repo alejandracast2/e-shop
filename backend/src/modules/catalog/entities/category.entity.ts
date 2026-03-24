@@ -27,4 +27,7 @@ export class Category extends BaseEntity {
 
   @Column({ type: 'int', default: 0 })
   position: number;
+
+  @Column({ type: 'boolean', default: true })
+  isActive: boolean;
 }

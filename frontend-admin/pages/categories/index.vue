@@ -47,6 +47,8 @@
             <th>Slug</th>
             <th>Padre</th>
             <th>Posicion</th>
+            <th>Estado</th>
+            <th></th>
           </tr>
         </thead>
         <tbody>
@@ -55,6 +57,21 @@
             <td>{{ category.slug }}</td>
             <td>{{ parentName(category.parentId) }}</td>
             <td>{{ category.position ?? 0 }}</td>
+            <td>
+              <span class="pill" :class="{ muted: !isActive(category) }">
+                {{ isActive(category) ? 'Activa' : 'Bloqueada' }}
+              </span>
+            </td>
+            <td class="actions">
+              <button
+                class="btn btn-ghost"
+                type="button"
+                :disabled="togglingId === category.id"
+                @click="toggleCategory(category)"
+              >
+                {{ isActive(category) ? 'Bloquear' : 'Reactivar' }}
+              </button>
+            </td>
           </tr>
         </tbody>
       </table>
@@ -72,6 +89,7 @@ const { authHeaders, hydrate } = useAuth();
 hydrate();
 const saving = ref(false);
 const message = ref('');
+const togglingId = ref<string | null>(null);
 
 const apiHeaders = computed(() => ({
   ...authHeaders.value,
@@ -130,6 +148,29 @@ const createCategory = async () => {
   }
 };
 
+const toggleCategory = async (category: Category) => {
+  message.value = '';
+  togglingId.value = category.id;
+  const nextState = !isActive(category);
+  try {
+    await $fetch(`/admin/categories/${category.id}`, {
+      baseURL: config.public.apiUrl,
+      method: 'PATCH',
+      headers: apiHeaders.value,
+      body: {
+        isActive: nextState,
+      },
+    });
+    await refresh();
+  } catch (error) {
+    message.value = 'No se pudo actualizar la categoria.';
+  } finally {
+    togglingId.value = null;
+  }
+};
+
+const isActive = (category: Category) => category.isActive !== false;
+
 const parentName = (parentId?: string | null) => {
   if (!parentId) return '-';
   return categories.value.find((category) => category.id === parentId)?.name ?? '-';
@@ -184,5 +225,10 @@ td {
   text-align: left;
   padding: 10px 8px;
   border-bottom: 1px solid var(--outline);
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
 }
 </style>

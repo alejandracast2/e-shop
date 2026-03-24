@@ -12,6 +12,7 @@ import { ProductVariant } from './entities/product-variant.entity';
 import { ProductAttributeValue } from './entities/product-attribute-value.entity';
 import { VariantAttributeValue } from './entities/variant-attribute-value.entity';
 import { CreateCategoryDto } from './dto/create-category.dto';
+import { UpdateCategoryDto } from './dto/update-category.dto';
 import { CreateAttributeDto } from './dto/create-attribute.dto';
 import { CreateProductTypeDto } from './dto/create-product-type.dto';
 import { CreateProductDto, CreateVariantDto } from './dto/create-product.dto';
@@ -57,6 +58,7 @@ export class CatalogService {
       parentId: dto.parentId ?? null,
       path: dto.path ?? null,
       position: dto.position ?? 0,
+      isActive: true,
     });
     return this.categoryRepository.save(category);
   }
@@ -67,6 +69,88 @@ export class CatalogService {
       where: { tenantId, storeId },
       order: { position: 'ASC', name: 'ASC' },
     });
+  }
+
+  async updateCategory(categoryId: string, dto: UpdateCategoryDto) {
+    const { tenantId, storeId } = this.getContext();
+    const category = await this.categoryRepository.findOne({
+      where: { id: categoryId, tenantId, storeId },
+    });
+    if (!category) {
+      throw new NotFoundException('Category not found');
+    }
+
+    const updated = this.categoryRepository.merge(category, {
+      ...dto,
+      parentId: dto.parentId ?? category.parentId,
+      path: dto.path ?? category.path,
+      position: dto.position ?? category.position,
+      isActive: dto.isActive ?? category.isActive,
+    });
+    return this.categoryRepository.save(updated);
+  }
+
+  async listStorefrontCategories() {
+    const { tenantId, storeId } = this.getContext();
+    const categories = await this.categoryRepository.find({
+      where: { tenantId, storeId },
+      order: { position: 'ASC', name: 'ASC' },
+    });
+
+    type CategoryNode = Category & { children: CategoryNode[] };
+
+    const byIdCategory = new Map<string, Category>();
+    categories.forEach((category) => {
+      byIdCategory.set(category.id, category);
+    });
+
+    const visibleCache = new Map<string, boolean>();
+    const isVisible = (category: Category): boolean => {
+      if (visibleCache.has(category.id)) {
+        return visibleCache.get(category.id) ?? false;
+      }
+      if (category.isActive === false) {
+        visibleCache.set(category.id, false);
+        return false;
+      }
+      if (!category.parentId) {
+        visibleCache.set(category.id, true);
+        return true;
+      }
+      const parent = byIdCategory.get(category.parentId);
+      if (!parent) {
+        visibleCache.set(category.id, true);
+        return true;
+      }
+      const visible = isVisible(parent);
+      visibleCache.set(category.id, visible);
+      return visible;
+    };
+
+    const visibleCategories = categories.filter((category) => isVisible(category));
+
+    const byId = new Map<string, CategoryNode>();
+    visibleCategories.forEach((category) => {
+      byId.set(category.id, { ...category, children: [] });
+    });
+
+    const roots: CategoryNode[] = [];
+    visibleCategories.forEach((category) => {
+      const node = byId.get(category.id);
+      if (!node) return;
+      if (category.parentId) {
+        const parent = byId.get(category.parentId);
+        if (parent) {
+          parent.children.push(node);
+        } else {
+          roots.push(node);
+        }
+      } else {
+        roots.push(node);
+      }
+    });
+
+    return roots;
   }
 
   async createAttribute(dto: CreateAttributeDto) {

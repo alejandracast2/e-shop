@@ -9,6 +9,7 @@ export type Category = {
   slug: string;
   parentId?: string | null;
   position?: number;
+  isActive?: boolean;
 };
 
 export type AttributeOption = {

@@ -7,7 +7,7 @@ export class CatalogStorefrontController {
 
   @Get('categories')
   listCategories() {
-    return this.catalogService.listCategories();
+    return this.catalogService.listStorefrontCategories();
   }
 
   @Get('products')
