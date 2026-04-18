@@ -3,3 +3,4 @@ frontend-customer/node_modules
 frontend-customer/.nuxt
 frontend-admin/node_modules
 frontend-admin/.nuxt
+backend/dist
