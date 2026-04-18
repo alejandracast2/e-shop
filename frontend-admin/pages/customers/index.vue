@@ -30,13 +30,7 @@ import type { Customer } from '~/types';
 definePageMeta({ middleware: 'auth' });
 
 const config = useRuntimeConfig();
-const { authHeaders, hydrate } = useAuth();
-hydrate();
-
-const apiHeaders = computed(() => ({
-  ...authHeaders.value,
-  'x-store-slug': config.public.storeSlug,
-}));
+const { apiHeaders } = useAdminContext();
 
 const { data: customers } = await useFetch<Customer[]>('/admin/customers', {
   baseURL: config.public.apiUrl,

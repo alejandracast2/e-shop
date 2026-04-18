@@ -81,13 +81,7 @@ const config = useRuntimeConfig();
 const router = useRouter();
 const isSaving = ref(false);
 const errorMessage = ref('');
-const { authHeaders, hydrate } = useAuth();
-hydrate();
-
-const apiHeaders = computed(() => ({
-  ...authHeaders.value,
-  'x-store-slug': config.public.storeSlug,
-}));
+const { apiHeaders } = useAdminContext();
 
 const { data: categoryData } = await useFetch<Category[]>('/admin/categories', {
   baseURL: config.public.apiUrl,

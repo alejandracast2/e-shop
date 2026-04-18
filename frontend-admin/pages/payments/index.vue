@@ -57,13 +57,7 @@ import type { PaymentIntent } from '~/types';
 definePageMeta({ middleware: 'auth' });
 
 const config = useRuntimeConfig();
-const { authHeaders, hydrate } = useAuth();
-hydrate();
-
-const apiHeaders = computed(() => ({
-  ...authHeaders.value,
-  'x-store-slug': config.public.storeSlug,
-}));
+const { apiHeaders } = useAdminContext();
 
 const { data, refresh } = await useFetch<PaymentIntent[]>('/admin/payments', {
   baseURL: config.public.apiUrl,

@@ -1,6 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
+import { Role } from '../iam/entities/role.entity';
+import { UserRole } from '../iam/entities/user-role.entity';
 import { Tenant } from './entities/tenant.entity';
 import { Store } from './entities/store.entity';
 import { StoreSettings } from './entities/store-settings.entity';
@@ -18,6 +20,10 @@ export class TenancyService {
     private readonly storeRepository: Repository<Store>,
     @InjectRepository(StoreSettings)
     private readonly storeSettingsRepository: Repository<StoreSettings>,
+    @InjectRepository(UserRole)
+    private readonly userRoleRepository: Repository<UserRole>,
+    @InjectRepository(Role)
+    private readonly roleRepository: Repository<Role>,
   ) {}
 
   async createTenant(dto: CreateTenantDto) {
@@ -30,7 +36,20 @@ export class TenancyService {
   }
 
   async listTenants() {
-    return this.tenantRepository.find({ order: { createdAt: 'DESC' } });
+    const tenants = await this.tenantRepository.find({ order: { createdAt: 'DESC' } });
+    const missingOwnerTenantIds = tenants
+      .filter((tenant) => !tenant.ownerUserId)
+      .map((tenant) => tenant.id);
+
+    if (!missingOwnerTenantIds.length) {
+      return tenants;
+    }
+
+    const inferredOwners = await this.findInferredOwners(missingOwnerTenantIds);
+    return tenants.map((tenant) => ({
+      ...tenant,
+      ownerUserId: tenant.ownerUserId ?? inferredOwners.get(tenant.id) ?? null,
+    }));
   }
 
   async createStore(tenantId: string, dto: CreateStoreDto) {
@@ -95,5 +114,40 @@ export class TenancyService {
         this.storeSettingsRepository.create({ storeId }),
       );
     }
+  }
+
+  private async findInferredOwners(tenantIds: string[]) {
+    const role = await this.roleRepository.findOne({ where: { name: 'tenant_owner' } });
+    if (!role || !tenantIds.length) {
+      return new Map<string, string>();
+    }
+
+    const assignments = await this.userRoleRepository.find({
+      where: {
+        roleId: role.id,
+        tenantId: In(tenantIds),
+      },
+      order: { createdAt: 'ASC' },
+    });
+
+    const ownersByTenant = new Map<string, Set<string>>();
+    for (const assignment of assignments) {
+      if (!assignment.tenantId) {
+        continue;
+      }
+
+      const current = ownersByTenant.get(assignment.tenantId) ?? new Set<string>();
+      current.add(assignment.userId);
+      ownersByTenant.set(assignment.tenantId, current);
+    }
+
+    const inferredOwners = new Map<string, string>();
+    for (const [tenantId, userIds] of ownersByTenant.entries()) {
+      if (userIds.size === 1) {
+        inferredOwners.set(tenantId, Array.from(userIds)[0]);
+      }
+    }
+
+    return inferredOwners;
   }
 }

@@ -44,12 +44,7 @@ import type { Order } from '~/types';
 definePageMeta({ middleware: 'auth' });
 
 const config = useRuntimeConfig();
-const { authHeaders, hydrate } = useAuth();
-hydrate();
-const apiHeaders = computed(() => ({
-  ...authHeaders.value,
-  'x-store-slug': config.public.storeSlug,
-}));
+const { apiHeaders } = useAdminContext();
 
 const { data: orders } = await useFetch<Order[]>('/admin/orders', {
   baseURL: config.public.apiUrl,

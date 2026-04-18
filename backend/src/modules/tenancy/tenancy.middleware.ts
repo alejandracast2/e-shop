@@ -24,6 +24,7 @@ export class TenancyMiddleware implements NestMiddleware {
   async use(req: Request, _res: Response, next: NextFunction) {
     req.context = req.context ?? {};
 
+    const tenantIdHeader = req.header('x-tenant-id');
     const storeIdHeader = req.header('x-store-id');
     const storeSlugHeader = req.header('x-store-slug');
     const host = req.headers.host?.split(':')[0] ?? '';
@@ -40,13 +41,16 @@ export class TenancyMiddleware implements NestMiddleware {
       store = await this.storeRepository.findOne({ where: { slug: hostSlug } });
     }
 
-    if (!store) {
+    if (!store && !tenantIdHeader) {
       store = await this.storeRepository.findOne({ where: { slug: defaultSlug } });
     }
 
     if (store) {
       req.context.tenantId = store.tenantId;
       req.context.storeId = store.id;
+    } else if (tenantIdHeader) {
+      req.context.tenantId = tenantIdHeader;
+      req.context.storeId = undefined;
     }
 
     next();

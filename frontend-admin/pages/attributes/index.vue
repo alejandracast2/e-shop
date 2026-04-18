@@ -90,16 +90,10 @@ import type { AttributeDefinition } from '~/types';
 definePageMeta({ middleware: 'auth' });
 
 const config = useRuntimeConfig();
-const { authHeaders, hydrate } = useAuth();
-hydrate();
+const { apiHeaders } = useAdminContext();
 
 const saving = ref(false);
 const message = ref('');
-
-const apiHeaders = computed(() => ({
-  ...authHeaders.value,
-  'x-store-slug': config.public.storeSlug,
-}));
 
 const { data, refresh } = await useFetch<AttributeDefinition[]>('/admin/attributes', {
   baseURL: config.public.apiUrl,

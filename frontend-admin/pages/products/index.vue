@@ -61,13 +61,7 @@ import type { Product } from '~/types';
 definePageMeta({ middleware: 'auth' });
 
 const config = useRuntimeConfig();
-const { authHeaders, hydrate } = useAuth();
-hydrate();
-
-const apiHeaders = computed(() => ({
-  ...authHeaders.value,
-  'x-store-slug': config.public.storeSlug,
-}));
+const { apiHeaders } = useAdminContext();
 
 const { data: products, refresh } = await useFetch<Product[]>('/admin/products', {
   baseURL: config.public.apiUrl,

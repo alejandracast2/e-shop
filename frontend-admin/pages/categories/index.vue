@@ -144,8 +144,7 @@ import type { Category } from '~/types';
 definePageMeta({ middleware: 'auth' });
 
 const config = useRuntimeConfig();
-const { authHeaders, hydrate } = useAuth();
-hydrate();
+const { apiHeaders } = useAdminContext();
 const saving = ref(false);
 const message = ref('');
 const togglingId = ref<string | null>(null);
@@ -161,11 +160,6 @@ const editForm = reactive({
 
 type CategoryNode = Category & { children: CategoryNode[] };
 type CategoryRow = Category & { depth: number; hasChildren: boolean };
-
-const apiHeaders = computed(() => ({
-  ...authHeaders.value,
-  'x-store-slug': config.public.storeSlug,
-}));
 
 const { data, refresh } = await useFetch<Category[]>('/admin/categories', {
   baseURL: config.public.apiUrl,

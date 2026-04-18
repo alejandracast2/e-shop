@@ -30,6 +30,9 @@ export class RolesGuard implements CanActivate {
       }
 
       if (assignment.storeId) {
+        if (!storeId && tenantId && assignment.tenantId) {
+          return assignment.tenantId === tenantId;
+        }
         return assignment.storeId === storeId;
       }
 

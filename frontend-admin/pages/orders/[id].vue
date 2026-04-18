@@ -81,13 +81,7 @@ definePageMeta({ middleware: 'auth' });
 const config = useRuntimeConfig();
 const route = useRoute();
 const message = ref('');
-const { authHeaders, hydrate } = useAuth();
-hydrate();
-
-const apiHeaders = computed(() => ({
-  ...authHeaders.value,
-  'x-store-slug': config.public.storeSlug,
-}));
+const { apiHeaders } = useAdminContext();
 
 const { data: order, refresh } = await useFetch<Order>(
   `/admin/orders/${route.params.id}`,

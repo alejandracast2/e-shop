@@ -1,38 +1,42 @@
 # frontend-platform
 
-This template should help get you started developing with Vue 3 in Vite.
+SPA en Vue 3 + Vite para usuarios con rol `platform_admin`.
 
-## Recommended IDE Setup
+## Alcance
 
-[VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+Esta interfaz cubre los endpoints de plataforma hoy disponibles en el backend:
 
-## Recommended Browser Setup
+- `POST /auth/login`
+- `GET /platform/tenants`
+- `POST /platform/tenants`
+- `GET /platform/tenants/:tenantId/stores`
+- `POST /platform/tenants/:tenantId/stores`
+- `GET /users`
+- `GET /users/:id`
+- `POST /users`
+- `PATCH /users/:id`
+- `DELETE /users/:id`
 
-- Chromium-based browsers (Chrome, Edge, Brave, etc.):
-  - [Vue.js devtools](https://chromewebstore.google.com/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd)
-  - [Turn on Custom Object Formatter in Chrome DevTools](http://bit.ly/object-formatters)
-- Firefox:
-  - [Vue.js devtools](https://addons.mozilla.org/en-US/firefox/addon/vue-js-devtools/)
-  - [Turn on Custom Object Formatter in Firefox DevTools](https://fxdx.dev/firefox-devtools-custom-object-formatters/)
+## Configuracion
 
-## Customize configuration
+Variable opcional:
 
-See [Vite Configuration Reference](https://vite.dev/config/).
+```sh
+VITE_API_URL=http://localhost:4000
+```
 
-## Project Setup
+Si no existe, el frontend apunta por defecto a `http://localhost:4000`.
+
+## Credenciales seed
+
+```txt
+platform@eshop.com / admin123
+```
+
+## Scripts
 
 ```sh
 npm install
-```
-
-### Compile and Hot-Reload for Development
-
-```sh
 npm run dev
-```
-
-### Compile and Minify for Production
-
-```sh
 npm run build
 ```

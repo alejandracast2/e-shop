@@ -13,6 +13,14 @@ export type Category = {
   children?: Category[];
 };
 
+export type StoreSummary = {
+  id: string;
+  name: string;
+  slug: string;
+  tenantId: string;
+  status?: string;
+};
+
 export type AttributeOption = {
   id: string;
   value: string;
