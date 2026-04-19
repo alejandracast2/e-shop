@@ -12,6 +12,8 @@ export const useAdminStore = defineStore('admin-context', {
     loadingStores: false,
     storeError: '',
     hydratedSelectionFor: null,
+    storesLoadedForTenant: null,
+    refreshStoresPromise: null,
   }),
   getters: {
     tenantId() {
@@ -100,39 +102,72 @@ export const useAdminStore = defineStore('admin-context', {
         },
       })
     },
-    async refreshStores() {
+    async refreshStores(options = {}) {
       const auth = useAuthStore(pinia)
+      const { force = false } = options
 
       if (!auth.token || !this.tenantId) {
         this.availableStores = []
+        this.storesLoadedForTenant = null
         return []
       }
 
+      if (!auth.canSwitchStores) {
+        this.availableStores = this.selectedStore?.id ? [this.selectedStore] : []
+        this.storeError = ''
+        this.storesLoadedForTenant = this.tenantId
+        return this.availableStores
+      }
+
+      if (!force && this.storesLoadedForTenant === this.tenantId) {
+        return this.availableStores
+      }
+
+      // Reuse the in-flight fetch so login, router guards, and mounted hooks do not duplicate it.
+      if (this.refreshStoresPromise) {
+        return this.refreshStoresPromise
+      }
+
+      const tenantId = this.tenantId
       this.loadingStores = true
       this.storeError = ''
 
-      try {
-        const stores = await this.authorizedRequest('/admin/stores', {
+      this.refreshStoresPromise = this.authorizedRequest('/admin/stores', {
           contextOptions: { includeStore: false },
         })
-
-        this.availableStores = Array.isArray(stores) ? stores : []
-
-        if (this.selectedStore?.id) {
-          const matchingStore = this.availableStores.find((store) => store.id === this.selectedStore?.id)
-          if (matchingStore) {
-            this.setSelectedStore(matchingStore)
+        .then((stores) => {
+          if (tenantId !== this.tenantId) {
+            return this.availableStores
           }
-        }
 
-        return this.availableStores
-      } catch (error) {
-        this.availableStores = []
-        this.storeError = 'No se pudo cargar la store.'
-        throw error
-      } finally {
-        this.loadingStores = false
-      }
+          this.availableStores = Array.isArray(stores) ? stores : []
+          this.storesLoadedForTenant = tenantId
+
+          if (this.selectedStore?.id) {
+            const matchingStore = this.availableStores.find(
+              (store) => store.id === this.selectedStore?.id,
+            )
+            if (matchingStore) {
+              this.setSelectedStore(matchingStore)
+            }
+          }
+
+          return this.availableStores
+        })
+        .catch((error) => {
+          if (tenantId === this.tenantId) {
+            this.availableStores = []
+            this.storesLoadedForTenant = null
+            this.storeError = 'No se pudo cargar la store.'
+          }
+          throw error
+        })
+        .finally(() => {
+          this.loadingStores = false
+          this.refreshStoresPromise = null
+        })
+
+      return this.refreshStoresPromise
     },
     async ensureStoreContext() {
       const auth = useAuthStore(pinia)
@@ -149,33 +184,53 @@ export const useAdminStore = defineStore('admin-context', {
         this.selectedStore.tenantId !== this.tenantId
       ) {
         this.setSelectedStore(null)
+        this.availableStores = []
+        this.storesLoadedForTenant = null
       }
 
       if (this.assignedStoreId) {
         if (this.selectedStore?.id !== this.assignedStoreId) {
+          const matchingStore = this.availableStores.find((store) => store.id === this.assignedStoreId)
           this.setSelectedStore({
+            ...(matchingStore ?? {}),
             id: this.assignedStoreId,
-            name: this.selectedStore?.name || 'Store actual',
-            slug: this.selectedStore?.slug || '',
-            tenantId: this.tenantId || '',
+            name: matchingStore?.name || this.selectedStore?.name || 'Store actual',
+            slug: matchingStore?.slug || this.selectedStore?.slug || '',
+            tenantId: matchingStore?.tenantId || this.tenantId || '',
           })
         }
+      }
 
-        await this.refreshStores().catch(() => [])
+      const hasSelectedStore =
+        Boolean(this.selectedStore?.id) &&
+        this.selectedStore?.tenantId === this.tenantId &&
+        (!this.assignedStoreId || this.selectedStore.id === this.assignedStoreId)
+
+      if (!auth.canSwitchStores) {
+        this.availableStores = hasSelectedStore ? [this.selectedStore] : []
+        this.storesLoadedForTenant = this.tenantId
         return
       }
 
-      if (this.selectedStore?.id && this.selectedStore?.tenantId === this.tenantId) {
+      if (hasSelectedStore && this.storesLoadedForTenant === this.tenantId) {
         return
       }
 
       const stores = await this.refreshStores().catch(() => [])
       const preferredStore =
-        stores.find((store) => store.id === this.selectedStore?.id) ||
+        stores.find((store) => store.id === (this.assignedStoreId || this.selectedStore?.id)) ||
         (DEFAULT_STORE_SLUG ? stores.find((store) => store.slug === DEFAULT_STORE_SLUG) : null) ||
         stores[0]
 
-      if (preferredStore) {
+      if (
+        preferredStore &&
+        (
+          this.selectedStore?.id !== preferredStore.id ||
+          this.selectedStore?.name !== preferredStore.name ||
+          this.selectedStore?.slug !== preferredStore.slug ||
+          this.selectedStore?.tenantId !== preferredStore.tenantId
+        )
+      ) {
         this.setSelectedStore(preferredStore)
       }
     },
@@ -205,6 +260,8 @@ export const useAdminStore = defineStore('admin-context', {
       this.loadingStores = false
       this.storeError = ''
       this.hydratedSelectionFor = null
+      this.storesLoadedForTenant = null
+      this.refreshStoresPromise = null
     },
   },
 })

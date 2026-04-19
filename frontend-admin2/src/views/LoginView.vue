@@ -2,13 +2,11 @@
 import { computed, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
-import { useAdminStore } from '@/stores/admin'
 import { toErrorMessage } from '@/lib/api'
 
 const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
-const admin = useAdminStore()
 
 const form = reactive({
   email: '',
@@ -36,7 +34,6 @@ const submit = async () => {
 
   try {
     await auth.login(form)
-    await admin.ensureStoreContext().catch(() => undefined)
     await router.replace(redirectTarget.value)
   } catch (error) {
     errorMessage.value = toErrorMessage(error, 'Credenciales invalidas.')

@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted } from 'vue'
+import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useAdminStore } from '@/stores/admin'
@@ -28,11 +28,6 @@ const logout = async () => {
   auth.logout()
   await router.push({ name: 'login' })
 }
-
-onMounted(() => {
-  if (!auth.isAuthenticated) return
-  void admin.refreshStores().catch(() => undefined)
-})
 </script>
 
 <template>
