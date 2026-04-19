@@ -381,8 +381,12 @@ export class CatalogService {
     }
 
     if (params.categoryId) {
-      query.andWhere('product.categoryId = :categoryId', {
-        categoryId: params.categoryId,
+      const categoryIds = await this.getCategoryDescendantIds(
+        { tenantId, storeId },
+        params.categoryId,
+      );
+      query.andWhere('product.categoryId IN (:...categoryIds)', {
+        categoryIds,
       });
     }
 
@@ -475,6 +479,35 @@ export class CatalogService {
     });
 
     return roots;
+  }
+
+  private async getCategoryDescendantIds(
+    context: StoreContext,
+    categoryId: string,
+  ) {
+    const categories = await this.categoryRepository.find({
+      where: { tenantId: context.tenantId, storeId: context.storeId },
+    });
+
+    const childrenByParent = new Map<string, string[]>();
+    categories.forEach((category) => {
+      if (!category.parentId) return;
+      const children = childrenByParent.get(category.parentId) ?? [];
+      children.push(category.id);
+      childrenByParent.set(category.parentId, children);
+    });
+
+    const ids = new Set<string>();
+    const stack = [categoryId];
+
+    while (stack.length) {
+      const currentId = stack.pop();
+      if (!currentId || ids.has(currentId)) continue;
+      ids.add(currentId);
+      stack.push(...(childrenByParent.get(currentId) ?? []));
+    }
+
+    return [...ids];
   }
 
   private async createVariantInternal(
