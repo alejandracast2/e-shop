@@ -3,7 +3,7 @@ import { computed, reactive, ref, watch } from 'vue'
 import PageHeader from '@/components/PageHeader.vue'
 import { useAdminStore } from '@/stores/admin'
 import { useAuthStore } from '@/stores/auth'
-import { buildCategoryTree, collectDescendantIds, flattenCategories, slugify } from '@/utils/catalog'
+import { buildCategoryTree, collectDescendantIds, createUniqueSlug, flattenCategories, slugify } from '@/utils/catalog'
 import { toErrorMessage } from '@/lib/api'
 
 const auth = useAuthStore()
@@ -18,6 +18,7 @@ const feedback = ref('')
 const feedbackType = ref('success')
 const categoriesRaw = ref([])
 const expandedIds = ref(new Set())
+const slugEditedManually = ref(false)
 
 const form = reactive({
   name: '',
@@ -32,14 +33,24 @@ const editForm = reactive({
   position: 0,
 })
 
+const categories = computed(() => flattenCategories(categoriesRaw.value))
+const categoryTree = computed(() => buildCategoryTree(categories.value))
+const existingSlugs = computed(() => categories.value.map((category) => category.slug))
+
 watch(
   () => form.name,
   (value) => {
-    if (!form.slug) {
-      form.slug = slugify(value)
+    if (!slugEditedManually.value || !form.slug) {
+      form.slug = resolveUniqueSlug(value)
     }
   },
 )
+
+watch(existingSlugs, () => {
+  if (!slugEditedManually.value && form.name) {
+    form.slug = resolveUniqueSlug(form.name)
+  }
+})
 
 const loadCategories = async () => {
   if (!auth.isAuthenticated) return
@@ -66,9 +77,6 @@ watch(
   },
   { immediate: true },
 )
-
-const categories = computed(() => flattenCategories(categoriesRaw.value))
-const categoryTree = computed(() => buildCategoryTree(categories.value))
 
 const treeIndex = computed(() => {
   const index = new Map()
@@ -106,11 +114,26 @@ const setFeedback = (message, type = 'success') => {
   feedbackType.value = type
 }
 
+const resolveUniqueSlug = (value) =>
+  createUniqueSlug(value, existingSlugs.value, { fallback: 'categoria' })
+
+const normalizeSlugInput = (value) => slugify(value)
+
+const handleSlugInput = (event) => {
+  slugEditedManually.value = true
+  form.slug = normalizeSlugInput(event.target.value)
+}
+
+const ensureUniqueFormSlug = () => {
+  form.slug = resolveUniqueSlug(form.slug || form.name)
+}
+
 const resetForm = () => {
   form.name = ''
   form.slug = ''
   form.parentId = ''
   form.position = 0
+  slugEditedManually.value = false
 }
 
 const createCategory = async () => {
@@ -118,6 +141,8 @@ const createCategory = async () => {
   setFeedback('')
 
   try {
+    ensureUniqueFormSlug()
+
     await admin.authorizedRequest('/admin/categories', {
       method: 'POST',
       body: {
@@ -257,7 +282,13 @@ const parentName = (parentId) => {
 
         <label class="field">
           <span>Slug</span>
-          <input v-model.trim="form.slug" type="text" required />
+          <input
+            :value="form.slug"
+            type="text"
+            required
+            @input="handleSlugInput"
+            @blur="ensureUniqueFormSlug"
+          />
         </label>
 
         <label class="field">

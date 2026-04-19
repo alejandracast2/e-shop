@@ -311,6 +311,7 @@ onMounted(() => {
                 <tr>
                   <th>Store</th>
                   <th>Slug</th>
+                  <th>store id</th>
                   <th>Contacto</th>
                   <th>Operacion</th>
                   <th>Creada</th>
@@ -320,9 +321,11 @@ onMounted(() => {
                 <tr v-for="store in selectedStores" :key="store.id">
                   <td>
                     <strong>{{ store.name }}</strong>
-                    <div class="muted mono">{{ shortId(store.id) }}</div>
+                    
                   </td>
+                 
                   <td class="mono">{{ store.slug }}</td>
+                  <td class="mono">{{ shortId(store.id) }}</td>
                   <td>
                     <div>{{ store.email || 'Sin email' }}</div>
                     <div class="muted">{{ store.phone || 'Sin telefono' }}</div>

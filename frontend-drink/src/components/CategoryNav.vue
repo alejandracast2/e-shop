@@ -8,6 +8,7 @@ const STORE_ID = import.meta.env.VITE_STORE_ID
 const categories = ref([])
 const loading = ref(true)
 const error = ref('')
+const activeCategoryId = ref(null)
 
 const headers = computed(() => ({
   'Content-Type': 'application/json',
@@ -16,6 +17,38 @@ const headers = computed(() => ({
 }))
 
 const safeCategories = computed(() => categories.value ?? [])
+
+function hasChildren(category) {
+  return Array.isArray(category.children) && category.children.length > 0
+}
+
+function openCategory(category) {
+  if (!hasChildren(category)) {
+    activeCategoryId.value = null
+    return
+  }
+
+  activeCategoryId.value = category.id
+}
+
+function closeCategory() {
+  activeCategoryId.value = null
+}
+
+function isCategoryOpen(category) {
+  return activeCategoryId.value === category.id
+}
+
+function handleNavFocusOut(event) {
+  const nextTarget = event.relatedTarget
+  const currentTarget = event.currentTarget
+
+  if (currentTarget instanceof Node && nextTarget instanceof Node && currentTarget.contains(nextTarget)) {
+    return
+  }
+
+  closeCategory()
+}
 
 async function loadCategories() {
   loading.value = true
@@ -57,7 +90,12 @@ onMounted(loadCategories)
       <span class="logo">Drink</span>
       <span class="tagline">Storefront</span>
     </div>
-    <nav class="category-nav" aria-label="Categorias">
+    <nav
+      class="category-nav"
+      aria-label="Categorias"
+      @mouseleave="closeCategory"
+      @focusout="handleNavFocusOut"
+    >
       <ul class="nav-list">
         <li v-if="loading" class="status">Cargando categorias...</li>
         <li v-else-if="error" class="status error">{{ error }}</li>
@@ -69,10 +107,15 @@ onMounted(loadCategories)
           v-for="category in safeCategories"
           :key="category.id"
           class="nav-item"
-          :class="{ 'has-children': category.children?.length }"
+          :class="{
+            'has-children': hasChildren(category),
+            'is-open': isCategoryOpen(category),
+          }"
+          @mouseenter="openCategory(category)"
+          @focusin="openCategory(category)"
         >
-          <a class="nav-link" href="#">{{ category.name }}1</a>
-          <div v-if="category.children?.length" class="submenu">
+          <a class="nav-link" href="#">{{ category.name }}</a>
+          <div v-if="hasChildren(category)" class="submenu">
             <div class="submenu-inner">
               <ul class="submenu-list">
                 <li v-for="child in category.children" :key="child.id">
@@ -165,6 +208,7 @@ onMounted(loadCategories)
   transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
+.nav-item.is-open .nav-link::after,
 .nav-item:hover .nav-link::after,
 .nav-item:focus-within .nav-link::after {
   opacity: 1;
@@ -186,6 +230,7 @@ onMounted(loadCategories)
   z-index: 10;
 }
 
+.nav-item.is-open .submenu,
 .nav-item:hover .submenu,
 .nav-item:focus-within .submenu {
   opacity: 1;

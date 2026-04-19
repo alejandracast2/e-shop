@@ -5,6 +5,29 @@ export const slugify = (value = '') =>
     .replace(/\s+/g, '-')
     .replace(/[^a-z0-9-]/g, '')
 
+export const createUniqueSlug = (value = '', takenSlugs = [], options = {}) => {
+  const { fallback = 'item', exclude = [] } = options
+  const blocked = new Set(Array.from(takenSlugs).filter(Boolean))
+
+  exclude.forEach((slug) => blocked.delete(slug))
+
+  const baseSlug = slugify(value) || fallback
+
+  if (!blocked.has(baseSlug)) {
+    return baseSlug
+  }
+
+  let suffix = 2
+  let candidate = `${baseSlug}-${suffix}`
+
+  while (blocked.has(candidate)) {
+    suffix += 1
+    candidate = `${baseSlug}-${suffix}`
+  }
+
+  return candidate
+}
+
 export const flattenCategories = (items = []) => {
   const rows = []
 
