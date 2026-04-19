@@ -1,9 +1,12 @@
 <script setup>
 import { ref } from 'vue'
+import { storeToRefs } from 'pinia'
 
-import { useStorefrontCategories } from '../composables/useStorefrontCategories'
+import { useStorefrontCategoriesStore } from '../stores/storefrontCategories'
 
-const { categories: safeCategories, loading, error, loadCategories } = useStorefrontCategories()
+const storefrontCategoriesStore = useStorefrontCategoriesStore()
+const { categories: safeCategories, loading, error } = storeToRefs(storefrontCategoriesStore)
+const { loadCategories } = storefrontCategoriesStore
 const activeCategoryId = ref(null)
 
 function hasChildren(category) {

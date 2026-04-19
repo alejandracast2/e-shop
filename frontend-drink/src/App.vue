@@ -1,10 +1,13 @@
 <script setup>
 import { computed } from 'vue'
+import { storeToRefs } from 'pinia'
 
 import CategoryNav from './components/CategoryNav.vue'
-import { useStorefrontCategories } from './composables/useStorefrontCategories'
+import { useStorefrontCategoriesStore } from './stores/storefrontCategories'
 
-const { categories, loading, error, loadCategories } = useStorefrontCategories()
+const storefrontCategoriesStore = useStorefrontCategoriesStore()
+const { categories, loading, error } = storeToRefs(storefrontCategoriesStore)
+const { loadCategories } = storefrontCategoriesStore
 
 const showcaseCategories = computed(() =>
   categories.value.map((category) => ({
@@ -20,8 +23,34 @@ void loadCategories()
 
 <template>
   <CategoryNav />
+
+  <section class="product-wave-section">
+    <svg
+      class="product-wave-section__wave"
+      viewBox="0 0 1440 320"
+      preserveAspectRatio="xMidYMin slice"
+      aria-hidden="true"
+    >
+      <path
+        fill="#efe8db"
+        d="M0,192L80,176C160,160,320,128,480,138.7C640,149,800,203,960,202.7C1120,203,1280,149,1360,122.7L1440,96L1440,320L0,320Z"
+      />
+    </svg>
+
+    <div class="product-wave-section__content">
+      <div class="product" v-for="category in showcaseCategories" :key="category.id">
+        <img :src="category.imageUrl" class="product__image" alt="Aguardiente" />
+        <div class="product__category">{{ category.name }}</div>
+      </div>
+    </div>
+  </section>
+
   <main class="page">
-    <div style="display: flex;margin-bottom: 40px;justify-content: center;">
+
+    <div style="display: flex;">
+      <h2>-- Descubre Nuestras Categorías --</h2>
+    </div>
+    <div style="display: flex;margin-bottom: 40px;justify-content: center;background: #efe8db ;">
       <div class="product" v-for="category in showcaseCategories">
         <img :src="category.imageUrl" class="product__image" alt="Aguardiente" />
         <div class="product__category">{{ category.name }}</div>
@@ -59,6 +88,26 @@ void loadCategories()
 </template>
 
 <style scoped>
+.product-wave-section {
+  margin-bottom: 40px;
+}
+
+.product-wave-section__wave {
+  display: block;
+  width: 100%;
+  height: clamp(230px, 11vw, 170px);
+}
+
+.product-wave-section__content {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 24px;
+  padding: 0 24px 32px;
+  margin-top: -1px;
+  background: #efe8db;
+}
+
 :global(body) {
   margin: 0;
   font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
