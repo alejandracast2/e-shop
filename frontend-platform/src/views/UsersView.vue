@@ -37,6 +37,7 @@ const editForm = reactive({
 })
 
 const selectedUserId = ref('')
+const selectedTenantId = ref('')
 const query = ref('')
 const createMessage = ref('')
 const createError = ref('')
@@ -47,17 +48,29 @@ const updatingUser = ref(false)
 const removingUser = ref(false)
 const loadingUserDetail = ref(false)
 
-const usersFiltered = computed(() => {
-  const needle = query.value.trim().toLowerCase()
-  if (!needle) return platform.users
+const userBelongsToTenant = (user, tenantId) =>
+  Array.isArray(user.roles) && user.roles.some((assignment) => assignment.tenantId === tenantId)
 
-  return platform.users.filter((user) =>
+const tenantUsers = computed(() => {
+  if (!selectedTenantId.value) return []
+  return platform.users.filter((user) => userBelongsToTenant(user, selectedTenantId.value))
+})
+
+const usersFiltered = computed(() => {
+  const scopedUsers = tenantUsers.value
+  const needle = query.value.trim().toLowerCase()
+  if (!needle) return scopedUsers
+
+  return scopedUsers.filter((user) =>
     [user.name, user.email, user.phone || '', user.id].join(' ').toLowerCase().includes(needle),
   )
 })
 
 const selectedUser = computed(
   () => platform.userDetailsById[selectedUserId.value] || platform.users.find((user) => user.id === selectedUserId.value) || null,
+)
+const selectedTenant = computed(
+  () => platform.tenants.find((tenant) => tenant.id === selectedTenantId.value) || null,
 )
 const createStores = computed(() =>
   createForm.tenantId ? platform.storesForTenant(createForm.tenantId) : [],
@@ -86,6 +99,11 @@ const syncEditForm = (user) => {
   editForm.isActive = Boolean(user?.isActive)
 }
 
+const clearSelectedUser = () => {
+  selectedUserId.value = ''
+  syncEditForm(null)
+}
+
 const loadUsers = async () => {
   createError.value = ''
   editError.value = ''
@@ -93,8 +111,16 @@ const loadUsers = async () => {
   try {
     await Promise.all([platform.fetchUsers(true), platform.fetchTenants(true)])
 
-    if (!selectedUserId.value && platform.users[0]) {
-      await selectUser(platform.users[0].id)
+    if (!selectedTenantId.value) {
+      clearSelectedUser()
+      return
+    }
+
+    const nextUser = tenantUsers.value.find((user) => user.id === selectedUserId.value) || tenantUsers.value[0]
+    if (nextUser) {
+      await selectUser(nextUser.id)
+    } else {
+      clearSelectedUser()
     }
   } catch (error) {
     createError.value = toErrorMessage(error, 'No fue posible cargar los usuarios.')
@@ -194,11 +220,10 @@ const deleteUser = async () => {
 
   try {
     const nextUserId =
-      platform.users.find((user) => user.id !== selectedUserId.value)?.id || ''
+      tenantUsers.value.find((user) => user.id !== selectedUserId.value)?.id || ''
 
     await platform.deleteUser(selectedUserId.value)
-    selectedUserId.value = ''
-    syncEditForm(null)
+    clearSelectedUser()
 
     if (nextUserId) {
       await selectUser(nextUserId)
@@ -234,6 +259,28 @@ watch(
   },
 )
 
+watch(
+  selectedTenantId,
+  async (tenantId) => {
+    query.value = ''
+
+    if (!tenantId) {
+      clearSelectedUser()
+      return
+    }
+
+    const nextUser = tenantUsers.value.find((user) => user.id === selectedUserId.value) || tenantUsers.value[0]
+    if (!nextUser) {
+      clearSelectedUser()
+      return
+    }
+
+    if (nextUser.id !== selectedUserId.value || !selectedUser.value) {
+      await selectUser(nextUser.id)
+    }
+  },
+)
+
 onMounted(() => {
   loadUsers()
 })
@@ -254,6 +301,9 @@ onMounted(() => {
       <div class="hero-card__actions">
         <div class="helper-chip">{{ platform.users.length }} usuarios cargados</div>
         <div class="helper-chip">{{ platform.activeUsers }} activos</div>
+        <div class="helper-chip">
+          {{ selectedTenant ? `${tenantUsers.length} usuarios en ${selectedTenant.name}` : 'Selecciona un tenant para listar usuarios' }}
+        </div>
         <button class="button button--secondary" type="button" @click="loadUsers">
           Refrescar usuarios
         </button>
@@ -356,18 +406,31 @@ onMounted(() => {
 
       <SectionCard
         title="Usuarios registrados"
-        description="Selecciona un usuario para cargar su detalle individual y editarlo."
+        description="Primero elige un tenant; la tabla solo muestra usuarios asociados a ese tenant."
       >
         <template #actions>
-          <input
-            v-model.trim="query"
-            class="search-input"
-            type="search"
-            placeholder="Buscar por nombre, email o id"
-          />
+          <div class="table-toolbar">
+            <select v-model="selectedTenantId" class="search-input">
+              <option value="">Selecciona un tenant</option>
+              <option v-for="tenant in platform.tenants" :key="tenant.id" :value="tenant.id">
+                {{ tenant.name }}
+              </option>
+            </select>
+            <input
+              v-model.trim="query"
+              class="search-input"
+              type="search"
+              placeholder="Buscar por nombre, email o id"
+              :disabled="!selectedTenantId"
+            />
+          </div>
         </template>
 
-        <div v-if="usersFiltered.length" class="table-shell">
+        <div v-if="!selectedTenantId" class="empty-state">
+          <h3>Selecciona un tenant</h3>
+          <p>El listado de usuarios se habilita cuando eliges el tenant que quieres revisar.</p>
+        </div>
+        <div v-else-if="usersFiltered.length" class="table-shell">
           <table>
             <thead>
               <tr>
@@ -415,7 +478,6 @@ onMounted(() => {
 
       <div v-else-if="selectedUser" class="double-grid">
         <div class="empty-state">
-          <span>{{ selectedUser }}</span>
           <h3>{{ selectedUser.name }}</h3>
           <p>{{ selectedUser.email }}</p>
           <p>ID: <span class="mono">{{ selectedUser.id }}</span></p>
@@ -424,6 +486,7 @@ onMounted(() => {
           <p>Estado: {{ selectedUser.isActive ? 'Activo' : 'Inactivo' }}</p>
           <p>Ultimo login: {{ formatDateTime(selectedUser.lastLoginAt) }}</p>
           <p>Creado: {{ formatDate(selectedUser.createdAt) }}</p>
+          <p>Roles: {{ selectedUser.roles?.map((assignment) => assignment.role).filter(Boolean).join(', ') || 'Sin roles asignados' }}</p>
         </div>
 
         <form class="form-grid" @submit.prevent="updateUser">
@@ -482,7 +545,7 @@ onMounted(() => {
 
       <div v-else class="empty-state">
         <h3>Sin usuario seleccionado</h3>
-        <p>Selecciona un registro de la tabla superior para cargar su detalle.</p>
+        <p>Selecciona un tenant y luego un registro de la tabla superior para cargar su detalle.</p>
       </div>
     </SectionCard>
   </div>

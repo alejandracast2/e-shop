@@ -45,11 +45,17 @@ export class UserService {
       });
       await this.assignTenantOwnership(saved.id, createUserDto);
     }
-    return this.stripSensitive(saved);
+
+    const createdUser = await this.findUserEntity(saved.id, true);
+    return this.toResponse(createdUser);
   }
 
   async findAll() {
-    return this.userRepository.find();
+    const users = await this.userRepository.find({
+      relations: { roles: { role: true } },
+    });
+
+    return users.map((user) => this.toResponse(user));
   }
 
   async findOne(id: string) {
@@ -84,8 +90,10 @@ export class UserService {
     user.phone = updateUserDto.phone ?? user.phone;
     user.isActive = updateUserDto.isActive ?? user.isActive;
 
-    const saved = await this.userRepository.save(user);
-    return this.stripSensitive(saved);
+    await this.userRepository.save(user);
+
+    const updatedUser = await this.findUserEntity(id, true);
+    return this.toResponse(updatedUser);
   }
 
   async remove(id: string) {
