@@ -29,6 +29,10 @@
         </select>
       </label>
       <label>
+        URL de imagen
+        <input v-model.trim="form.imageUrl" type="url" placeholder="https://..." />
+      </label>
+      <label>
         Posicion
         <input v-model.number="form.position" type="number" min="0" />
       </label>
@@ -46,6 +50,7 @@
             <th>Nombre</th>
             <th>Slug</th>
             <th>Padre</th>
+            <th>Imagen</th>
             <th>Posicion</th>
             <th>Estado</th>
             <th></th>
@@ -88,6 +93,23 @@
               </template>
               <template v-else>
                 {{ parentName(row.parentId) }}
+              </template>
+            </td>
+            <td class="image-cell">
+              <template v-if="editingId === row.id">
+                <input v-model.trim="editForm.imageUrl" type="url" placeholder="https://..." />
+              </template>
+              <template v-else>
+                <a
+                  v-if="row.imageUrl"
+                  :href="row.imageUrl"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="image-link"
+                >
+                  Ver imagen
+                </a>
+                <span v-else>-</span>
               </template>
             </td>
             <td>
@@ -155,6 +177,7 @@ const expandedIds = ref<Set<string>>(new Set());
 const editForm = reactive({
   name: '',
   parentId: '',
+  imageUrl: '',
   position: 0,
 });
 
@@ -234,6 +257,7 @@ const form = reactive({
   name: '',
   slug: '',
   parentId: '',
+  imageUrl: '',
   position: 0,
 });
 
@@ -258,6 +282,7 @@ const createCategory = async () => {
         name: form.name,
         slug: form.slug,
         parentId: form.parentId || undefined,
+        imageUrl: form.imageUrl || undefined,
         position: form.position || 0,
       },
     });
@@ -265,6 +290,7 @@ const createCategory = async () => {
     form.name = '';
     form.slug = '';
     form.parentId = '';
+    form.imageUrl = '';
     form.position = 0;
     await refresh();
   } catch (error) {
@@ -299,6 +325,7 @@ const startEdit = (category: Category) => {
   editingId.value = category.id;
   editForm.name = category.name;
   editForm.parentId = category.parentId ?? '';
+  editForm.imageUrl = category.imageUrl ?? '';
   editForm.position = category.position ?? 0;
 };
 
@@ -320,7 +347,8 @@ const saveEdit = async (category: Category) => {
       headers: apiHeaders.value,
       body: {
         name: editForm.name.trim(),
-        parentId: editForm.parentId || undefined,
+        parentId: editForm.parentId || null,
+        imageUrl: editForm.imageUrl || null,
         position: editForm.position || 0,
       },
     });
@@ -427,5 +455,14 @@ td {
   display: flex;
   gap: 8px;
   justify-content: flex-end;
+}
+
+.image-cell {
+  min-width: 120px;
+}
+
+.image-link {
+  color: var(--primary);
+  text-decoration: none;
 }
 </style>

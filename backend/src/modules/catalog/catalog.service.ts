@@ -57,6 +57,7 @@ export class CatalogService {
       slug: dto.slug,
       parentId: dto.parentId ?? null,
       path: dto.path ?? null,
+      imageUrl: dto.imageUrl ?? null,
       position: dto.position ?? 0,
       isActive: true,
     });
@@ -83,8 +84,9 @@ export class CatalogService {
 
     const updated = this.categoryRepository.merge(category, {
       ...dto,
-      parentId: dto.parentId ?? category.parentId,
-      path: dto.path ?? category.path,
+      parentId: dto.parentId === undefined ? category.parentId : (dto.parentId ?? null),
+      path: dto.path === undefined ? category.path : (dto.path ?? null),
+      imageUrl: dto.imageUrl === undefined ? category.imageUrl : (dto.imageUrl ?? null),
       position: dto.position ?? category.position,
       isActive: dto.isActive ?? category.isActive,
     });

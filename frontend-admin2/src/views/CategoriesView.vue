@@ -24,12 +24,14 @@ const form = reactive({
   name: '',
   slug: '',
   parentId: '',
+  imageUrl: '',
   position: 0,
 })
 
 const editForm = reactive({
   name: '',
   parentId: '',
+  imageUrl: '',
   position: 0,
 })
 
@@ -132,6 +134,7 @@ const resetForm = () => {
   form.name = ''
   form.slug = ''
   form.parentId = ''
+  form.imageUrl = ''
   form.position = 0
   slugEditedManually.value = false
 }
@@ -149,6 +152,7 @@ const createCategory = async () => {
         name: form.name,
         slug: form.slug,
         parentId: form.parentId || undefined,
+        imageUrl: form.imageUrl || undefined,
         position: Number(form.position || 0),
       },
     })
@@ -202,6 +206,7 @@ const startEdit = (category) => {
   editingId.value = category.id
   editForm.name = category.name
   editForm.parentId = category.parentId || ''
+  editForm.imageUrl = category.imageUrl || ''
   editForm.position = Number(category.position || 0)
 }
 
@@ -223,7 +228,8 @@ const saveEdit = async (category) => {
       method: 'PATCH',
       body: {
         name: editForm.name.trim(),
-        parentId: editForm.parentId || undefined,
+        parentId: editForm.parentId || null,
+        imageUrl: editForm.imageUrl || null,
         position: Number(editForm.position || 0),
       },
     })
@@ -302,6 +308,11 @@ const parentName = (parentId) => {
         </label>
 
         <label class="field">
+          <span>URL de imagen</span>
+          <input v-model.trim="form.imageUrl" type="url" placeholder="https://..." />
+        </label>
+
+        <label class="field">
           <span>Posicion</span>
           <input v-model.number="form.position" type="number" min="0" />
         </label>
@@ -324,6 +335,7 @@ const parentName = (parentId) => {
               <th>Nombre</th>
               <th>Slug</th>
               <th>Padre</th>
+              <th>Imagen</th>
               <th>Posicion</th>
               <th>Estado</th>
               <th></th>
@@ -363,6 +375,23 @@ const parentName = (parentId) => {
                 </template>
                 <template v-else>
                   {{ parentName(row.parentId) }}
+                </template>
+              </td>
+              <td class="image-cell">
+                <template v-if="editingId === row.id">
+                  <input v-model.trim="editForm.imageUrl" type="url" placeholder="https://..." />
+                </template>
+                <template v-else>
+                  <a
+                    v-if="row.imageUrl"
+                    :href="row.imageUrl"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="image-link"
+                  >
+                    Ver imagen
+                  </a>
+                  <span v-else>-</span>
                 </template>
               </td>
               <td>
@@ -429,5 +458,14 @@ h2 {
 .name-spacer {
   width: 32px;
   flex: 0 0 32px;
+}
+
+.image-cell {
+  min-width: 120px;
+}
+
+.image-link {
+  color: var(--color-accent);
+  text-decoration: none;
 }
 </style>

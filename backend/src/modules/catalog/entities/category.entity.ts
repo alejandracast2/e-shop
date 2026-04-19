@@ -25,6 +25,9 @@ export class Category extends BaseEntity {
   @Column({ type: 'varchar', length: 320, nullable: true })
   path?: string | null;
 
+  @Column({ type: 'varchar', length: 2048, nullable: true })
+  imageUrl?: string | null;
+
   @Column({ type: 'int', default: 0 })
   position: number;
 

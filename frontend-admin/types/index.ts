@@ -8,6 +8,7 @@ export type Category = {
   name: string;
   slug: string;
   parentId?: string | null;
+  imageUrl?: string | null;
   position?: number;
   isActive?: boolean;
   children?: Category[];

@@ -45,9 +45,9 @@ const isActive = (path) => {
       </RouterLink>
     </nav>
 
-    <div class="sidebar-footer">
+    <!-- <div class="sidebar-footer">
       <span class="pill">Vue + Vite</span>
       <span class="muted sidebar-note">Mismo backend admin, sin Nuxt.</span>
-    </div>
+    </div> -->
   </aside>
 </template>
