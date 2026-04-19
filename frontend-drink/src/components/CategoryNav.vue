@@ -1,22 +1,10 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { ref } from 'vue'
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000'
-const STORE_SLUG = import.meta.env.VITE_STORE_SLUG
-const STORE_ID = import.meta.env.VITE_STORE_ID
+import { useStorefrontCategories } from '../composables/useStorefrontCategories'
 
-const categories = ref([])
-const loading = ref(true)
-const error = ref('')
+const { categories: safeCategories, loading, error, loadCategories } = useStorefrontCategories()
 const activeCategoryId = ref(null)
-
-const headers = computed(() => ({
-  'Content-Type': 'application/json',
-  ...(STORE_SLUG ? { 'x-store-slug': STORE_SLUG } : {}),
-  ...(STORE_ID ? { 'x-store-id': STORE_ID } : {}),
-}))
-
-const safeCategories = computed(() => categories.value ?? [])
 
 function hasChildren(category) {
   return Array.isArray(category.children) && category.children.length > 0
@@ -50,45 +38,13 @@ function handleNavFocusOut(event) {
   closeCategory()
 }
 
-async function loadCategories() {
-  loading.value = true
-  error.value = ''
-
-  try {
-    const response = await fetch(`${API_URL}/storefront/categories`, {
-      headers: headers.value,
-    })
-
-    if (!response.ok) {
-      let message = `Request failed (${response.status})`
-      try {
-        const data = await response.json()
-        message = data.message || message
-      } catch {
-        // ignore parse errors
-      }
-      throw new Error(message)
-    }
-
-    const data = await response.json()
-    categories.value = Array.isArray(data) ? data : []
-  } catch (err) {
-    const message = err instanceof Error ? err.message : 'No se pudieron cargar las categorias.'
-    error.value = message
-    categories.value = []
-  } finally {
-    loading.value = false
-  }
-}
-
-onMounted(loadCategories)
+void loadCategories()
 </script>
 
 <template>
   <header class="site-header">
     <div class="brand">
-      <span class="logo">Drink</span>
-      <span class="tagline">Storefront</span>
+      <img src="/la_cantina.png" alt="Logo de la tienda" width="100"  />
     </div>
     <nav
       class="category-nav"
@@ -139,7 +95,7 @@ onMounted(loadCategories)
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding: 20px 32px 0;
+  padding: 20px 0 0;
   background: #ffffff;
 }
 
