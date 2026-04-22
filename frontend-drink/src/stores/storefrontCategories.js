@@ -1,28 +1,25 @@
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000'
-const STORE_SLUG = import.meta.env.VITE_STORE_SLUG
-const STORE_ID = import.meta.env.VITE_STORE_ID
+import { storefrontRequest } from '../lib/storefrontApi'
 
 export const useStorefrontCategoriesStore = defineStore('storefrontCategories', () => {
   const categories = ref([])
   const loading = ref(false)
   const error = ref('')
+  const hasLoaded = ref(false)
 
   let pendingRequest = null
 
-  function buildHeaders() {
-    return {
-      'Content-Type': 'application/json',
-      ...(STORE_SLUG ? { 'x-store-slug': STORE_SLUG } : {}),
-      ...(STORE_ID ? { 'x-store-id': STORE_ID } : {}),
-    }
-  }
+  async function loadCategories(options = {}) {
+    const force = options.force ?? false
 
-  async function loadCategories() {
     if (pendingRequest) {
       return pendingRequest
+    }
+
+    if (hasLoaded.value && !force) {
+      return categories.value
     }
 
     loading.value = true
@@ -30,30 +27,15 @@ export const useStorefrontCategoriesStore = defineStore('storefrontCategories', 
 
     pendingRequest = (async () => {
       try {
-        const response = await fetch(`${API_URL}/storefront/categories`, {
-          headers: buildHeaders(),
-        })
-
-        if (!response.ok) {
-          let message = `Request failed (${response.status})`
-
-          try {
-            const data = await response.json()
-            message = data.message || message
-          } catch {
-            // ignore parse errors
-          }
-
-          throw new Error(message)
-        }
-
-        const data = await response.json()
+        const data = await storefrontRequest('/storefront/categories')
         categories.value = Array.isArray(data) ? data : []
+        hasLoaded.value = true
         return categories.value
       } catch (err) {
         const message = err instanceof Error ? err.message : 'No se pudieron cargar las categorias.'
         error.value = message
         categories.value = []
+        hasLoaded.value = false
         return categories.value
       } finally {
         loading.value = false
@@ -68,6 +50,7 @@ export const useStorefrontCategoriesStore = defineStore('storefrontCategories', 
     categories,
     loading,
     error,
+    hasLoaded,
     loadCategories,
   }
 })
