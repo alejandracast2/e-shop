@@ -1,0 +1,1359 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>La Cantina — Vinos & Licores</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<script src="https://unpkg.com/vue@3.4.38/dist/vue.global.prod.js"></script>
+<template id="__bundler_thumbnail" data-bg-color="#faf7f2">
+  <svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
+    <rect width="1200" height="800" fill="#faf7f2"/>
+    <circle cx="600" cy="360" r="150" fill="#6b1520"/>
+    <text x="600" y="395" font-family="Georgia, serif" font-size="140" font-style="italic" font-weight="700" fill="#faf7f2" text-anchor="middle">L</text>
+    <text x="600" y="580" font-family="Georgia, serif" font-size="72" font-weight="700" fill="#12100f" text-anchor="middle">La <tspan fill="#6b1520" font-style="italic" font-weight="500">Cantina</tspan></text>
+    <text x="600" y="630" font-family="sans-serif" font-size="18" letter-spacing="8" fill="#5a514c" text-anchor="middle">VINOS · LICORES · AÑEJOS</text>
+  </svg>
+</template>
+<style>
+  :root{
+    --bone:#faf7f2;
+    --bone-2:#f1ece2;
+    --bone-3:#e6dfd0;
+    --ink:#12100f;
+    --ink-2:#2a2522;
+    --ink-3:#5a514c;
+    --ink-4:#8a807a;
+    --wine:#6b1520;
+    --wine-2:#8f2230;
+    --wine-3:#4a0d16;
+    --wine-wash:#f3e6e8;
+    --line: rgba(18,16,15,.12);
+    --line-2: rgba(18,16,15,.06);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bone);
+    color:var(--ink);
+    font-family:'Inter', system-ui, sans-serif;
+    font-size:15px;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+    font-feature-settings:"ss01","cv11";
+  }
+  .serif{font-family:'Playfair Display', Georgia, serif;}
+  .mono{font-family:'JetBrains Mono', ui-monospace, monospace;}
+  button{font-family:inherit;cursor:pointer;border:0;background:none;color:inherit}
+  a{color:inherit;text-decoration:none}
+  img{max-width:100%;display:block}
+  input{font-family:inherit;color:inherit}
+
+  /* ---------- Announcement bar ---------- */
+  .announce{
+    background:var(--ink);
+    color:var(--bone);
+    font-size:12px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    padding:9px 0;
+    text-align:center;
+  }
+  .announce span{opacity:.7;margin:0 18px}
+  .announce strong{color:#e6b7bd;font-weight:500;letter-spacing:.18em}
+
+  /* ---------- Header ---------- */
+  .wrap{max-width:1280px;margin:0 auto;padding:0 28px}
+  header.site{
+    background:var(--bone);
+    border-bottom:1px solid var(--line);
+    position:sticky;top:0;z-index:40;
+  }
+  .hrow{
+    display:grid;
+    grid-template-columns: auto 1fr auto;
+    align-items:center;
+    gap:36px;
+    padding:22px 0 18px;
+  }
+  .brand{
+    display:flex;align-items:center;gap:14px;
+  }
+  .brand-mark{
+    width:46px;height:46px;border-radius:50%;
+    background:var(--wine);
+    display:grid;place-items:center;
+    color:var(--bone);
+    font-family:'Playfair Display', serif;
+    font-style:italic;font-weight:700;
+    font-size:24px;
+    box-shadow: inset 0 0 0 2px var(--wine-3), 0 0 0 3px var(--bone), 0 0 0 4px var(--wine);
+  }
+  .brand-text{line-height:1}
+  .brand-text .name{
+    font-family:'Playfair Display', serif;
+    font-size:26px;font-weight:700;letter-spacing:-.01em;
+  }
+  .brand-text .name em{color:var(--wine);font-style:italic;font-weight:500}
+  .brand-text .sub{
+    font-size:10px;letter-spacing:.42em;text-transform:uppercase;
+    color:var(--ink-3);margin-top:4px;
+  }
+
+  .search{
+    position:relative;
+    max-width:520px;width:100%;justify-self:center;
+  }
+  .search input{
+    width:100%;
+    border:1px solid var(--line);
+    background:var(--bone-2);
+    padding:13px 18px 13px 44px;
+    border-radius:999px;
+    font-size:14px;
+    outline:none;
+    transition:.2s border-color, .2s background;
+  }
+  .search input:focus{border-color:var(--wine);background:#fff}
+  .search svg{
+    position:absolute;left:16px;top:50%;transform:translateY(-50%);
+    width:16px;height:16px;color:var(--ink-3);
+  }
+
+  .htools{display:flex;align-items:center;gap:8px}
+  .icon-btn{
+    width:42px;height:42px;border-radius:50%;
+    display:grid;place-items:center;
+    color:var(--ink);
+    position:relative;
+    transition:.15s background;
+  }
+  .icon-btn:hover{background:var(--bone-2)}
+  .icon-btn svg{width:18px;height:18px}
+  .icon-btn .badge{
+    position:absolute;top:3px;right:3px;
+    min-width:18px;height:18px;padding:0 5px;
+    background:var(--wine);color:var(--bone);
+    border-radius:999px;font-size:10px;font-weight:600;
+    display:grid;place-items:center;
+    border:2px solid var(--bone);
+  }
+  .locator{
+    display:flex;align-items:center;gap:10px;
+    padding:8px 14px;border-radius:999px;
+    border:1px solid var(--line);
+    font-size:12px;
+  }
+  .locator .lbl{color:var(--ink-3);text-transform:uppercase;letter-spacing:.12em;font-size:10px}
+  .locator b{font-weight:600;border-bottom:1px dashed var(--wine);color:var(--wine)}
+
+  /* ---------- Nav ---------- */
+  nav.cats{
+    border-top:1px solid var(--line-2);
+    background:var(--ink);
+    color:var(--bone);
+  }
+  .cats-row{
+    display:flex;align-items:center;gap:2px;
+    overflow-x:auto;
+    scrollbar-width:none;
+  }
+  .cats-row::-webkit-scrollbar{display:none}
+  .cats-row button{
+    padding:16px 20px;
+    font-size:12px;letter-spacing:.18em;text-transform:uppercase;font-weight:500;
+    color:var(--bone);opacity:.7;
+    position:relative;white-space:nowrap;
+    transition:.15s opacity;
+  }
+  .cats-row button:hover{opacity:1}
+  .cats-row button.active{opacity:1;color:#fff}
+  .cats-row button.active::after{
+    content:"";position:absolute;left:20px;right:20px;bottom:10px;
+    height:2px;background:var(--wine-2);
+  }
+  .cats-spacer{flex:1}
+  .cats-row .pill{
+    color:var(--wine-wash);opacity:.9;
+    display:flex;align-items:center;gap:8px;
+  }
+  .cats-row .pill.hot{color:#ffc9cf}
+
+  /* ---------- Hero ---------- */
+  .hero{
+    background:
+      radial-gradient(ellipse at 70% 40%, rgba(143,34,48,.12), transparent 60%),
+      linear-gradient(180deg, var(--bone) 0%, var(--bone-2) 100%);
+    border-bottom:1px solid var(--line);
+  }
+  .hero-grid{
+    display:grid;grid-template-columns: 1.1fr .9fr;
+    gap:56px;align-items:center;
+    padding:64px 0 72px;
+  }
+  .hero-eyebrow{
+    font-size:11px;letter-spacing:.32em;text-transform:uppercase;
+    color:var(--wine);margin-bottom:22px;
+    display:flex;align-items:center;gap:14px;
+  }
+  .hero-eyebrow::before{
+    content:"";width:40px;height:1px;background:var(--wine);
+  }
+  .hero h1{
+    font-family:'Playfair Display', serif;
+    font-size:84px;line-height:.98;letter-spacing:-.025em;
+    margin:0 0 26px;font-weight:700;
+  }
+  .hero h1 em{color:var(--wine);font-weight:500}
+  .hero h1 .amp{font-weight:400;color:var(--ink-3)}
+  .hero p.lede{
+    font-size:17px;color:var(--ink-2);max-width:520px;
+    margin:0 0 34px;line-height:1.55;
+  }
+  .hero-ctas{display:flex;gap:12px;align-items:center}
+  .btn{
+    display:inline-flex;align-items:center;gap:10px;
+    padding:14px 22px;border-radius:999px;
+    font-size:13px;letter-spacing:.14em;text-transform:uppercase;font-weight:600;
+    transition:.15s transform, .15s background, .15s color;
+  }
+  .btn-primary{background:var(--wine);color:var(--bone)}
+  .btn-primary:hover{background:var(--wine-2)}
+  .btn-ghost{border:1px solid var(--ink);color:var(--ink)}
+  .btn-ghost:hover{background:var(--ink);color:var(--bone)}
+  .btn svg{width:14px;height:14px}
+
+  .hero-stats{
+    margin-top:44px;display:flex;gap:42px;
+    border-top:1px solid var(--line);padding-top:24px;
+  }
+  .hero-stats .s{font-size:12px;color:var(--ink-3)}
+  .hero-stats .s b{
+    display:block;font-family:'Playfair Display', serif;
+    font-size:30px;color:var(--ink);letter-spacing:-.01em;margin-bottom:2px;font-weight:600;
+  }
+
+  .hero-art{
+    position:relative;height:520px;
+    border-radius:6px;
+    overflow:hidden;
+    background:
+      repeating-linear-gradient( -30deg, var(--wine) 0 2px, transparent 2px 14px),
+      linear-gradient(160deg, var(--wine-3), var(--wine));
+    box-shadow: 0 30px 60px -30px rgba(74,13,22,.5);
+  }
+  .hero-art::before{
+    content:"";position:absolute;inset:0;
+    background:
+      radial-gradient(circle at 30% 80%, rgba(255,255,255,.08), transparent 50%),
+      radial-gradient(circle at 80% 20%, rgba(255,255,255,.1), transparent 50%);
+  }
+  .hero-art .lbl{
+    position:absolute;left:28px;top:28px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;letter-spacing:.15em;text-transform:uppercase;
+    color:rgba(255,255,255,.6);
+  }
+  .hero-art .bottle{
+    position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+    width:170px;height:380px;
+    background:linear-gradient(180deg, #1a0308 0%, #3d0811 60%, #1a0308 100%);
+    border-radius: 40% 40% 18px 18px / 14% 14% 18px 18px;
+    box-shadow:
+      inset -20px 0 30px rgba(0,0,0,.6),
+      inset 20px 0 30px rgba(255,255,255,.05),
+      0 20px 40px rgba(0,0,0,.4);
+  }
+  .hero-art .bottle::before{
+    content:"";position:absolute;left:50%;top:-40px;transform:translateX(-50%);
+    width:38px;height:80px;background:#0a0305;border-radius:4px 4px 0 0;
+  }
+  .hero-art .bottle::after{
+    content:"";position:absolute;left:14px;right:14px;top:130px;bottom:30px;
+    background:var(--bone);
+    display:grid;place-items:center;
+  }
+  .hero-art .bottle-label{
+    position:absolute;left:50%;top:55%;transform:translate(-50%,-50%);
+    z-index:2;
+    text-align:center;color:var(--wine-3);
+    font-family:'Playfair Display', serif;
+  }
+  .hero-art .bottle-label .bl-brand{font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:var(--ink-3);margin-bottom:6px}
+  .hero-art .bottle-label .bl-name{font-size:22px;font-style:italic;font-weight:700}
+  .hero-art .bottle-label .bl-year{font-size:11px;letter-spacing:.4em;margin-top:8px;color:var(--ink-3)}
+  .hero-art .bottle-label::after{
+    content:"";display:block;width:30px;height:1px;background:var(--wine);margin:10px auto 0;
+  }
+
+  .hero-art .badge-round{
+    position:absolute;right:30px;bottom:30px;
+    width:118px;height:118px;border-radius:50%;
+    background:var(--bone);color:var(--ink);
+    display:grid;place-items:center;text-align:center;
+    font-family:'Playfair Display', serif;
+    font-style:italic;font-size:14px;line-height:1.15;
+    transform:rotate(-8deg);
+    box-shadow: 0 0 0 2px var(--wine), inset 0 0 0 2px var(--bone), inset 0 0 0 3px var(--wine);
+  }
+  .hero-art .badge-round b{display:block;font-size:32px;font-style:normal;color:var(--wine);letter-spacing:-.02em}
+  .hero-art .badge-round small{font-size:9px;letter-spacing:.2em;text-transform:uppercase;font-family:'Inter',sans-serif;font-style:normal;color:var(--ink-3);margin-top:4px;display:block}
+
+  /* ---------- Section chrome ---------- */
+  section{padding:72px 0}
+  .sec-head{
+    display:flex;align-items:flex-end;justify-content:space-between;
+    margin-bottom:36px;gap:24px;
+  }
+  .sec-head .left h2{
+    font-family:'Playfair Display', serif;
+    font-size:42px;line-height:1;letter-spacing:-.02em;margin:0;font-weight:700;
+  }
+  .sec-head .left h2 em{color:var(--wine);font-weight:500}
+  .sec-head .left .eye{
+    font-size:11px;letter-spacing:.28em;text-transform:uppercase;
+    color:var(--ink-3);margin-bottom:14px;
+    display:flex;align-items:center;gap:10px;
+  }
+  .sec-head .left .eye::before{content:"";width:24px;height:1px;background:var(--wine)}
+  .sec-head .right{display:flex;gap:6px;align-items:center}
+  .chip{
+    padding:9px 16px;border-radius:999px;
+    font-size:12px;letter-spacing:.1em;text-transform:uppercase;font-weight:500;
+    border:1px solid var(--line);color:var(--ink-2);
+    transition:.15s all;
+  }
+  .chip:hover{border-color:var(--ink)}
+  .chip.on{background:var(--ink);color:var(--bone);border-color:var(--ink)}
+
+  /* ---------- Categorías circulares ---------- */
+  .cat-circles{
+    display:grid;grid-template-columns:repeat(7,1fr);gap:8px;
+  }
+  .cat-circle{
+    text-align:center;cursor:pointer;
+    padding:14px 8px;border-radius:12px;
+    transition:.2s background;
+  }
+  .cat-circle:hover{background:var(--bone-2)}
+  .cat-disc{
+    width:112px;height:112px;border-radius:50%;
+    margin:0 auto 14px;
+    background:var(--bone-2);
+    border:1px solid var(--line);
+    display:grid;place-items:center;
+    position:relative;overflow:hidden;
+  }
+  .cat-disc::before{
+    content:"";position:absolute;inset:0;
+    background:repeating-linear-gradient( 45deg, rgba(18,16,15,.03) 0 6px, transparent 6px 12px);
+  }
+  .cat-disc .mini-bottle{
+    width:28px;height:76px;border-radius: 40% 40% 4px 4px / 10% 10% 4px 4px;
+    position:relative;z-index:1;
+  }
+  .cat-disc .mini-bottle::before{
+    content:"";position:absolute;left:50%;top:-10px;transform:translateX(-50%);
+    width:10px;height:16px;background:inherit;filter:brightness(.5);border-radius:2px 2px 0 0;
+  }
+  .cat-disc .mini-bottle::after{
+    content:"";position:absolute;left:3px;right:3px;top:20px;bottom:6px;
+    background:var(--bone);border-radius:2px;
+  }
+  .cat-circle .cname{
+    font-family:'Playfair Display', serif;
+    font-size:16px;font-weight:600;
+  }
+  .cat-circle .ccount{
+    font-size:10px;letter-spacing:.2em;text-transform:uppercase;
+    color:var(--ink-4);margin-top:3px;
+  }
+  .cat-circle.active .cat-disc{
+    border-color:var(--wine);
+    background:var(--wine-wash);
+    box-shadow:0 0 0 4px var(--bone), 0 0 0 5px var(--wine);
+  }
+
+  /* ---------- Product grid ---------- */
+  .toolbar{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:18px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+    margin-bottom:32px;
+  }
+  .breadcrumb{
+    font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);
+  }
+  .breadcrumb b{color:var(--ink);font-weight:600}
+  .breadcrumb span{margin:0 10px;opacity:.5}
+  .tool-right{display:flex;gap:6px;align-items:center}
+  .view-toggle{
+    display:flex;border:1px solid var(--line);border-radius:999px;overflow:hidden;
+  }
+  .view-toggle button{
+    padding:8px 12px;color:var(--ink-3);
+  }
+  .view-toggle button.on{background:var(--ink);color:var(--bone)}
+
+  .pgrid{
+    display:grid;grid-template-columns:repeat(4,1fr);gap:18px;
+  }
+  .pcard{
+    background:#fff;
+    padding:18px 16px 16px;
+    display:flex;flex-direction:column;
+    position:relative;
+    border-radius:10px;
+    border:1px solid var(--line-2);
+    box-shadow:0 1px 2px rgba(18,16,15,.04);
+    transition:.2s box-shadow, .2s transform;
+  }
+  .pcard:hover{box-shadow:0 8px 24px -8px rgba(18,16,15,.18);transform:translateY(-2px)}
+  .pcard .tags{
+    position:absolute;top:14px;left:0;display:flex;flex-direction:column;gap:4px;z-index:2;
+  }
+  .ptag{
+    font-size:11px;letter-spacing:.04em;font-weight:700;
+    padding:5px 10px;border-radius:0 4px 4px 0;
+  }
+  .ptag.sale{background:var(--wine);color:var(--bone)}
+  .ptag.new{background:var(--ink);color:var(--bone)}
+  .ptag.added{background:var(--bone);color:var(--wine);border:1px solid var(--wine)}
+  .fav{
+    position:absolute;top:12px;right:12px;
+    width:30px;height:30px;border-radius:50%;
+    display:grid;place-items:center;color:var(--ink-4);z-index:2;
+    transition:.15s all;
+  }
+  .fav:hover{color:var(--wine)}
+  .fav.on{color:var(--wine)}
+  .fav svg{width:18px;height:18px;stroke-width:1.5}
+
+  .pimg{
+    aspect-ratio:1/1;
+    display:grid;place-items:center;
+    margin-bottom:14px;
+    position:relative;
+  }
+  .pimg .shelf{display:none}
+  .pbottle{
+    width:64px;height:180px;border-radius: 38% 38% 8px 8px / 10% 10% 8px 8px;
+    position:relative;
+    filter: drop-shadow(-3px 6px 10px rgba(0,0,0,.12));
+  }
+  .pbottle::before{
+    content:"";position:absolute;left:50%;top:-22px;transform:translateX(-50%);
+    width:22px;height:40px;background:inherit;filter:brightness(.55);
+    border-radius:3px 3px 0 0;
+  }
+  .pbottle::after{
+    content:"";position:absolute;left:7px;right:7px;top:60px;bottom:20px;
+    background:var(--bone);border-radius:3px;
+  }
+  .plabel{
+    position:absolute;left:50%;top:60%;transform:translate(-50%,-50%);
+    z-index:3;text-align:center;pointer-events:none;
+    font-family:'Playfair Display', serif;color:var(--ink-2);
+    width:62px;
+  }
+  .plabel .pl-brand{font-size:7px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-3);margin-bottom:3px}
+  .plabel .pl-name{font-size:11px;font-weight:700;line-height:1.05}
+  .plabel .pl-name em{color:var(--wine);font-style:italic;font-weight:500}
+  .plabel .pl-foot{font-size:6px;letter-spacing:.3em;margin-top:4px;color:var(--ink-3)}
+  .plabel::after{content:"";display:block;width:18px;height:1px;background:var(--wine);margin:4px auto 3px}
+
+  .pcat{display:none}
+  .pprice{
+    display:flex;align-items:baseline;gap:8px;
+    margin-bottom:6px;
+  }
+  .pprice .now{
+    font-family:'Inter', sans-serif;
+    font-size:19px;font-weight:700;letter-spacing:-.01em;color:var(--ink);
+  }
+  .pprice .was{
+    font-size:13px;color:var(--ink-4);text-decoration:line-through;font-weight:400;
+  }
+  .pprice .off{display:none}
+  .pname{
+    font-family:'Inter', sans-serif;
+    font-size:14px;line-height:1.3;font-weight:400;
+    margin:0 0 12px;letter-spacing:0;color:var(--ink-2);
+    min-height:38px;
+  }
+  .pmeta{margin-bottom:12px}
+  .pmeta .ml-pill{
+    display:inline-block;
+    border:1px solid var(--line);border-radius:6px;
+    padding:5px 14px;font-size:12px;color:var(--ink-2);
+    font-family:'Inter',sans-serif;letter-spacing:0;
+  }
+  .prating{display:none}
+
+  .pactions{
+    display:flex;flex-direction:column;gap:8px;margin-top:auto;
+  }
+  .qty{
+    display:flex;align-items:center;justify-content:space-between;
+    border:1px solid var(--line);border-radius:999px;
+    padding:3px;
+  }
+  .qty button{
+    width:26px;height:26px;border-radius:50%;
+    display:grid;place-items:center;
+    color:var(--ink-3);font-size:14px;
+    background:var(--bone-2);
+  }
+  .qty button:last-of-type{background:var(--ink);color:var(--bone)}
+  .qty button:hover{filter:brightness(1.1)}
+  .qty input{
+    flex:1;text-align:center;border:0;background:transparent;
+    font-family:'Inter',sans-serif;font-size:14px;font-weight:500;
+    -moz-appearance:textfield;outline:none;
+  }
+  .qty input::-webkit-outer-spin-button,
+  .qty input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+  .addbtn{
+    width:100%;padding:10px 16px;border-radius:999px;
+    background:var(--wine);color:var(--bone);
+    font-size:13px;letter-spacing:.01em;font-weight:500;
+    display:flex;align-items:center;justify-content:center;gap:8px;
+    transition:.15s background;
+  }
+  .addbtn:hover{background:var(--wine-2)}
+  .addbtn.added{background:var(--wine-3);color:var(--bone)}
+  .addbtn svg{width:15px;height:15px}
+
+  /* ---------- Featured strip ---------- */
+  .feature{
+    background:var(--ink);color:var(--bone);
+    padding:72px 0;
+    position:relative;overflow:hidden;
+  }
+  .feature::before{
+    content:"";position:absolute;inset:0;opacity:.14;
+    background:
+      radial-gradient(circle at 20% 50%, var(--wine-2), transparent 40%),
+      radial-gradient(circle at 85% 30%, var(--wine), transparent 50%);
+  }
+  .feature-grid{
+    display:grid;grid-template-columns:1fr 1fr;gap:72px;align-items:center;position:relative;
+  }
+  .feature .eye{
+    font-size:11px;letter-spacing:.32em;text-transform:uppercase;
+    color:#e6b7bd;margin-bottom:22px;display:flex;align-items:center;gap:14px;
+  }
+  .feature .eye::before{content:"";width:40px;height:1px;background:#e6b7bd}
+  .feature h2{
+    font-family:'Playfair Display', serif;
+    font-size:60px;line-height:1;letter-spacing:-.02em;margin:0 0 24px;
+    font-weight:600;
+  }
+  .feature h2 em{color:#e6b7bd;font-style:italic;font-weight:500}
+  .feature p{color:rgba(250,247,242,.7);max-width:460px;font-size:16px;margin:0 0 32px;line-height:1.6}
+  .feature-facts{display:flex;gap:40px;border-top:1px solid rgba(255,255,255,.14);padding-top:28px;margin-top:32px}
+  .feature-facts .f{font-size:11px;color:rgba(250,247,242,.55);letter-spacing:.14em;text-transform:uppercase}
+  .feature-facts .f b{display:block;font-family:'Playfair Display',serif;font-size:30px;color:var(--bone);letter-spacing:-.01em;margin-bottom:4px;text-transform:none}
+
+  .featured-card{
+    background:linear-gradient(160deg, #1f1a18, #0a0807);
+    border:1px solid rgba(255,255,255,.1);
+    padding:40px;border-radius:4px;
+    position:relative;
+  }
+  .featured-card .sticker{
+    position:absolute;top:-14px;right:32px;
+    background:var(--wine);color:var(--bone);
+    padding:8px 14px;font-size:10px;letter-spacing:.22em;text-transform:uppercase;font-weight:600;
+  }
+  .featured-card .fc-name{
+    font-family:'Playfair Display',serif;font-size:38px;font-weight:700;letter-spacing:-.015em;
+    margin:0 0 6px;
+  }
+  .featured-card .fc-name em{color:#e6b7bd;font-style:italic;font-weight:500}
+  .featured-card .fc-sub{font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:rgba(250,247,242,.5);margin-bottom:26px}
+  .featured-card .fc-notes{
+    display:grid;grid-template-columns:1fr 1fr;gap:12px 24px;
+    margin-bottom:30px;font-size:13px;
+  }
+  .featured-card .fc-notes div{display:flex;flex-direction:column;gap:3px}
+  .featured-card .fc-notes small{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:rgba(250,247,242,.45)}
+  .featured-card .fc-notes b{font-weight:500;color:var(--bone)}
+  .featured-card .fc-bottom{
+    display:flex;justify-content:space-between;align-items:flex-end;
+    border-top:1px solid rgba(255,255,255,.1);padding-top:24px;
+  }
+  .featured-card .fc-price{font-family:'Playfair Display',serif;font-size:34px;font-weight:700;letter-spacing:-.01em}
+  .featured-card .fc-price small{font-size:12px;letter-spacing:.14em;color:rgba(250,247,242,.5);font-family:'Inter',sans-serif;font-weight:400;margin-left:6px}
+
+  /* ---------- Testimonios / Cantineros ---------- */
+  .pairing{
+    display:grid;grid-template-columns:repeat(3,1fr);gap:2px;
+    background:var(--line);border:1px solid var(--line);
+  }
+  .pair{
+    background:var(--bone);padding:36px 32px;
+  }
+  .pair .n{font-family:'Playfair Display',serif;font-size:68px;line-height:1;color:var(--wine);letter-spacing:-.02em;margin-bottom:16px;font-weight:400}
+  .pair h3{font-family:'Playfair Display',serif;font-size:22px;margin:0 0 10px;font-weight:600;letter-spacing:-.01em}
+  .pair p{margin:0;color:var(--ink-3);font-size:14px;line-height:1.6}
+
+  /* ---------- Footer ---------- */
+  footer{
+    background:var(--ink);color:rgba(250,247,242,.7);
+    padding:72px 0 32px;margin-top:32px;
+  }
+  .foot-grid{
+    display:grid;grid-template-columns:1.2fr 1fr 1fr 1fr;gap:48px;
+    padding-bottom:44px;border-bottom:1px solid rgba(255,255,255,.12);
+  }
+  .foot-brand .name{font-family:'Playfair Display',serif;font-size:32px;color:var(--bone);font-weight:700}
+  .foot-brand .name em{color:#e6b7bd;font-style:italic;font-weight:500}
+  .foot-brand p{font-size:13px;line-height:1.7;margin:18px 0 24px;max-width:320px}
+  .news{
+    display:flex;border:1px solid rgba(255,255,255,.2);border-radius:999px;overflow:hidden;max-width:320px;
+  }
+  .news input{
+    flex:1;padding:12px 16px;background:transparent;border:0;color:var(--bone);font-size:13px;outline:none;
+  }
+  .news button{
+    padding:0 18px;background:var(--wine);color:var(--bone);font-size:11px;letter-spacing:.18em;text-transform:uppercase;font-weight:600;
+  }
+  .fcol h4{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--bone);margin:0 0 18px;font-weight:600}
+  .fcol ul{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:10px}
+  .fcol a{font-size:13px;transition:.15s color}
+  .fcol a:hover{color:var(--bone)}
+  .foot-bottom{
+    padding-top:28px;display:flex;justify-content:space-between;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:rgba(250,247,242,.5);
+  }
+  .foot-bottom .legal{display:flex;gap:24px}
+
+  /* ---------- Drawer / Cart ---------- */
+  .overlay{
+    position:fixed;inset:0;background:rgba(10,8,7,.5);
+    opacity:0;pointer-events:none;transition:.25s opacity;
+    z-index:90;
+    backdrop-filter: blur(2px);
+  }
+  .overlay.on{opacity:1;pointer-events:auto}
+
+  .drawer{
+    position:fixed;top:0;right:0;bottom:0;width:440px;
+    background:var(--bone);z-index:100;
+    transform:translateX(100%);transition:.3s transform cubic-bezier(.2,.8,.2,1);
+    display:flex;flex-direction:column;
+    box-shadow:-20px 0 60px rgba(0,0,0,.15);
+  }
+  .drawer.on{transform:translateX(0)}
+  .dr-head{
+    padding:24px 28px 18px;
+    display:flex;justify-content:space-between;align-items:center;
+    border-bottom:1px solid var(--line);
+  }
+  .dr-head h3{
+    font-family:'Playfair Display',serif;font-size:24px;margin:0;font-weight:700;letter-spacing:-.01em;
+  }
+  .dr-head h3 em{color:var(--wine);font-style:italic;font-weight:500}
+  .dr-close{
+    width:36px;height:36px;border-radius:50%;display:grid;place-items:center;
+    color:var(--ink);border:1px solid var(--line);
+  }
+  .dr-close:hover{background:var(--ink);color:var(--bone);border-color:var(--ink)}
+  .dr-body{flex:1;overflow-y:auto;padding:8px 28px}
+  .dr-body::-webkit-scrollbar{width:4px}
+  .dr-body::-webkit-scrollbar-thumb{background:var(--line);border-radius:2px}
+
+  .citem{
+    display:grid;grid-template-columns:72px 1fr auto;gap:16px;
+    padding:20px 0;border-bottom:1px solid var(--line-2);align-items:center;
+  }
+  .citem .ci-img{
+    width:72px;height:80px;background:var(--bone-2);
+    display:grid;place-items:center;border:1px solid var(--line-2);
+  }
+  .citem .ci-img .pbottle{width:36px;height:72px}
+  .citem .ci-img .plabel{width:28px;top:60%}
+  .citem .ci-img .plabel .pl-brand{font-size:4px}
+  .citem .ci-img .plabel .pl-name{font-size:6px}
+  .citem .ci-img .plabel .pl-foot{display:none}
+  .citem .ci-info .cname{font-family:'Playfair Display',serif;font-size:15px;font-weight:600;margin-bottom:3px;line-height:1.15}
+  .citem .ci-info .cml{font-size:11px;color:var(--ink-4);letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px}
+  .citem .ci-info .qty{max-width:110px}
+  .citem .ci-right{display:flex;flex-direction:column;align-items:flex-end;gap:10px;height:100%;justify-content:space-between}
+  .citem .ci-right .cp{font-family:'Playfair Display',serif;font-size:18px;font-weight:700}
+  .citem .ci-right .trash{color:var(--ink-4);width:28px;height:28px;display:grid;place-items:center;border-radius:50%}
+  .citem .ci-right .trash:hover{color:var(--wine);background:var(--wine-wash)}
+
+  .empty-cart{
+    padding:60px 0;text-align:center;
+  }
+  .empty-cart .ec-mark{
+    width:80px;height:80px;border-radius:50%;margin:0 auto 18px;
+    background:var(--bone-2);color:var(--ink-3);
+    display:grid;place-items:center;
+  }
+  .empty-cart h4{font-family:'Playfair Display',serif;font-size:20px;margin:0 0 6px;font-weight:600}
+  .empty-cart p{font-size:13px;color:var(--ink-3);margin:0 0 18px}
+
+  .dr-foot{
+    border-top:1px solid var(--line);
+    padding:20px 28px 24px;
+    background:#fff;
+  }
+  .sumrow{display:flex;justify-content:space-between;padding:6px 0;font-size:13px;color:var(--ink-2)}
+  .sumrow.total{
+    border-top:1px dashed var(--line);margin-top:8px;padding-top:14px;
+    font-size:14px;
+  }
+  .sumrow.total span{font-family:'Playfair Display',serif;font-size:28px;font-weight:700;letter-spacing:-.01em;color:var(--ink)}
+  .sumrow.total .lbl{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--ink-3);align-self:center}
+  .check-btn{
+    margin-top:16px;width:100%;
+    padding:16px;border-radius:999px;
+    background:var(--wine);color:var(--bone);
+    font-size:13px;letter-spacing:.2em;text-transform:uppercase;font-weight:700;
+    display:flex;align-items:center;justify-content:center;gap:10px;
+    transition:.15s background;
+  }
+  .check-btn:hover{background:var(--wine-2)}
+  .check-btn svg{width:14px;height:14px}
+  .ship-note{
+    font-size:11px;color:var(--ink-3);letter-spacing:.08em;
+    text-align:center;margin-top:12px;
+  }
+  .ship-note b{color:var(--wine);font-weight:600}
+
+  /* ---------- Toast ---------- */
+  .toast{
+    position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);
+    background:var(--ink);color:var(--bone);
+    padding:14px 22px;border-radius:999px;
+    font-size:13px;letter-spacing:.08em;
+    display:flex;align-items:center;gap:12px;
+    z-index:200;
+    opacity:0;pointer-events:none;
+    transition:.25s all cubic-bezier(.2,.8,.2,1);
+    box-shadow:0 20px 40px rgba(0,0,0,.2);
+  }
+  .toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+  .toast .t-mark{
+    width:22px;height:22px;border-radius:50%;background:var(--wine);
+    display:grid;place-items:center;
+  }
+  .toast .t-mark svg{width:12px;height:12px}
+
+  /* ---------- Age verification ---------- */
+  .age-gate{
+    position:fixed;inset:0;background:var(--ink);color:var(--bone);
+    z-index:300;display:grid;place-items:center;
+    opacity:1;transition:.4s opacity;
+  }
+  .age-gate.off{opacity:0;pointer-events:none}
+  .age-gate .inner{max-width:420px;text-align:center;padding:48px 32px}
+  .age-gate .mark{
+    width:68px;height:68px;border-radius:50%;margin:0 auto 24px;
+    background:var(--wine);color:var(--bone);
+    display:grid;place-items:center;
+    font-family:'Playfair Display',serif;font-style:italic;font-weight:700;font-size:34px;
+  }
+  .age-gate h2{font-family:'Playfair Display',serif;font-size:38px;margin:0 0 14px;font-weight:700;letter-spacing:-.015em}
+  .age-gate p{color:rgba(250,247,242,.7);font-size:14px;line-height:1.6;margin:0 0 28px}
+  .age-gate .buttons{display:flex;gap:10px;justify-content:center}
+  .age-gate .b-yes{background:var(--bone);color:var(--ink);padding:14px 30px;border-radius:999px;font-size:12px;letter-spacing:.18em;text-transform:uppercase;font-weight:700}
+  .age-gate .b-no{border:1px solid rgba(250,247,242,.3);padding:14px 26px;border-radius:999px;font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:rgba(250,247,242,.7)}
+  .age-gate .b-yes:hover{background:var(--wine);color:var(--bone)}
+
+  /* ---------- Small utilities ---------- */
+  @media(max-width:1100px){
+    .hero h1{font-size:60px}
+    .hero-grid{grid-template-columns:1fr;gap:32px}
+    .hero-art{height:380px}
+    .pgrid{grid-template-columns:repeat(2,1fr)}
+    .cat-circles{grid-template-columns:repeat(4,1fr)}
+    .feature-grid{grid-template-columns:1fr}
+    .foot-grid{grid-template-columns:1fr 1fr;gap:32px}
+  }
+  @media(min-width:700px) and (max-width:1100px){
+    .pgrid{grid-template-columns:repeat(3,1fr)}
+  }
+  @media(max-width:640px){
+    .pgrid{grid-template-columns:repeat(2,1fr)}
+  }
+  @media(max-width:440px){
+    .pgrid{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+
+<div id="app">
+  <!-- Age gate -->
+  <div class="age-gate" :class="{off: ageOk}">
+    <div class="inner">
+      <div class="mark">LC</div>
+      <h2>La Cantina</h2>
+      <p>Para entrar a nuestra bodega, confirma que eres mayor de edad. La venta de bebidas alcohólicas a menores es prohibida (Ley 124 de 1994).</p>
+      <div class="buttons">
+        <button class="b-yes" @click="ageOk = true">Sí, soy mayor</button>
+        <a href="#" class="b-no">Salir</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Announce -->
+  <div class="announce">
+    <span>Envíos gratis sobre <strong>$180.000</strong></span>
+    <span>·</span>
+    <span>Cata guiada los jueves · <strong>Reserva tu cupo</strong></span>
+    <span>·</span>
+    <span>Bebe con moderación</span>
+  </div>
+
+  <!-- Header -->
+  <header class="site">
+    <div class="wrap hrow">
+      <a href="#" class="brand">
+        <span class="brand-mark">L</span>
+        <span class="brand-text">
+          <div class="name">La <em>Cantina</em></div>
+          <div class="sub">Vinos · Licores · Añejos</div>
+        </span>
+      </a>
+
+      <div class="search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input v-model="query" placeholder="Busca vinos, whiskies, reservas…" />
+      </div>
+
+      <div class="htools">
+        <div class="locator">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s-7-7.58-7-12a7 7 0 1 1 14 0c0 4.42-7 12-7 12z"/><circle cx="12" cy="10" r="2.5"/></svg>
+          <div>
+            <div class="lbl">Envío a</div>
+            <b>Bogotá D.C.</b>
+          </div>
+        </div>
+        <button class="icon-btn" title="Notificaciones">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 8 3 8H3s3-1 3-8z"/><path d="M10 21a2 2 0 0 0 4 0"/></svg>
+        </button>
+        <button class="icon-btn" title="Favoritos">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          <span class="badge" v-if="favorites.length">{{favorites.length}}</span>
+        </button>
+        <button class="icon-btn" title="Cuenta">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
+        </button>
+        <button class="icon-btn" title="Canasta" @click="cartOpen = true" style="background:var(--wine);color:var(--bone)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 7h12l-1.5 11a2 2 0 0 1-2 1.8h-5a2 2 0 0 1-2-1.8L6 7z"/><path d="M9 7V5a3 3 0 0 1 6 0v2"/></svg>
+          <span class="badge" v-if="cartCount">{{cartCount}}</span>
+        </button>
+      </div>
+    </div>
+
+    <nav class="cats">
+      <div class="wrap cats-row">
+        <button v-for="c in categories" :key="c.id"
+                :class="{active: activeCat === c.id}"
+                @click="activeCat = c.id">{{c.name}}</button>
+        <span class="cats-spacer"></span>
+        <button class="pill">Ofertas</button>
+        <button class="pill">Reservas</button>
+        <button class="pill hot">Cata del mes</button>
+      </div>
+    </nav>
+  </header>
+
+  <!-- Hero -->
+  <section class="hero" style="padding:0">
+    <div class="wrap hero-grid">
+      <div>
+        <div class="hero-eyebrow">Cosecha 2026 · Selección del sommelier</div>
+        <h1>Un sorbo <br/><em>vale más</em> <span class="amp">&amp;</span><br/>que mil palabras.</h1>
+        <p class="lede">Vinos seleccionados de bodegas pequeñas, whiskies añejos y licores de autor. Servimos tu pedido frío, a tu puerta, en menos de 90 minutos.</p>
+        <div class="hero-ctas">
+          <button class="btn btn-primary" @click="scrollTo('catalogo')">
+            Explorar catálogo
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </button>
+          <button class="btn btn-ghost">Reservar una cata</button>
+        </div>
+        <div class="hero-stats">
+          <div class="s"><b>+420</b>Referencias</div>
+          <div class="s"><b>36</b>Bodegas aliadas</div>
+          <div class="s"><b>90′</b>Entrega exprés</div>
+        </div>
+      </div>
+      <div class="hero-art">
+        <div class="lbl">Ref. LC-0047 · Reserva</div>
+        <div class="bottle"></div>
+        <div class="bottle-label">
+          <div class="bl-brand">La Cantina</div>
+          <div class="bl-name">Vintage</div>
+          <div class="bl-year">MMXXVI</div>
+        </div>
+        <div class="badge-round">
+          desde<b>$38k</b><small>750ml</small>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Categorías visuales -->
+  <section style="padding:56px 0 32px">
+    <div class="wrap">
+      <div class="sec-head">
+        <div class="left">
+          <div class="eye">Nuestras barras</div>
+          <h2>Categorías <em>de la casa</em></h2>
+        </div>
+      </div>
+      <div class="cat-circles">
+        <div v-for="c in featuredCategories" :key="c.id"
+             class="cat-circle"
+             :class="{active: activeCat === c.id}"
+             @click="activeCat = c.id; scrollTo('catalogo')">
+          <div class="cat-disc">
+            <div class="mini-bottle" :style="{background: c.color}"></div>
+          </div>
+          <div class="cname">{{c.name}}</div>
+          <div class="ccount">{{c.count}} refs</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Catálogo -->
+  <section id="catalogo" style="padding-top:28px">
+    <div class="wrap">
+      <div class="toolbar">
+        <div class="breadcrumb">
+          Inicio <span>/</span> Bodega <span>/</span> <b>{{currentCatName}}</b>
+          <span v-if="query">/</span> <b v-if="query">"{{query}}"</b>
+        </div>
+        <div class="tool-right">
+          <span class="chip" v-for="s in sorts" :key="s.id"
+                :class="{on: sort === s.id}"
+                @click="sort = s.id">{{s.label}}</span>
+          <div class="view-toggle" style="margin-left:10px">
+            <button :class="{on: view==='grid'}" @click="view='grid'">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+            </button>
+            <button :class="{on: view==='list'}" @click="view='list'">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="sec-head">
+        <div class="left">
+          <div class="eye">{{filtered.length}} productos</div>
+          <h2>{{currentCatName}} <em>seleccionados</em></h2>
+        </div>
+      </div>
+
+      <div class="pgrid" style="padding: 0px">
+        <article class="pcard" v-for="(p, idx) in filtered" :key="p.id" :style="idx === 1 ? 'margin: 0px' : null">
+          <div class="tags">
+            <span class="ptag sale" v-if="p.off">-{{p.off}}%</span>
+            <span class="ptag new" v-if="p.isNew">Nuevo</span>
+            <span class="ptag added" v-if="inCart(p.id)">En canasta</span>
+          </div>
+          <button class="fav" :class="{on: favorites.includes(p.id)}" @click="toggleFav(p.id)">
+            <svg viewBox="0 0 24 24" :fill="favorites.includes(p.id) ? 'currentColor' : 'none'" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          </button>
+
+          <div class="pimg">
+            <div class="pbottle" :style="{background: p.bottle}"></div>
+            <div class="plabel">
+              <div class="pl-brand">{{p.brand}}</div>
+              <div class="pl-name">{{p.labelName}}<br/><em v-if="p.labelSub">{{p.labelSub}}</em></div>
+              <div class="pl-foot">{{p.origin}}</div>
+            </div>
+            <div class="shelf"></div>
+          </div>
+
+          <div class="pprice">
+            <span class="now">${{fmt(p.price)}}</span>
+            <span class="was" v-if="p.off">${{fmt(Math.round(p.price / (1 - p.off/100)))}}</span>
+          </div>
+          <h3 class="pname">{{p.name}}</h3>
+          <div class="pmeta">
+            <span class="ml-pill">{{p.ml}}ml</span>
+          </div>
+          <div class="pactions">
+            <div class="qty">
+              <button @click="setQty(p.id, getQty(p.id)-1)">−</button>
+              <input type="number" :value="getQty(p.id)" @input="setQty(p.id, parseInt($event.target.value) || 1)" />
+              <button @click="setQty(p.id, getQty(p.id)+1)">+</button>
+            </div>
+            <button class="addbtn" :class="{added: inCart(p.id)}" @click="addToCart(p)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 7h12l-1.5 11a2 2 0 0 1-2 1.8h-5a2 2 0 0 1-2-1.8L6 7zM9 7V5a3 3 0 0 1 6 0v2"/></svg>
+              {{inCart(p.id) ? 'Añadido' : 'Agregar'}}
+            </button>
+          </div>
+        </article>
+      </div>
+
+      <div v-if="!filtered.length" style="text-align:center;padding:80px 0;color:var(--ink-3)">
+        <div style="font-family:'Playfair Display',serif;font-size:28px;color:var(--ink);margin-bottom:8px">Sin resultados</div>
+        <div>Prueba cambiando la categoría o la búsqueda.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Featured -->
+  <section class="feature">
+    <div class="wrap feature-grid">
+      <div>
+        <div class="eye">Etiqueta del mes</div>
+        <h2>Malbec <em>Reserva</em><br/>de altura</h2>
+        <p>Cosechado a 1.450 m en los viñedos de San Lorenzo. Crianza en barrica de roble francés durante 14 meses. Notas de ciruela negra, cacao y una salinidad que recuerda al mar.</p>
+        <button class="btn btn-primary" style="background:var(--bone);color:var(--ink)" @click="addFeatured">
+          Añadir a la canasta
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </button>
+        <div class="feature-facts">
+          <div class="f"><b>14</b>meses roble</div>
+          <div class="f"><b>1.450m</b>altura</div>
+          <div class="f"><b>94</b>Puntos Parker</div>
+        </div>
+      </div>
+      <div class="featured-card">
+        <div class="sticker">Reserva · Limitada</div>
+        <div class="fc-name">Malbec <em>Altura</em></div>
+        <div class="fc-sub">Mendoza · Argentina · 2021</div>
+        <div class="fc-notes">
+          <div><small>Notas</small><b>Ciruela, cacao, tabaco</b></div>
+          <div><small>Maridaje</small><b>Cordero, queso azul</b></div>
+          <div><small>Servir</small><b>16°–18° C</b></div>
+          <div><small>Cepa</small><b>100% Malbec</b></div>
+        </div>
+        <div class="fc-bottom">
+          <div class="fc-price">$128.400<small>/ 750ml</small></div>
+          <button class="btn btn-ghost" style="border-color:rgba(255,255,255,.3);color:var(--bone)">Ver ficha</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pairing -->
+  <section>
+    <div class="wrap">
+      <div class="sec-head">
+        <div class="left">
+          <div class="eye">Cómo servimos</div>
+          <h2>Tres pasos, <em>cero demora</em></h2>
+        </div>
+      </div>
+      <div class="pairing">
+        <div class="pair">
+          <div class="n">01</div>
+          <h3>Elige tu botella</h3>
+          <p>Más de 420 etiquetas curadas por nuestro sommelier. Filtra por cepa, región o precio — y guarda tus favoritas para después.</p>
+        </div>
+        <div class="pair">
+          <div class="n">02</div>
+          <h3>Enfriamos por ti</h3>
+          <p>Si pides un espumoso o un blanco, llega a la temperatura exacta para abrir. Sin neveras extra, sin esperar.</p>
+        </div>
+        <div class="pair">
+          <div class="n">03</div>
+          <h3>A tu puerta en 90′</h3>
+          <p>Entregamos en Bogotá en menos de 90 minutos, con empaque discreto. Pagos con tarjeta o contra entrega.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="wrap">
+      <div class="foot-grid">
+        <div class="foot-brand">
+          <div class="name">La <em>Cantina</em></div>
+          <p>Una tienda de barrio con alma de bodega. Seleccionamos vinos y licores que cuentan una historia — y te los llevamos a casa con cariño.</p>
+          <form class="news" @submit.prevent>
+            <input placeholder="Tu correo para catas y descuentos" />
+            <button>Suscribir</button>
+          </form>
+        </div>
+        <div class="fcol">
+          <h4>Tienda</h4>
+          <ul>
+            <li><a href="#">Vinos</a></li>
+            <li><a href="#">Whisky &amp; bourbon</a></li>
+            <li><a href="#">Licores de autor</a></li>
+            <li><a href="#">Cócteles listos</a></li>
+            <li><a href="#">Para regalar</a></li>
+          </ul>
+        </div>
+        <div class="fcol">
+          <h4>La casa</h4>
+          <ul>
+            <li><a href="#">Nuestra historia</a></li>
+            <li><a href="#">Bodegas aliadas</a></li>
+            <li><a href="#">Catas y eventos</a></li>
+            <li><a href="#">Blog del sommelier</a></li>
+            <li><a href="#">Contacto</a></li>
+          </ul>
+        </div>
+        <div class="fcol">
+          <h4>Ayuda</h4>
+          <ul>
+            <li><a href="#">Envíos &amp; devoluciones</a></li>
+            <li><a href="#">Política de venta responsable</a></li>
+            <li><a href="#">Términos y condiciones</a></li>
+            <li><a href="#">Privacidad</a></li>
+            <li><a href="#">WhatsApp 24/7</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="foot-bottom">
+        <div>© 2026 La Cantina · Bogotá, Colombia</div>
+        <div class="legal">
+          <span>Ley 124 de 1994</span>
+          <span>Bebe con moderación</span>
+          <span>+18</span>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Cart drawer -->
+  <div class="overlay" :class="{on: cartOpen}" @click="cartOpen = false"></div>
+  <aside class="drawer" :class="{on: cartOpen}">
+    <div class="dr-head">
+      <h3>Mi <em>canasta</em></h3>
+      <button class="dr-close" @click="cartOpen = false">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 6l12 12M18 6l-12 12"/></svg>
+      </button>
+    </div>
+
+    <div class="dr-body">
+      <div class="empty-cart" v-if="!cart.length">
+        <div class="ec-mark">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 7h12l-1.5 11a2 2 0 0 1-2 1.8h-5a2 2 0 0 1-2-1.8L6 7zM9 7V5a3 3 0 0 1 6 0v2"/></svg>
+        </div>
+        <h4>Tu canasta está vacía</h4>
+        <p>Empieza a descubrir nuestras etiquetas.</p>
+        <button class="btn btn-primary" @click="cartOpen = false">Explorar catálogo</button>
+      </div>
+
+      <div v-else>
+        <div class="citem" v-for="i in cart" :key="i.id">
+          <div class="ci-img">
+            <div class="pbottle" :style="{background: i.bottle}"></div>
+            <div class="plabel">
+              <div class="pl-brand">{{i.brand}}</div>
+              <div class="pl-name">{{i.labelName}}</div>
+            </div>
+          </div>
+          <div class="ci-info">
+            <div class="cname">{{i.name}}</div>
+            <div class="cml">{{i.ml}}ml · {{i.abv}}%</div>
+            <div class="qty">
+              <button @click="changeCart(i.id, i.qty-1)">−</button>
+              <input type="number" :value="i.qty" @input="changeCart(i.id, parseInt($event.target.value) || 1)" />
+              <button @click="changeCart(i.id, i.qty+1)">+</button>
+            </div>
+          </div>
+          <div class="ci-right">
+            <button class="trash" @click="removeFromCart(i.id)" title="Quitar">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M9 7V4h6v3M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13"/></svg>
+            </button>
+            <div class="cp">${{fmt(i.price * i.qty)}}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="dr-foot" v-if="cart.length">
+      <div class="sumrow"><span>Subtotal</span><span>${{fmt(subtotal)}}</span></div>
+      <div class="sumrow"><span>Envío ({{subtotal >= 180000 ? 'gratis' : 'Bogotá'}})</span><span>${{fmt(shipping)}}</span></div>
+      <div class="sumrow total">
+        <span class="lbl">Total</span>
+        <span>${{fmt(total)}}</span>
+      </div>
+      <button class="check-btn">
+        Finalizar compra
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </button>
+      <div class="ship-note" v-if="subtotal < 180000">
+        Añade <b>${{fmt(180000 - subtotal)}}</b> más y tu envío es <b>gratis</b>.
+      </div>
+      <div class="ship-note" v-else>
+        ¡Tu envío va por cuenta de <b>La Cantina</b>!
+      </div>
+    </div>
+  </aside>
+
+  <!-- Toast -->
+  <div class="toast" :class="{on: toast.on}">
+    <span class="t-mark">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l5 5L20 7"/></svg>
+    </span>
+    <span>{{toast.msg}}</span>
+  </div>
+</div>
+
+<script>
+const { createApp, reactive, ref, computed, onMounted } = Vue;
+
+createApp({
+  setup(){
+    const ageOk = ref(false);
+    const cartOpen = ref(false);
+    const activeCat = ref('todos');
+    const query = ref('');
+    const sort = ref('rel');
+    const view = ref('grid');
+    const favorites = ref([]);
+    const qtys = reactive({});
+    const cart = ref([]);
+    const toast = reactive({on:false, msg:''});
+
+    const categories = [
+      {id:'todos', name:'Toda la bodega'},
+      {id:'vinos', name:'Vinos'},
+      {id:'whisky', name:'Whisky'},
+      {id:'tequila', name:'Tequila'},
+      {id:'licores', name:'Licores'},
+      {id:'cervezas', name:'Cervezas'},
+      {id:'cocteles', name:'Coctelería'},
+      {id:'destilados', name:'Destilados'},
+    ];
+
+    const featuredCategories = [
+      {id:'vinos', name:'Vinos', count:142, color:'linear-gradient(180deg,#3b0712,#6b1520)'},
+      {id:'whisky', name:'Whisky', count:86, color:'linear-gradient(180deg,#3b2308,#7a4918)'},
+      {id:'tequila', name:'Tequila', count:34, color:'linear-gradient(180deg,#c9b27a,#8a6e3c)'},
+      {id:'licores', name:'Licores', count:48, color:'linear-gradient(180deg,#1a1a1a,#333)'},
+      {id:'cervezas', name:'Cervezas', count:62, color:'linear-gradient(180deg,#3a6b14,#58a018)'},
+      {id:'cocteles', name:'Cocteles', count:28, color:'linear-gradient(180deg,#2a0711,#520d1c)'},
+      {id:'destilados', name:'Ginebra', count:22, color:'linear-gradient(180deg,#0a1a2a,#1a3a5a)'},
+    ];
+
+    const sorts = [
+      {id:'rel', label:'Relevantes'},
+      {id:'price-asc', label:'Precio ↑'},
+      {id:'price-desc', label:'Precio ↓'},
+      {id:'rating', label:'Mejor calificados'},
+    ];
+
+    const products = [
+      {id:1, cat:'vinos', name:'Malbec Reserva Altura', brand:'Bodega San Lorenzo', labelName:'Altura', labelSub:'Reserva', origin:'Mendoza, AR', ml:750, abv:13.5, year:2021, price:128400, off:null, rating:4.8, reviews:142, isNew:false, bottle:'linear-gradient(180deg,#1a0308,#3d0811 60%,#1a0308)'},
+      {id:2, cat:'vinos', name:'Tempranillo Crianza El Barranco', brand:'El Barranco', labelName:'Crianza', labelSub:'', origin:'Rioja, ES', ml:750, abv:14, year:2020, price:86900, off:15, rating:4.6, reviews:89, isNew:false, bottle:'linear-gradient(180deg,#0a0204,#2a0711 60%,#0a0204)'},
+      {id:3, cat:'vinos', name:'Verdejo Casa Lagar', brand:'Casa Lagar', labelName:'Verdejo', labelSub:'', origin:'Rueda, ES', ml:750, abv:12.5, year:2023, price:72500, off:null, rating:4.4, reviews:63, isNew:true, bottle:'linear-gradient(180deg,#1a2108,#4a5a1a 60%,#1a2108)'},
+      {id:4, cat:'vinos', name:'Prosecco Brut Venezie', brand:'Venezie', labelName:'Brut', labelSub:'Prosecco', origin:'Veneto, IT', ml:750, abv:11, year:2022, price:94300, off:null, rating:4.5, reviews:78, isNew:false, bottle:'linear-gradient(180deg,#0a0d05,#1e2a0f 60%,#0a0d05)'},
+      {id:5, cat:'whisky', name:'Whisky Single Malt 12', brand:'Glen Laird', labelName:'Single Malt', labelSub:'12 años', origin:'Highlands, UK', ml:700, abv:40, year:2010, price:189500, off:25, rating:4.9, reviews:214, isNew:false, bottle:'linear-gradient(180deg,#3b2308,#7a4918 60%,#3b2308)'},
+      {id:6, cat:'whisky', name:'Bourbon Añejo Riverstone', brand:'Riverstone', labelName:'Bourbon', labelSub:'Small batch', origin:'Kentucky, US', ml:750, abv:45, year:2016, price:142800, off:null, rating:4.7, reviews:96, isNew:false, bottle:'linear-gradient(180deg,#2a1605,#5e3210 60%,#2a1605)'},
+      {id:7, cat:'whisky', name:'Irish Whiskey Triple Cask', brand:'Mhór', labelName:'Triple Cask', labelSub:'', origin:'Dublin, IE', ml:700, abv:40, year:2018, price:104300, off:20, rating:4.5, reviews:58, isNew:true, bottle:'linear-gradient(180deg,#3a2b10,#7f5f22 60%,#3a2b10)'},
+      {id:8, cat:'tequila', name:'Tequila Reposado 100% Agave', brand:'Don Atilio', labelName:'Reposado', labelSub:'', origin:'Jalisco, MX', ml:750, abv:38, year:2024, price:168000, off:null, rating:4.6, reviews:71, isNew:false, bottle:'linear-gradient(180deg,#c9b27a,#8a6e3c 60%,#c9b27a)'},
+      {id:9, cat:'tequila', name:'Mezcal Joven Espadín', brand:'Lagarto', labelName:'Espadín', labelSub:'Joven', origin:'Oaxaca, MX', ml:700, abv:42, year:2024, price:142700, off:null, rating:4.7, reviews:45, isNew:true, bottle:'linear-gradient(180deg,#e9e3d4,#bfb69a 60%,#e9e3d4)'},
+      {id:10, cat:'licores', name:'Licor de Café Artesanal', brand:'La Cantina', labelName:'Café', labelSub:'Licor', origin:'Huila, CO', ml:500, abv:30, year:2024, price:58900, off:null, rating:4.3, reviews:38, isNew:true, bottle:'linear-gradient(180deg,#0a0604,#201208 60%,#0a0604)'},
+      {id:11, cat:'cervezas', name:'Stout Imperial Barril Roble', brand:'La Cantina Brew', labelName:'Stout', labelSub:'Imperial', origin:'Medellín, CO', ml:330, abv:9, year:2025, price:18400, off:10, rating:4.6, reviews:52, isNew:false, bottle:'linear-gradient(180deg,#050302,#1a0f08 60%,#050302)'},
+      {id:12, cat:'destilados', name:'Ginebra Botánica Andina', brand:'Paramo', labelName:'Andina', labelSub:'Botánica', origin:'Boyacá, CO', ml:700, abv:42, year:2024, price:112600, off:null, rating:4.8, reviews:64, isNew:true, bottle:'linear-gradient(180deg,#0a1a2a,#1a3a5a 60%,#0a1a2a)'},
+    ];
+
+    const catName = (id) => (categories.find(c=>c.id===id)?.name) || id;
+    const currentCatName = computed(()=> activeCat.value==='todos' ? 'Toda la bodega' : catName(activeCat.value));
+
+    const filtered = computed(()=>{
+      let list = products.slice();
+      if(activeCat.value !== 'todos') list = list.filter(p=>p.cat === activeCat.value);
+      if(query.value.trim()){
+        const q = query.value.toLowerCase();
+        list = list.filter(p =>
+          p.name.toLowerCase().includes(q) ||
+          p.brand.toLowerCase().includes(q) ||
+          p.origin.toLowerCase().includes(q)
+        );
+      }
+      if(sort.value === 'price-asc') list.sort((a,b)=>a.price-b.price);
+      else if(sort.value === 'price-desc') list.sort((a,b)=>b.price-a.price);
+      else if(sort.value === 'rating') list.sort((a,b)=>b.rating-a.rating);
+      return list;
+    });
+
+    const fmt = (n) => {
+      if(n == null) return '0';
+      return Math.round(n).toLocaleString('es-CO');
+    };
+
+    const getQty = (id) => qtys[id] || 1;
+    const setQty = (id, v) => { qtys[id] = Math.max(1, Math.min(99, v)); };
+
+    const inCart = (id) => cart.value.some(i => i.id === id);
+    const cartCount = computed(()=> cart.value.reduce((s,i)=>s+i.qty, 0));
+    const subtotal = computed(()=> cart.value.reduce((s,i)=>s + i.price*i.qty, 0));
+    const shipping = computed(()=> subtotal.value === 0 ? 0 : (subtotal.value >= 180000 ? 0 : 11000));
+    const total = computed(()=> subtotal.value + shipping.value);
+
+    function showToast(msg){
+      toast.msg = msg; toast.on = true;
+      setTimeout(()=>{ toast.on = false; }, 2000);
+    }
+
+    function addToCart(p){
+      const existing = cart.value.find(i=>i.id===p.id);
+      const q = getQty(p.id);
+      if(existing){
+        existing.qty += q;
+      } else {
+        cart.value.push({...p, qty:q});
+      }
+      showToast(`${p.name} añadido a la canasta`);
+      persist();
+    }
+    function changeCart(id, qty){
+      const it = cart.value.find(i=>i.id===id);
+      if(!it) return;
+      if(qty <= 0){ removeFromCart(id); return; }
+      it.qty = Math.min(99, qty);
+      persist();
+    }
+    function removeFromCart(id){
+      cart.value = cart.value.filter(i=>i.id!==id);
+      persist();
+    }
+    function toggleFav(id){
+      const i = favorites.value.indexOf(id);
+      if(i>=0) favorites.value.splice(i,1);
+      else { favorites.value.push(id); showToast('Guardado en favoritos'); }
+      persist();
+    }
+    function addFeatured(){
+      addToCart(products[0]);
+      cartOpen.value = true;
+    }
+    function scrollTo(id){
+      const el = document.getElementById(id);
+      if(el) el.scrollIntoView ? el.scrollIntoView({behavior:'smooth', block:'start'}) : window.scrollTo(0, el.offsetTop);
+    }
+    function persist(){
+      try {
+        localStorage.setItem('lacantina', JSON.stringify({cart: cart.value, favorites: favorites.value}));
+      } catch(e){}
+    }
+    onMounted(()=>{
+      try {
+        const s = JSON.parse(localStorage.getItem('lacantina')||'{}');
+        if(s.cart) cart.value = s.cart;
+        if(s.favorites) favorites.value = s.favorites;
+      } catch(e){}
+    });
+
+    return {
+      ageOk, cartOpen, activeCat, query, sort, view, favorites, cart, toast,
+      categories, featuredCategories, sorts, products,
+      catName, currentCatName, filtered,
+      fmt, getQty, setQty, inCart, cartCount, subtotal, shipping, total,
+      addToCart, changeCart, removeFromCart, toggleFav, addFeatured, scrollTo
+    };
+  }
+}).mount('#app');
+</script>
+</body>
+</html>
