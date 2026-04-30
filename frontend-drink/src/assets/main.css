@@ -13,3 +13,20 @@
     --line: rgba(18,16,15,.12);
     --line-2: rgba(18,16,15,.06);
   }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bone);
+    color:var(--ink);
+    font-family:'Inter', system-ui, sans-serif;
+    font-size:15px;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+    font-feature-settings:"ss01","cv11";
+  }
+  .serif{font-family:'Playfair Display', Georgia, serif;}
+  .mono{font-family:'JetBrains Mono', ui-monospace, monospace;}
+  button{font-family:inherit;cursor:pointer;border:0;background:none;color:inherit}
+  a{color:inherit;text-decoration:none}
+  img{max-width:100%;display:block}
+  input{font-family:inherit;color:inherit}

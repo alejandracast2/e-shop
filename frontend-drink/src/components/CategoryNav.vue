@@ -54,17 +54,22 @@ function selectCategory(categoryId) {
 </script>
 
 <template>
-  <header class="site-header">
-    <div class="header-shell">
-      <div class="brand-block">
+   <header class="site">
+    <div class="wrap hrow">
+      <div class="brand">
         <span class="brand-mark">LC</span>
-        <div class="brand-copy">
-          <a class="brand-title" href="#top">La Cantina</a>
-          <p class="brand-subtitle">Vinos, licores y entregas el mismo dia</p>
-        </div>
+        <span class="brand-text">
+          <div class="name" style="font-family: Raleway; font-weight: 600">La <em>Cantina</em></div>
+          <div class="sub">Vinos · Licores · Añejos</div>
+        </span>
       </div>
-
-      <label class="search-bar" aria-label="Buscar en el catalogo">
+      <div class="search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input placeholder="Busca vinos, whiskies, reservas…" :value="searchQuery"
+          type="search"
+          @input="handleInput"/>
+      </div>
+      <!-- <label class="search-bar" aria-label="Buscar en el catalogo">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
           <circle cx="11" cy="11" r="7" />
           <path d="m20 20-3.5-3.5" />
@@ -75,9 +80,31 @@ function selectCategory(categoryId) {
           placeholder="Buscar etiquetas, marcas o estilos"
           @input="handleInput"
         />
-      </label>
-
-      <div class="header-actions">
+      </label> -->
+      <div class="htools">
+        <div class="locator">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s-7-7.58-7-12a7 7 0 1 1 14 0c0 4.42-7 12-7 12z"/><circle cx="12" cy="10" r="2.5"/></svg>
+          <div>
+            <div class="lbl">Envío a</div>
+            <b>Bogotá D.C.</b>
+          </div>
+        </div>
+        <button class="icon-btn" title="Notificaciones">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 8 3 8H3s3-1 3-8z"/><path d="M10 21a2 2 0 0 0 4 0"/></svg>
+        </button>
+        <button class="icon-btn" title="Favoritos">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          <span class="badge">1</span>
+        </button>
+        <button class="icon-btn" title="Cuenta">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
+        </button>
+        <button class="icon-btn" title="Canasta" @click="uiStore.openCart" style="background:var(--wine);color:var(--bone)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 7h12l-1.5 11a2 2 0 0 1-2 1.8h-5a2 2 0 0 1-2-1.8L6 7z"/><path d="M9 7V5a3 3 0 0 1 6 0v2"/></svg>
+          <span class="badge" v-if="cartCount">{{cartCount}}</span>
+        </button>
+      </div>
+      <!-- <div class="header-actions">
         <div class="status-pill">
           <span class="status-label">Entrega</span>
           <strong>Bogota 90 min</strong>
@@ -91,7 +118,7 @@ function selectCategory(categoryId) {
           <span>Canasta</span>
           <span v-if="cartCount" class="cart-badge">{{ cartCount }}</span>
         </button>
-      </div>
+      </div> -->
     </div>
 
     <nav class="category-nav" aria-label="Categorias" @mouseleave="clearCategoryPreview">
@@ -128,13 +155,7 @@ function selectCategory(categoryId) {
         v-if="currentPreviewCategory && hasChildren(currentPreviewCategory)"
         class="submenu-panel"
       >
-        <div class="submenu-copy">
-          <p class="submenu-kicker">Explorar</p>
-          <h2>{{ currentPreviewCategory.name }}</h2>
-          <p>
-            Encuentra subcategorias y colecciones relacionadas para navegar mas rapido.
-          </p>
-        </div>
+       
 
         <div class="submenu-links">
           <button
@@ -153,6 +174,95 @@ function selectCategory(categoryId) {
 </template>
 
 <style scoped>
+/* ---------- Header ---------- */
+  .wrap{max-width:1280px;margin:0 auto;padding:0 28px}
+  header.site{
+    background:var(--bone);
+    border-bottom:1px solid var(--line);
+    position:sticky;top:0;z-index:40;
+  }
+  .hrow{
+    display:grid;
+    grid-template-columns: auto 1fr auto;
+    align-items:center;
+    gap:36px;
+    padding:22px 0 18px;
+  }
+  .brand{
+    display:flex;align-items:center;gap:14px;
+  }
+  .brand-mark{
+    width:46px;height:46px;border-radius:50%;
+    background:var(--wine);
+    display:grid;place-items:center;
+    color:var(--bone);
+    font-family:'Playfair Display', serif;
+    font-style:italic;font-weight:700;
+    font-size:24px;
+    box-shadow: inset 0 0 0 2px var(--wine-3), 0 0 0 3px var(--bone), 0 0 0 4px var(--wine);
+  }
+  .brand-text{line-height:1}
+  .brand-text .name{
+    font-family:'Playfair Display', serif;
+    font-size:26px;font-weight:700;letter-spacing:-.01em;
+  }
+  .brand-text .name em{color:var(--wine);font-style:italic;font-weight:500}
+  .brand-text .sub{
+    font-size:10px;letter-spacing:.42em;text-transform:uppercase;
+    color:var(--ink-3);margin-top:4px;
+  }
+
+  .search{
+    position:relative;
+    max-width:520px;width:100%;justify-self:center;
+  }
+  .search input{
+    width:100%;
+    border:1px solid var(--line);
+    background:var(--bone-2);
+    padding:13px 18px 13px 44px;
+    border-radius:999px;
+    font-size:14px;
+    outline:none;
+    transition:.2s border-color, .2s background;
+  }
+  .search input:focus{border-color:var(--wine);background:#fff}
+  .search svg{
+    position:absolute;left:16px;top:50%;transform:translateY(-50%);
+    width:16px;height:16px;color:var(--ink-3);
+  }
+
+  .htools{display:flex;align-items:center;gap:8px}
+  .icon-btn{
+    width:42px;height:42px;border-radius:50%;
+    display:grid;place-items:center;
+    color:var(--ink);
+    position:relative;
+    transition:.15s background;
+  }
+  .icon-btn:hover{background:var(--bone-2)}
+  .icon-btn svg{width:18px;height:18px}
+  .icon-btn .badge{
+    position:absolute;top:3px;right:3px;
+    min-width:18px;height:18px;padding:0 5px;
+    background:var(--wine);color:var(--bone);
+    border-radius:999px;font-size:10px;font-weight:600;
+    display:grid;place-items:center;
+    border:2px solid var(--bone);
+  }
+  .locator{
+    display:flex;align-items:center;gap:10px;
+    padding:8px 14px;border-radius:999px;
+    border:1px solid var(--line);
+    font-size:12px;
+  }
+  .locator .lbl{color:var(--ink-3);text-transform:uppercase;letter-spacing:.12em;font-size:10px}
+  .locator b{font-weight:600;border-bottom:1px dashed var(--wine);color:var(--wine)}
+
+
+
+
+
 .site-header {
   position: sticky;
   top: 0;
@@ -176,7 +286,7 @@ function selectCategory(categoryId) {
   gap: 14px;
 }
 
-.brand-mark {
+/* .brand-mark {
   width: 48px;
   height: 48px;
   display: grid;
@@ -190,7 +300,7 @@ function selectCategory(categoryId) {
   box-shadow:
     0 0 0 2px rgba(250, 247, 242, 0.95),
     0 0 0 3px rgba(93, 16, 27, 0.7);
-}
+} */
 
 .brand-copy {
   display: grid;
