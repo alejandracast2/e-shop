@@ -1,20 +1,25 @@
 <script setup>
-const props = defineProps({
-  featuredProduct: {
-    type: Object,
-    default: null,
-  },
-  categoryCount: {
-    type: Number,
-    default: 0,
-  },
-  productCount: {
-    type: Number,
-    default: 0,
-  },
-})
+import { computed, onMounted } from 'vue'
+import { storeToRefs } from 'pinia'
 
-defineEmits(['explore', 'open-cart'])
+import { useStorefrontCategoriesStore } from '../../stores/storefrontCategories'
+import { useStorefrontProductsStore } from '../../stores/storefrontProducts'
+import { useStorefrontUiStore } from '../../stores/storefrontUi'
+
+const categoriesStore = useStorefrontCategoriesStore()
+const productsStore = useStorefrontProductsStore()
+const uiStore = useStorefrontUiStore()
+
+const { rootCategories } = storeToRefs(categoriesStore)
+const { catalogProducts } = storeToRefs(productsStore)
+
+const featuredProduct = computed(() => catalogProducts.value[0] ?? null)
+const categoryCount = computed(() => rootCategories.value.length)
+const productCount = computed(() => catalogProducts.value.length)
+
+onMounted(() => {
+  void categoriesStore.loadCategories()
+})
 
 function formatCurrency(value) {
   return new Intl.NumberFormat('es-CO', {
@@ -22,6 +27,11 @@ function formatCurrency(value) {
     currency: 'COP',
     maximumFractionDigits: 0,
   }).format(Number(value || 0))
+}
+
+function scrollToCatalog() {
+  if (typeof document === 'undefined') return
+  document.getElementById('catalogo')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
 </script>
 
@@ -40,10 +50,10 @@ function formatCurrency(value) {
         </p>
 
         <div class="hero-actions">
-          <button class="primary-button" type="button" @click="$emit('explore')">
+          <button class="primary-button" type="button" @click="scrollToCatalog">
             Explorar catalogo
           </button>
-          <button class="ghost-button" type="button" @click="$emit('open-cart')">
+          <button class="ghost-button" type="button" @click="uiStore.openCart">
             Ver canasta
           </button>
         </div>

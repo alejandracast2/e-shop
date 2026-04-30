@@ -1,36 +1,19 @@
 <script setup>
-const props = defineProps({
-  open: {
-    type: Boolean,
-    default: false,
-  },
-  items: {
-    type: Array,
-    default: () => [],
-  },
-  subtotal: {
-    type: Number,
-    default: 0,
-  },
-  shipping: {
-    type: Number,
-    default: 0,
-  },
-  total: {
-    type: Number,
-    default: 0,
-  },
-  loading: {
-    type: Boolean,
-    default: false,
-  },
-  error: {
-    type: String,
-    default: '',
-  },
-})
+import { onMounted } from 'vue'
+import { storeToRefs } from 'pinia'
 
-defineEmits(['close', 'update-quantity'])
+import { useStorefrontCartStore } from '../../stores/storefrontCart'
+import { useStorefrontUiStore } from '../../stores/storefrontUi'
+
+const cartStore = useStorefrontCartStore()
+const uiStore = useStorefrontUiStore()
+
+const { cartItems, subtotal, shipping, total, loading, error } = storeToRefs(cartStore)
+const { cartOpen } = storeToRefs(uiStore)
+
+onMounted(() => {
+  void cartStore.restorePersistedCart()
+})
 
 function formatCurrency(value) {
   return new Intl.NumberFormat('es-CO', {
@@ -49,11 +32,15 @@ function initialsFor(title) {
     .join('')
     .toUpperCase()
 }
+
+function changeQuantity(item, quantity) {
+  void cartStore.changeCartQuantity(item, quantity)
+}
 </script>
 
 <template>
-  <div class="drawer-layer" :class="{ visible: open }">
-    <button class="drawer-overlay" type="button" @click="$emit('close')" />
+  <div class="drawer-layer" :class="{ visible: cartOpen }">
+    <button class="drawer-overlay" type="button" @click="uiStore.closeCart" />
 
     <aside class="drawer">
       <header class="drawer-header">
@@ -62,7 +49,7 @@ function initialsFor(title) {
           <h2>Resumen en vivo</h2>
         </div>
 
-        <button class="close-button" type="button" @click="$emit('close')">
+        <button class="close-button" type="button" @click="uiStore.closeCart">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
             <path d="M6 6l12 12M18 6 6 18" />
           </svg>
@@ -71,14 +58,14 @@ function initialsFor(title) {
 
       <p v-if="error" class="drawer-error">{{ error }}</p>
 
-      <div v-if="!items.length" class="drawer-empty">
+      <div v-if="!cartItems.length" class="drawer-empty">
         <span class="empty-mark">LC</span>
         <h3>La canasta esta vacia</h3>
         <p>Agrega productos del catalogo y aqui se reflejaran con el carrito real.</p>
       </div>
 
       <div v-else class="drawer-body">
-        <article v-for="item in items" :key="item.id" class="drawer-item">
+        <article v-for="item in cartItems" :key="item.id" class="drawer-item">
           <div class="item-mark">{{ initialsFor(item.title) }}</div>
 
           <div class="item-copy">
@@ -90,7 +77,7 @@ function initialsFor(title) {
             <button
               type="button"
               :disabled="loading || item.quantity <= 1"
-              @click="$emit('update-quantity', item, item.quantity - 1)"
+              @click="changeQuantity(item, item.quantity - 1)"
             >
               -
             </button>
@@ -98,7 +85,7 @@ function initialsFor(title) {
             <button
               type="button"
               :disabled="loading"
-              @click="$emit('update-quantity', item, item.quantity + 1)"
+              @click="changeQuantity(item, item.quantity + 1)"
             >
               +
             </button>

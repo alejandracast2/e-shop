@@ -1,16 +1,27 @@
 <script setup>
-defineProps({
-  categories: {
-    type: Array,
-    default: () => [],
-  },
-  activeCategoryId: {
-    type: String,
-    default: '',
-  },
+import { computed, onMounted } from 'vue'
+import { storeToRefs } from 'pinia'
+
+import { useStorefrontCatalogStore } from '../../stores/storefrontCatalog'
+import { useStorefrontCategoriesStore } from '../../stores/storefrontCategories'
+
+const categoriesStore = useStorefrontCategoriesStore()
+const catalogStore = useStorefrontCatalogStore()
+
+const { rootCategories } = storeToRefs(categoriesStore)
+const { activeCategoryId } = storeToRefs(catalogStore)
+
+const activeRootCategoryId = computed(() =>
+  categoriesStore.getRootCategoryId(activeCategoryId.value),
+)
+
+onMounted(() => {
+  void categoriesStore.loadCategories()
 })
 
-defineEmits(['select-category'])
+function selectCategory(categoryId) {
+  catalogStore.selectCategory(categoryId)
+}
 
 function initialsFor(name) {
   return String(name || '')
@@ -38,12 +49,12 @@ function initialsFor(name) {
 
     <div class="circle-grid">
       <button
-        v-for="category in categories"
+        v-for="category in rootCategories"
         :key="category.id"
         class="circle-card"
-        :class="{ active: activeCategoryId === category.id }"
+        :class="{ active: activeRootCategoryId === category.id }"
         type="button"
-        @click="$emit('select-category', category.id)"
+        @click="selectCategory(category.id)"
       >
         <span class="circle-disc">
           <img v-if="category.imageUrl" :src="category.imageUrl" :alt="category.name" />

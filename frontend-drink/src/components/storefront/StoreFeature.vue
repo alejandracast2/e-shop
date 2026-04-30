@@ -1,10 +1,14 @@
 <script setup>
-defineProps({
-  featuredProduct: {
-    type: Object,
-    default: null,
-  },
-})
+import { computed } from 'vue'
+import { storeToRefs } from 'pinia'
+
+import { useStorefrontProductsStore } from '../../stores/storefrontProducts'
+
+const productsStore = useStorefrontProductsStore()
+
+const { catalogProducts } = storeToRefs(productsStore)
+
+const featuredProduct = computed(() => catalogProducts.value[0] ?? null)
 
 function formatCurrency(value) {
   return new Intl.NumberFormat('es-CO', {

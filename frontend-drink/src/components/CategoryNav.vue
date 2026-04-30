@@ -1,40 +1,34 @@
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
+import { storeToRefs } from 'pinia'
 
-const props = defineProps({
-  categories: {
-    type: Array,
-    default: () => [],
-  },
-  activeCategoryId: {
-    type: String,
-    default: '',
-  },
-  searchQuery: {
-    type: String,
-    default: '',
-  },
-  cartCount: {
-    type: Number,
-    default: 0,
-  },
-  loading: {
-    type: Boolean,
-    default: false,
-  },
-  error: {
-    type: String,
-    default: '',
-  },
-})
+import { useStorefrontCartStore } from '../stores/storefrontCart'
+import { useStorefrontCatalogStore } from '../stores/storefrontCatalog'
+import { useStorefrontCategoriesStore } from '../stores/storefrontCategories'
+import { useStorefrontUiStore } from '../stores/storefrontUi'
 
-const emit = defineEmits(['select-category', 'update:searchQuery', 'open-cart'])
+const categoriesStore = useStorefrontCategoriesStore()
+const catalogStore = useStorefrontCatalogStore()
+const cartStore = useStorefrontCartStore()
+const uiStore = useStorefrontUiStore()
+
+const { rootCategories, loading, error } = storeToRefs(categoriesStore)
+const { activeCategoryId, searchQuery } = storeToRefs(catalogStore)
+const { cartCount } = storeToRefs(cartStore)
 
 const previewCategoryId = ref('')
 
+const activeRootCategoryId = computed(() =>
+  categoriesStore.getRootCategoryId(activeCategoryId.value),
+)
+
 const currentPreviewCategory = computed(() => {
-  const sourceId = previewCategoryId.value || props.activeCategoryId
-  return props.categories.find((category) => category.id === sourceId) ?? null
+  const sourceId = previewCategoryId.value || activeRootCategoryId.value
+  return rootCategories.value.find((category) => category.id === sourceId) ?? null
+})
+
+onMounted(() => {
+  void categoriesStore.loadCategories()
 })
 
 function hasChildren(category) {
@@ -42,7 +36,7 @@ function hasChildren(category) {
 }
 
 function handleInput(event) {
-  emit('update:searchQuery', event.target.value)
+  catalogStore.setSearchQuery(event.target.value)
 }
 
 function showCategoryPreview(category) {
@@ -54,8 +48,8 @@ function clearCategoryPreview() {
 }
 
 function selectCategory(categoryId) {
-  emit('select-category', categoryId)
-  previewCategoryId.value = categoryId
+  catalogStore.selectCategory(categoryId)
+  previewCategoryId.value = categoriesStore.getRootCategoryId(categoryId)
 }
 </script>
 
@@ -89,7 +83,7 @@ function selectCategory(categoryId) {
           <strong>Bogota 90 min</strong>
         </div>
 
-        <button class="cart-button" type="button" @click="$emit('open-cart')">
+        <button class="cart-button" type="button" @click="uiStore.openCart">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M6 7h12l-1.5 11a2 2 0 0 1-2 1.8h-5a2 2 0 0 1-2-1.8L6 7z" />
             <path d="M9 7V5a3 3 0 0 1 6 0v2" />
@@ -113,10 +107,10 @@ function selectCategory(categoryId) {
 
         <template v-if="!loading && !error">
           <button
-            v-for="category in categories"
+            v-for="category in rootCategories"
             :key="category.id"
             class="category-link"
-            :class="{ active: activeCategoryId === category.id }"
+            :class="{ active: activeRootCategoryId === category.id }"
             type="button"
             @mouseenter="showCategoryPreview(category)"
             @focus="showCategoryPreview(category)"

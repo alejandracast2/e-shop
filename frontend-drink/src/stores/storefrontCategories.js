@@ -1,7 +1,29 @@
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 
 import { storefrontRequest } from '../lib/storefrontApi'
+
+function flattenCategoryTree(nodes, accumulator = []) {
+  nodes.forEach((node) => {
+    accumulator.push(node)
+    if (Array.isArray(node.children) && node.children.length) {
+      flattenCategoryTree(node.children, accumulator)
+    }
+  })
+  return accumulator
+}
+
+function findRootCategoryId(nodes, targetId) {
+  for (const node of nodes) {
+    if (node.id === targetId) return node.id
+    if (Array.isArray(node.children) && node.children.length) {
+      const childMatch = findRootCategoryId(node.children, targetId)
+      if (childMatch) return node.id
+    }
+  }
+
+  return ''
+}
 
 export const useStorefrontCategoriesStore = defineStore('storefrontCategories', () => {
   const categories = ref([])
@@ -10,6 +32,26 @@ export const useStorefrontCategoriesStore = defineStore('storefrontCategories', 
   const hasLoaded = ref(false)
 
   let pendingRequest = null
+
+  const flattenedCategories = computed(() => flattenCategoryTree(categories.value))
+
+  const rootCategories = computed(() =>
+    categories.value.map((category) => ({
+      ...category,
+      childrenCount: Array.isArray(category.children) ? category.children.length : 0,
+    })),
+  )
+
+  function getRootCategoryId(categoryId) {
+    if (!categoryId) return ''
+    return findRootCategoryId(categories.value, categoryId)
+  }
+
+  function getCategoryName(categoryId) {
+    if (!categoryId) return 'Toda la bodega'
+    return flattenedCategories.value.find((category) => category.id === categoryId)?.name
+      || 'Toda la bodega'
+  }
 
   async function loadCategories(options = {}) {
     const force = options.force ?? false
@@ -48,9 +90,13 @@ export const useStorefrontCategoriesStore = defineStore('storefrontCategories', 
 
   return {
     categories,
+    flattenedCategories,
+    rootCategories,
     loading,
     error,
     hasLoaded,
+    getRootCategoryId,
+    getCategoryName,
     loadCategories,
   }
 })

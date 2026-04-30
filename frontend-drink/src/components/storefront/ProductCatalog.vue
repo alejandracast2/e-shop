@@ -1,32 +1,22 @@
 <script setup>
-const props = defineProps({
-  products: {
-    type: Array,
-    default: () => [],
-  },
-  activeCategoryName: {
-    type: String,
-    default: 'Toda la bodega',
-  },
-  sortKey: {
-    type: String,
-    default: 'featured',
-  },
-  loading: {
-    type: Boolean,
-    default: false,
-  },
-  error: {
-    type: String,
-    default: '',
-  },
-  cartLoading: {
-    type: Boolean,
-    default: false,
-  },
-})
+import { computed, onMounted, watch } from 'vue'
+import { storeToRefs } from 'pinia'
 
-defineEmits(['update:sortKey', 'add-to-cart'])
+import { useStorefrontCartStore } from '../../stores/storefrontCart'
+import { useStorefrontCatalogStore } from '../../stores/storefrontCatalog'
+import { useStorefrontCategoriesStore } from '../../stores/storefrontCategories'
+import { useStorefrontProductsStore } from '../../stores/storefrontProducts'
+import { useStorefrontUiStore } from '../../stores/storefrontUi'
+
+const cartStore = useStorefrontCartStore()
+const catalogStore = useStorefrontCatalogStore()
+const categoriesStore = useStorefrontCategoriesStore()
+const productsStore = useStorefrontProductsStore()
+const uiStore = useStorefrontUiStore()
+
+const { loading: cartLoading } = storeToRefs(cartStore)
+const { activeCategoryId, debouncedSearch, sortKey } = storeToRefs(catalogStore)
+const { catalogProducts, loadingProducts, productsError } = storeToRefs(productsStore)
 
 const sortOptions = [
   { id: 'featured', label: 'Destacados' },
@@ -35,12 +25,54 @@ const sortOptions = [
   { id: 'title', label: 'Nombre' },
 ]
 
+const activeCategoryName = computed(() =>
+  categoriesStore.getCategoryName(activeCategoryId.value),
+)
+
+const sortedProducts = computed(() => {
+  const list = [...catalogProducts.value]
+
+  if (sortKey.value === 'price-asc') {
+    list.sort((left, right) => left.price - right.price)
+  } else if (sortKey.value === 'price-desc') {
+    list.sort((left, right) => right.price - left.price)
+  } else if (sortKey.value === 'title') {
+    list.sort((left, right) => left.title.localeCompare(right.title, 'es'))
+  }
+
+  return list
+})
+
+watch([activeCategoryId, debouncedSearch], ([categoryId, search]) => {
+  void productsStore.loadProducts({
+    categoryId: categoryId || undefined,
+    search: search || undefined,
+  })
+}, { immediate: true })
+
+onMounted(() => {
+  void categoriesStore.loadCategories()
+})
+
 function formatCurrency(value) {
   return new Intl.NumberFormat('es-CO', {
     style: 'currency',
     currency: 'COP',
     maximumFractionDigits: 0,
   }).format(Number(value || 0))
+}
+
+function handleSortChange(event) {
+  catalogStore.setSortKey(event.target.value)
+}
+
+async function handleAddToCart(product) {
+  const nextCart = await cartStore.addProductToCart(product)
+
+  if (nextCart?.id) {
+    uiStore.showToast(`${product.title} fue agregado a la canasta`)
+    uiStore.openCart()
+  }
 }
 </script>
 
@@ -56,7 +88,7 @@ function formatCurrency(value) {
         <span>Ordenar por</span>
         <select
           :value="sortKey"
-          @change="$emit('update:sortKey', $event.target.value)"
+          @change="handleSortChange"
         >
           <option v-for="option in sortOptions" :key="option.id" :value="option.id">
             {{ option.label }}
@@ -65,14 +97,14 @@ function formatCurrency(value) {
       </label>
     </div>
 
-    <div v-if="loading" class="catalog-status">Cargando productos...</div>
-    <div v-else-if="error" class="catalog-status catalog-status--error">{{ error }}</div>
-    <div v-else-if="!products.length" class="catalog-status">
+    <div v-if="loadingProducts" class="catalog-status">Cargando productos...</div>
+    <div v-else-if="productsError" class="catalog-status catalog-status--error">{{ productsError }}</div>
+    <div v-else-if="!sortedProducts.length" class="catalog-status">
       No hay productos activos para los filtros actuales.
     </div>
 
     <div v-else class="catalog-grid">
-      <article v-for="product in products" :key="product.id" class="product-card">
+      <article v-for="product in sortedProducts" :key="product.id" class="product-card">
         <div class="product-visual">
           <img v-if="product.imageUrl" :src="product.imageUrl" :alt="product.title" />
           <div v-else class="visual-fallback">
@@ -101,7 +133,7 @@ function formatCurrency(value) {
               class="add-button"
               type="button"
               :disabled="!product.variantId || cartLoading"
-              @click="$emit('add-to-cart', product)"
+              @click="handleAddToCart(product)"
             >
               {{ product.variantId ? (cartLoading ? 'Actualizando...' : 'Agregar') : 'Sin variante' }}
             </button>

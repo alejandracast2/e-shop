@@ -1,7 +1,54 @@
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 
 import { storefrontRequest } from '../lib/storefrontApi'
+
+function buildInitials(value) {
+  return String(value || '')
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((token) => token[0])
+    .join('')
+    .toUpperCase()
+}
+
+function getPrimaryVariant(product) {
+  if (!Array.isArray(product?.variants) || !product.variants.length) {
+    return null
+  }
+
+  return product.variants.find((variant) => variant.isActive !== false) || product.variants[0]
+}
+
+function normalizeProduct(product) {
+  const primaryVariant = getPrimaryVariant(product)
+  const imageUrl = product.images?.[0]?.file?.url || product.category?.imageUrl || ''
+  const price = Number(primaryVariant?.price || 0)
+  const compareAtPrice = Number(primaryVariant?.compareAtPrice || 0) || null
+  const stock = Number(primaryVariant?.availableStock || 0)
+
+  return {
+    id: product.id,
+    slug: product.slug,
+    title: product.title,
+    description:
+      product.description?.trim()
+      || 'Disponible en la coleccion activa del storefront.',
+    categoryId: product.category?.id || '',
+    categoryName: product.category?.name || 'Catalogo general',
+    imageUrl,
+    price,
+    compareAtPrice,
+    stockLabel: primaryVariant
+      ? stock > 0
+        ? `${stock} disponibles`
+        : 'Stock por confirmar'
+      : '',
+    variantId: primaryVariant?.id || '',
+    initials: buildInitials(product.title),
+  }
+}
 
 function normalizeProductFilters(filters = {}) {
   return {
@@ -25,6 +72,10 @@ export const useStorefrontProductsStore = defineStore('storefrontProducts', () =
   let pendingProductsRequest = null
   let pendingProductsRequestKey = ''
   const pendingProductRequests = new Map()
+
+  const catalogProducts = computed(() =>
+    products.value.map((productItem) => normalizeProduct(productItem)),
+  )
 
   async function loadProducts(filters = {}) {
     const normalizedFilters = normalizeProductFilters(filters)
@@ -118,6 +169,7 @@ export const useStorefrontProductsStore = defineStore('storefrontProducts', () =
   return {
     products,
     product,
+    catalogProducts,
     productFilters,
     loadingProducts,
     loadingProduct,
