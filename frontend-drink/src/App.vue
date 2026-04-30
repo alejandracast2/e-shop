@@ -2,18 +2,13 @@
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 
+import AgeVerification from './components/AgeVerification.vue'
 import CategoryNav from './components/CategoryNav.vue'
 import CartDrawer from './components/storefront/CartDrawer.vue'
-import CategoryCircles from './components/storefront/CategoryCircles.vue'
-import ProductCatalog from './components/storefront/ProductCatalog.vue'
-import StoreFeature from './components/storefront/StoreFeature.vue'
-import StoreFooter from './components/storefront/StoreFooter.vue'
-import StoreHero from './components/storefront/StoreHero.vue'
 import { useStorefrontCartStore } from './stores/storefrontCart'
 import { useStorefrontCategoriesStore } from './stores/storefrontCategories'
 import { useStorefrontProductsStore } from './stores/storefrontProducts'
 
-const AGE_STORAGE_KEY = 'frontend-drink-age-confirmed'
 const CART_STORAGE_KEY = 'frontend-drink-cart-id'
 const SHIPPING_THRESHOLD = 180000
 const SHIPPING_PRICE = 11000
@@ -35,7 +30,6 @@ const debouncedSearch = ref('')
 const activeCategoryId = ref('')
 const sortKey = ref('featured')
 const cartOpen = ref(false)
-const ageConfirmed = ref(false)
 const persistedCartId = ref('')
 const toast = reactive({
   visible: false,
@@ -47,12 +41,14 @@ let toastTimerId = 0
 
 const flattenedCategories = computed(() => flattenCategoryTree(categories.value))
 
-const rootCategories = computed(() =>
-  categories.value.map((category) => ({
+const rootCategories = computed(() => {
+  console.log("categorias", categories.value)
+
+  return categories.value.map((category) => ({
     ...category,
     childrenCount: Array.isArray(category.children) ? category.children.length : 0,
-  })),
-)
+  }))
+})
 
 const activeRootCategoryId = computed(() => {
   if (!activeCategoryId.value) return ''
@@ -151,8 +147,6 @@ onMounted(() => {
   if (typeof window === 'undefined') {
     return
   }
-
-  ageConfirmed.value = window.localStorage.getItem(AGE_STORAGE_KEY) === 'true'
   persistedCartId.value = window.localStorage.getItem(CART_STORAGE_KEY) || ''
 
   if (persistedCartId.value) {
@@ -242,13 +236,7 @@ function selectCategory(categoryId) {
   activeCategoryId.value = categoryId
 }
 
-function confirmAge() {
-  ageConfirmed.value = true
 
-  if (typeof window !== 'undefined') {
-    window.localStorage.setItem(AGE_STORAGE_KEY, 'true')
-  }
-}
 
 function scrollToCatalog() {
   if (typeof document === 'undefined') return
@@ -311,75 +299,20 @@ function showToast(message) {
 
 <template>
   <div class="page-shell">
-    <div v-if="!ageConfirmed" class="age-gate">
-      <div class="inner">
-      <div class="mark">LC</div>
-      <h2>La Cantina</h2>
-      <p>Para entrar a nuestra bodega, confirma que eres mayor de edad. La venta de bebidas alcohólicas a menores es prohibida (Ley 124 de 1994).</p>
-      <div class="buttons">
-        <button class="b-yes"  @click="confirmAge">Sí, soy mayor</button>
-        <a href="https://www.google.com" class="b-no">Salir</a>
-      </div>
-    </div>
+    <AgeVerification />
+
+    <!-- Announce -->
+    <div class="announce">
+      <span>Envíos gratis desde <strong>$180.000</strong></span>
     </div>
 
-    <div class="announcement-bar">
-      Entregas urbanas el mismo dia · catalogo conectado a categorias, productos y carrito
-    </div>
+    <CategoryNav :categories="rootCategories" :active-category-id="activeRootCategoryId" :search-query="searchQuery"
+      :cart-count="cartCount" :loading="categoriesLoading" :error="categoriesError" @select-category="selectCategory"
+      @update:search-query="searchQuery = $event" @open-cart="cartOpen = true" />
+      <RouterView />
 
-    <CategoryNav
-      :categories="rootCategories"
-      :active-category-id="activeRootCategoryId"
-      :search-query="searchQuery"
-      :cart-count="cartCount"
-      :loading="categoriesLoading"
-      :error="categoriesError"
-      @select-category="selectCategory"
-      @update:search-query="searchQuery = $event"
-      @open-cart="cartOpen = true"
-    />
-
-    <main class="page-content">
-      <StoreHero
-        :featured-product="featuredProduct"
-        :category-count="rootCategories.length"
-        :product-count="sortedProducts.length"
-        @explore="scrollToCatalog"
-        @open-cart="cartOpen = true"
-      />
-
-      <CategoryCircles
-        :categories="rootCategories"
-        :active-category-id="activeRootCategoryId"
-        @select-category="selectCategory"
-      />
-
-      <ProductCatalog
-        :products="sortedProducts"
-        :active-category-name="activeCategoryName"
-        :sort-key="sortKey"
-        :loading="loadingProducts"
-        :error="productsError"
-        :cart-loading="cartLoading"
-        @update:sort-key="sortKey = $event"
-        @add-to-cart="addProductToCart"
-      />
-
-      <StoreFeature :featured-product="featuredProduct" />
-      <StoreFooter />
-    </main>
-
-    <CartDrawer
-      :open="cartOpen"
-      :items="cartItems"
-      :subtotal="subtotal"
-      :shipping="shipping"
-      :total="total"
-      :loading="cartLoading"
-      :error="cartError"
-      @close="cartOpen = false"
-      @update-quantity="changeCartQuantity"
-    />
+    <CartDrawer :open="cartOpen" :items="cartItems" :subtotal="subtotal" :shipping="shipping" :total="total"
+      :loading="cartLoading" :error="cartError" @close="cartOpen = false" @update-quantity="changeCartQuantity" />
 
     <div class="toast" :class="{ visible: toast.visible }">
       {{ toast.message }}
@@ -408,43 +341,31 @@ function showToast(message) {
   min-height: 100vh;
 }
 
-.announcement-bar {
-  padding: 10px 18px;
-  background: #12100f;
-  color: #faf7f2;
-  text-align: center;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.22em;
+/* ---------- Announcement bar ---------- */
+.announce {
+  background: var(--ink);
+  color: var(--bone);
+  font-size: 12px;
+  letter-spacing: .14em;
   text-transform: uppercase;
+  padding: 9px 0;
+  text-align: center;
 }
 
-.page-content {
-  width: min(1240px, calc(100% - 32px));
-  margin: 0 auto;
-  display: grid;
-  gap: 34px;
-  padding: 0 0 50px;
+.announce span {
+  opacity: .7;
+  margin: 0 18px
 }
-.age-gate{
-    position:fixed;inset:0;background:var(--ink);color:var(--bone);
-    z-index:300;display:grid;place-items:center;
-    opacity:1;transition:.4s opacity;
-  }
-  .age-gate.off{opacity:0;pointer-events:none}
-  .age-gate .inner{max-width:420px;text-align:center;padding:48px 32px}
-  .age-gate .mark{
-    width:68px;height:68px;border-radius:50%;margin:0 auto 24px;
-    background:var(--wine);color:var(--bone);
-    display:grid;place-items:center;
-    font-family:'Playfair Display',serif;font-style:italic;font-weight:700;font-size:34px;
-  }
-  .age-gate h2{font-family:'Playfair Display',serif;font-size:38px;margin:0 0 14px;font-weight:700;letter-spacing:-.015em}
-  .age-gate p{color:rgba(250,247,242,.7);font-size:14px;line-height:1.6;margin:0 0 28px}
-  .age-gate .buttons{display:flex;gap:10px;justify-content:center}
-  .age-gate .b-yes{background:var(--bone);color:var(--ink);padding:14px 30px;border-radius:999px;font-size:12px;letter-spacing:.18em;text-transform:uppercase;font-weight:700}
-  .age-gate .b-no{border:1px solid rgba(250,247,242,.3);padding:14px 26px;border-radius:999px;font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:rgba(250,247,242,.7)}
-  .age-gate .b-yes:hover{background:var(--wine);color:var(--bone)}
+
+.announce strong {
+  color: #e6b7bd;
+  font-weight: 500;
+  letter-spacing: .18em
+}
+
+
+
+
 .age-card {
   width: min(520px, 100%);
   padding: 34px;
@@ -529,15 +450,7 @@ function showToast(message) {
 }
 
 @media (max-width: 720px) {
-  .announcement-bar {
-    font-size: 10px;
-    letter-spacing: 0.14em;
-  }
 
-  .page-content {
-    width: min(1240px, calc(100% - 20px));
-    gap: 24px;
-  }
 
   .age-card {
     padding: 28px 22px;
