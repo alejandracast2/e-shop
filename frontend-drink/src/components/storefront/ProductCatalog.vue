@@ -102,30 +102,28 @@ async function handleAddToCart(product) {
 
     <div v-else class="catalog-grid">
       <article v-for="product in sortedProducts" :key="product.id" class="product-card">
+        <div class="tags">
+          <div style="display: flex;flex-direction: column;gap: 4px;" v-if="product.tags.length">
+            <span v-for="tag in product.tags" :key="tag" class="ptag" :class="{
+              'sale': tag === product.discountTag,
+              'new': tag.toLowerCase() === 'nuevo',
+            }">{{ tag }}</span>
+          </div>
+          <span class="ptag added">En canasta</span>
+        </div>
         <button class="fav">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path
               d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
           </svg>
         </button>
+        <!-- <div class="pimg">
+
+        </div> -->
         <div class="product-visual">
           <img v-if="product.imageUrl" :src="product.imageUrl" :alt="product.title" />
           <div v-else class="visual-fallback">
             <span>{{ product.initials }}</span>
-          </div>
-
-          <div v-if="product.tags.length" class="product-tags">
-            <span
-              v-for="tag in product.tags"
-              :key="tag"
-              class="product-tag"
-              :class="{
-                'product-tag--discount': tag === product.discountTag,
-                'product-tag--new': tag.toLowerCase() === 'nuevo',
-              }"
-            >
-              {{ tag }}
-            </span>
           </div>
           <span v-if="product.stockLabel" class="stock-badge">{{ product.stockLabel }}</span>
         </div>
@@ -185,6 +183,39 @@ async function handleAddToCart(product) {
   stroke-width: 1.5
 }
 
+.tags {
+  position: absolute;
+  top: 14px;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  z-index: 2;
+}
+
+.ptag {
+  font-size: 11px;
+  letter-spacing: .04em;
+  font-weight: 700;
+  padding: 5px 10px;
+  border-radius: 0 4px 4px 0;
+}
+
+.ptag.sale {
+  background: var(--wine);
+  color: var(--bone)
+}
+
+.ptag.new {
+  background: var(--ink);
+  color: var(--bone)
+}
+
+.ptag.added {
+  background: var(--bone);
+  color: var(--wine);
+  border: 1px solid var(--wine)
+}
 
 /* lo antiguo */
 .catalog {
