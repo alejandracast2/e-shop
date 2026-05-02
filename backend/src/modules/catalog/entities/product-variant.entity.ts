@@ -32,15 +32,6 @@ export class ProductVariant extends BaseEntity {
     transformer: priceTransformer,
     nullable: true,
   })
-  compareAtPrice?: number | null;
-
-  @Column({
-    type: 'numeric',
-    precision: 10,
-    scale: 2,
-    transformer: priceTransformer,
-    nullable: true,
-  })
   cost?: number | null;
 
   @Column({ type: 'numeric', precision: 10, scale: 3, nullable: true })

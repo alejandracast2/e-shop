@@ -70,7 +70,12 @@ function changeQuantity(item, quantity) {
 
           <div class="item-copy">
             <strong>{{ item.title }}</strong>
-            <span>{{ formatCurrency(item.unitPrice) }}</span>
+            <div class="item-price">
+              <span>{{ formatCurrency(item.unitPrice) }}</span>
+              <span v-if="item.discountPercent" class="item-price-old">
+                {{ formatCurrency(item.baseUnitPrice) }}
+              </span>
+            </div>
           </div>
 
           <div class="item-actions">
@@ -277,9 +282,21 @@ function changeQuantity(item, quantity) {
   line-height: 1.4;
 }
 
-.item-copy span {
+.item-price {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.item-price span {
   color: #5a514c;
   font-size: 13px;
+}
+
+.item-price .item-price-old {
+  color: #9a8d86;
+  text-decoration: line-through;
 }
 
 .item-actions {

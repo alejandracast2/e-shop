@@ -5,6 +5,7 @@ import { useAdminStore } from '@/stores/admin'
 import { useAuthStore } from '@/stores/auth'
 import { formatCurrency } from '@/utils/formatters'
 import { toErrorMessage } from '@/lib/api'
+import { formatProductTags } from '@/utils/productTags'
 
 const auth = useAuthStore()
 const admin = useAdminStore()
@@ -59,6 +60,7 @@ const filteredProducts = computed(() => {
       product.title,
       product.brand,
       product.category?.name,
+      formatProductTags(product.tags),
       primaryVariant(product)?.sku,
       product.description,
     ]
@@ -133,6 +135,7 @@ const toggleActive = async (product) => {
             <th>Categoria</th>
             <th>SKU</th>
             <th>Precio</th>
+            <th>Etiquetas</th>
             <th>Stock</th>
             <th>Status</th>
             <th></th>
@@ -150,6 +153,10 @@ const toggleActive = async (product) => {
             </td>
             <td>{{ primaryVariant(product)?.sku || '--' }}</td>
             <td>{{ primaryVariant(product) ? formatCurrency(primaryVariant(product).price) : '--' }}</td>
+            <td>
+              <span v-if="product.tags?.length">{{ formatProductTags(product.tags) }}</span>
+              <span v-else class="muted">--</span>
+            </td>
             <td>{{ totalStock(product) }}</td>
             <td><span class="pill">{{ product.status }}</span></td>
             <td>

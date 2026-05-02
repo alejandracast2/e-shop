@@ -27,7 +27,8 @@ describe('App', () => {
           slug: 'malbec-reserva',
           description: 'Notas maduras y final largo.',
           category: { id: 'cat-vinos', name: 'Vinos' },
-          variants: [{ id: 'var-1', price: 128400, compareAtPrice: 149900, availableStock: 8 }],
+          tags: ['15%', 'nuevo'],
+          variants: [{ id: 'var-1', price: 128400, availableStock: 8 }],
           images: [],
         },
         {

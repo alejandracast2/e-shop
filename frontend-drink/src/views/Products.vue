@@ -111,6 +111,19 @@ async function handleAddToCart(product) {
             <span>{{ product.initials }}</span>
           </div>
 
+          <div v-if="product.tags.length" class="product-tags">
+            <span
+              v-for="tag in product.tags"
+              :key="tag"
+              class="product-tag"
+              :class="{
+                'product-tag--discount': tag === product.discountTag,
+                'product-tag--new': tag.toLowerCase() === 'nuevo',
+              }"
+            >
+              {{ tag }}
+            </span>
+          </div>
           <span v-if="product.stockLabel" class="stock-badge">{{ product.stockLabel }}</span>
         </div>
 
@@ -124,8 +137,8 @@ async function handleAddToCart(product) {
           <div class="product-meta">
             <div class="price-row">
               <strong>{{ formatCurrency(product.price) }}</strong>
-              <span v-if="product.compareAtPrice">
-                {{ formatCurrency(product.compareAtPrice) }}
+              <span v-if="product.discountPercent">
+                {{ formatCurrency(product.basePrice) }}
               </span>
             </div>
 
@@ -261,10 +274,42 @@ async function handleAddToCart(product) {
   letter-spacing: -0.06em;
 }
 
-.stock-badge {
+.product-tags {
   position: absolute;
   left: 14px;
   top: 14px;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  max-width: calc(100% - 28px);
+}
+
+.product-tag {
+  padding: 7px 10px;
+  border-radius: 999px;
+  background: rgba(250, 247, 242, 0.92);
+  color: #12100f;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.product-tag--discount {
+  background: #7b1f2c;
+  color: #faf7f2;
+}
+
+.product-tag--new {
+  background: #12100f;
+  color: #faf7f2;
+}
+
+.stock-badge {
+  position: absolute;
+  left: 14px;
+  bottom: 14px;
   padding: 7px 10px;
   border-radius: 999px;
   background: rgba(18, 16, 15, 0.9);

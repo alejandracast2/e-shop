@@ -192,6 +192,7 @@ export class CatalogService {
         description: dto.description ?? null,
         brand: dto.brand ?? null,
         status: dto.status ?? 'draft',
+        tags: this.normalizeTags(dto.tags),
         slug: dto.slug,
         categoryId: dto.categoryId ?? null,
         productTypeId: dto.productTypeId ?? null,
@@ -238,10 +239,11 @@ export class CatalogService {
       throw new NotFoundException('Product not found');
     }
 
-    const { attributes, variants, ...patch } = dto;
+    const { attributes, variants, tags, ...patch } = dto;
     const updated = this.productRepository.merge(product, {
       ...patch,
       status: patch.status ?? product.status,
+      tags: tags === undefined ? product.tags : this.normalizeTags(tags),
     });
     const saved = await this.productRepository.save(updated);
 
@@ -302,7 +304,6 @@ export class CatalogService {
       sku: dto.sku ?? variant.sku,
       barcode: dto.barcode ?? variant.barcode,
       price: dto.price ?? variant.price,
-      compareAtPrice: dto.compareAtPrice ?? variant.compareAtPrice,
       cost: dto.cost ?? variant.cost,
       weight: dto.weight ?? variant.weight,
       dimensionsJson: dto.dimensionsJson ?? variant.dimensionsJson,
@@ -524,7 +525,6 @@ export class CatalogService {
       sku: dto.sku ?? null,
       barcode: dto.barcode ?? null,
       price: dto.price,
-      compareAtPrice: dto.compareAtPrice ?? null,
       cost: dto.cost ?? null,
       weight: dto.weight ?? null,
       dimensionsJson: dto.dimensionsJson ?? null,
@@ -570,5 +570,11 @@ export class CatalogService {
           availability[variant.id] ?? 0;
       });
     });
+  }
+
+  private normalizeTags(tags?: string[] | null) {
+    if (!Array.isArray(tags)) return [];
+
+    return [...new Set(tags.map((tag) => tag.trim()).filter(Boolean))];
   }
 }

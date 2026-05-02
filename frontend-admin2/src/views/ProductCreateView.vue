@@ -7,6 +7,7 @@ import { useAdminStore } from '@/stores/admin'
 import { useAuthStore } from '@/stores/auth'
 import { toErrorMessage } from '@/lib/api'
 import { flattenCategoryOptions, slugify } from '@/utils/catalog'
+import { parseProductTags } from '@/utils/productTags'
 
 const router = useRouter()
 const auth = useAuthStore()
@@ -27,6 +28,7 @@ const form = reactive({
   categoryId: '',
   productTypeId: '',
   description: '',
+  tagsText: '',
   price: 0,
   stock: 0,
   status: 'active',
@@ -90,6 +92,7 @@ const createProduct = async () => {
         slug: form.slug,
         brand: form.brand || undefined,
         description: form.description || undefined,
+        tags: parseProductTags(form.tagsText),
         status: form.status,
         categoryId: form.categoryId || undefined,
         productTypeId: form.productTypeId || undefined,

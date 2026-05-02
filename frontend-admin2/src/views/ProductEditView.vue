@@ -7,6 +7,7 @@ import { useAdminStore } from '@/stores/admin'
 import { useAuthStore } from '@/stores/auth'
 import { toErrorMessage } from '@/lib/api'
 import { flattenCategoryOptions } from '@/utils/catalog'
+import { formatProductTags, parseProductTags } from '@/utils/productTags'
 
 const route = useRoute()
 const auth = useAuthStore()
@@ -29,6 +30,7 @@ const form = reactive({
   categoryId: '',
   productTypeId: '',
   description: '',
+  tagsText: '',
   price: 0,
   stock: 0,
   status: 'active',
@@ -54,6 +56,7 @@ const applyProductToForm = (value) => {
   form.categoryId = value.category?.id || ''
   form.productTypeId = value.productTypeId || ''
   form.description = value.description || ''
+  form.tagsText = formatProductTags(value.tags)
   form.price = Number(variant.price || 0)
   form.stock = Number(variant.availableStock || 0)
   form.status = value.status || 'active'
@@ -110,6 +113,7 @@ const updateProduct = async () => {
         slug: form.slug,
         brand: form.brand || undefined,
         description: form.description || undefined,
+        tags: parseProductTags(form.tagsText),
         status: form.status,
         categoryId: form.categoryId || undefined,
         productTypeId: form.productTypeId || undefined,

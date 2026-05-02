@@ -2,6 +2,11 @@ import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 
 import { storefrontRequest } from '../lib/storefrontApi'
+import {
+  calculateDiscountedPrice,
+  normalizeTags,
+  resolveDiscountPercent,
+} from '../utils/productTags'
 
 const CART_STORAGE_KEY = 'frontend-drink-cart-id'
 const SHIPPING_THRESHOLD = 180000
@@ -19,16 +24,24 @@ export const useStorefrontCartStore = defineStore('storefrontCart', () => {
 
     return items
       .filter((item) => Number(item.quantity || 0) > 0)
-      .map((item) => ({
-        id: item.id,
-        variantId: item.variantId,
-        title:
-          item.titleSnapshot
-          || item.variant?.product?.title
-          || 'Producto en carrito',
-        quantity: Number(item.quantity || 0),
-        unitPrice: Number(item.unitPrice || 0),
-      }))
+      .map((item) => {
+        const tags = normalizeTags(item.variant?.product?.tags)
+        const baseUnitPrice = Number(item.unitPrice || 0)
+
+        return {
+          id: item.id,
+          variantId: item.variantId,
+          title:
+            item.titleSnapshot
+            || item.variant?.product?.title
+            || 'Producto en carrito',
+          quantity: Number(item.quantity || 0),
+          unitPrice: calculateDiscountedPrice(baseUnitPrice, tags),
+          baseUnitPrice,
+          discountPercent: resolveDiscountPercent(tags),
+          tags,
+        }
+      })
   })
 
   const cartCount = computed(() =>

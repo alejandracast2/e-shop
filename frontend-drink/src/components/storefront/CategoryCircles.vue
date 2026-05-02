@@ -48,7 +48,7 @@ function initialsFor(name) {
         <div v-for="category in rootCategories" :key="category.id" class="cat-circle"
           :class="{ active: activeRootCategoryId === category.id }" @click="selectCategory(category.id)">
           <div class="cat-disc">
-            <img v-if="category.imageUrl" :src="category.imageUrl" :alt="category.name" />
+            <img style="height: 100%;" v-if="category.imageUrl" :src="category.imageUrl" :alt="category.name" />
             <span v-else>{{ initialsFor(category.name) }}</span>
           </div>
           <div class="cname">{{ category.name }}</div>
@@ -125,7 +125,7 @@ function initialsFor(name) {
     margin:0 auto 14px;
     background:var(--bone-2);
     border:1px solid var(--line);
-    display:grid;place-items:center;
+    place-items:center;
     position:relative;overflow:hidden;
   }
   .cat-disc::before{

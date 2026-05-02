@@ -94,6 +94,15 @@ defineEmits(['submit'])
         <textarea v-model.trim="form.description" rows="4" />
       </label>
 
+      <label class="field field--full">
+        <span>Etiquetas</span>
+        <input
+          v-model.trim="form.tagsText"
+          type="text"
+          placeholder="15%, nuevo, edicion limitada"
+        />
+      </label>
+
       <label class="field">
         <span>Precio</span>
         <input v-model.number="form.price" type="number" min="0" step="0.01" required />

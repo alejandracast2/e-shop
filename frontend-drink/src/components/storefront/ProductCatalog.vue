@@ -86,10 +86,7 @@ async function handleAddToCart(product) {
 
       <label class="sort-control">
         <span>Ordenar por</span>
-        <select
-          :value="sortKey"
-          @change="handleSortChange"
-        >
+        <select :value="sortKey" @change="handleSortChange">
           <option v-for="option in sortOptions" :key="option.id" :value="option.id">
             {{ option.label }}
           </option>
@@ -105,12 +102,31 @@ async function handleAddToCart(product) {
 
     <div v-else class="catalog-grid">
       <article v-for="product in sortedProducts" :key="product.id" class="product-card">
+        <button class="fav">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path
+              d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+          </svg>
+        </button>
         <div class="product-visual">
           <img v-if="product.imageUrl" :src="product.imageUrl" :alt="product.title" />
           <div v-else class="visual-fallback">
             <span>{{ product.initials }}</span>
           </div>
 
+          <div v-if="product.tags.length" class="product-tags">
+            <span
+              v-for="tag in product.tags"
+              :key="tag"
+              class="product-tag"
+              :class="{
+                'product-tag--discount': tag === product.discountTag,
+                'product-tag--new': tag.toLowerCase() === 'nuevo',
+              }"
+            >
+              {{ tag }}
+            </span>
+          </div>
           <span v-if="product.stockLabel" class="stock-badge">{{ product.stockLabel }}</span>
         </div>
 
@@ -124,17 +140,13 @@ async function handleAddToCart(product) {
           <div class="product-meta">
             <div class="price-row">
               <strong>{{ formatCurrency(product.price) }}</strong>
-              <span v-if="product.compareAtPrice">
-                {{ formatCurrency(product.compareAtPrice) }}
+              <span v-if="product.discountPercent">
+                {{ formatCurrency(product.basePrice) }}
               </span>
             </div>
 
-            <button
-              class="add-button"
-              type="button"
-              :disabled="!product.variantId || cartLoading"
-              @click="handleAddToCart(product)"
-            >
+            <button class="add-button" type="button" :disabled="!product.variantId || cartLoading"
+              @click="handleAddToCart(product)">
               {{ product.variantId ? (cartLoading ? 'Actualizando...' : 'Agregar') : 'Sin variante' }}
             </button>
           </div>
@@ -145,6 +157,36 @@ async function handleAddToCart(product) {
 </template>
 
 <style scoped>
+.fav {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: var(--ink-4);
+  z-index: 2;
+  transition: .15s all;
+}
+
+.fav:hover {
+  color: var(--wine)
+}
+
+.fav.on {
+  color: var(--wine)
+}
+
+.fav svg {
+  width: 18px;
+  height: 18px;
+  stroke-width: 1.5
+}
+
+
+/* lo antiguo */
 .catalog {
   display: grid;
   gap: 28px;
@@ -215,13 +257,16 @@ async function handleAddToCart(product) {
 }
 
 .product-card {
-  display: grid;
-  gap: 16px;
-  padding: 18px;
-  border-radius: 26px;
-  background: rgba(255, 255, 255, 0.94);
-  border: 1px solid rgba(18, 16, 15, 0.08);
-  box-shadow: 0 24px 54px -38px rgba(18, 16, 15, 0.48);
+  background: #fff;
+  padding: 18px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  border-radius: 10px;
+  border: 1px solid var(--line-2);
+  box-shadow: 0 1px 2px rgba(18, 16, 15, .04);
+  transition: .2s box-shadow, .2s transform;
+
 }
 
 .product-visual {
@@ -261,10 +306,42 @@ async function handleAddToCart(product) {
   letter-spacing: -0.06em;
 }
 
-.stock-badge {
+.product-tags {
   position: absolute;
   left: 14px;
   top: 14px;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  max-width: calc(100% - 28px);
+}
+
+.product-tag {
+  padding: 7px 10px;
+  border-radius: 999px;
+  background: rgba(250, 247, 242, 0.92);
+  color: #12100f;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.product-tag--discount {
+  background: #7b1f2c;
+  color: #faf7f2;
+}
+
+.product-tag--new {
+  background: #12100f;
+  color: #faf7f2;
+}
+
+.stock-badge {
+  position: absolute;
+  left: 14px;
+  bottom: 14px;
   padding: 7px 10px;
   border-radius: 999px;
   background: rgba(18, 16, 15, 0.9);
@@ -349,6 +426,7 @@ async function handleAddToCart(product) {
 }
 
 @media (max-width: 760px) {
+
   .catalog-header,
   .product-meta {
     flex-direction: column;

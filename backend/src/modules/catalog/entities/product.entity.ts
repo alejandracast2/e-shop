@@ -41,6 +41,9 @@ export class Product extends BaseEntity {
   @Column({ type: 'varchar', length: 24, default: 'draft' })
   status: ProductStatus;
 
+  @Column({ type: 'jsonb', nullable: true })
+  tags?: string[] | null;
+
   @Column({ length: 200 })
   slug: string;
 

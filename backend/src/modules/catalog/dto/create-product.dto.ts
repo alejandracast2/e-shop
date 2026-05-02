@@ -63,10 +63,6 @@ export class CreateVariantDto {
 
   @IsOptional()
   @IsNumber()
-  compareAtPrice?: number;
-
-  @IsOptional()
-  @IsNumber()
   cost?: number;
 
   @IsOptional()
@@ -103,6 +99,11 @@ export class CreateProductDto {
   @IsOptional()
   @IsString()
   status?: ProductStatus;
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  tags?: string[];
 
   @IsString()
   slug: string;

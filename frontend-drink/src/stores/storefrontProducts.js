@@ -2,6 +2,13 @@ import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 
 import { storefrontRequest } from '../lib/storefrontApi'
+import {
+  calculateDiscountedPrice,
+  getDiscountTag,
+  hasStatusTag,
+  normalizeTags,
+  resolveDiscountPercent,
+} from '../utils/productTags'
 
 function buildInitials(value) {
   return String(value || '')
@@ -24,8 +31,10 @@ function getPrimaryVariant(product) {
 function normalizeProduct(product) {
   const primaryVariant = getPrimaryVariant(product)
   const imageUrl = product.images?.[0]?.file?.url || product.category?.imageUrl || ''
-  const price = Number(primaryVariant?.price || 0)
-  const compareAtPrice = Number(primaryVariant?.compareAtPrice || 0) || null
+  const basePrice = Number(primaryVariant?.price || 0)
+  const tags = normalizeTags(product.tags)
+  const discountPercent = resolveDiscountPercent(tags)
+  const price = calculateDiscountedPrice(basePrice, tags)
   const stock = Number(primaryVariant?.availableStock || 0)
 
   return {
@@ -39,7 +48,11 @@ function normalizeProduct(product) {
     categoryName: product.category?.name || 'Catalogo general',
     imageUrl,
     price,
-    compareAtPrice,
+    basePrice,
+    discountPercent,
+    discountTag: getDiscountTag(tags),
+    isNew: hasStatusTag(tags, 'nuevo'),
+    tags,
     stockLabel: primaryVariant
       ? stock > 0
         ? `${stock} disponibles`
