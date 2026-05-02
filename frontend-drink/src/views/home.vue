@@ -8,7 +8,7 @@ import StoreFooter from '../components/storefront/StoreFooter.vue'
 <template>
 
     <main class="page-content">
-        <StoreHero />
+        <!-- <StoreHero /> -->
 
         <CategoryCircles />
 

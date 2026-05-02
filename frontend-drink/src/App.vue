@@ -60,7 +60,7 @@ import StoreToast from './components/storefront/StoreToast.vue'
 }
 
 .announce strong {
-  color: #e6b7bd;
+  color: var(--soft);
   font-weight: 500;
   letter-spacing: .18em
 }
