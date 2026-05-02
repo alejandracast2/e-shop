@@ -50,6 +50,10 @@
         Descripcion
         <textarea v-model="form.description" rows="3" />
       </label>
+      <label class="full">
+        Imagenes
+        <textarea v-model="form.imageUrlsText" rows="3" placeholder="https://..." />
+      </label>
       <label>
         Precio
         <input v-model.number="form.price" type="number" min="0" step="0.01" required />
@@ -116,6 +120,7 @@ const form = reactive({
   categoryId: '',
   productTypeId: '',
   description: '',
+  imageUrlsText: '',
   price: 0,
   stock: 0,
   status: 'active',
@@ -124,6 +129,23 @@ const form = reactive({
 const primaryVariantId = computed(
   () => product.value?.variants?.[0]?.id ?? null,
 );
+
+const parseProductImageUrls = (value: string) =>
+  String(value || '')
+    .split(/[\n,]+/)
+    .map((url) => url.trim())
+    .filter(Boolean)
+    .map((url, index) => ({
+      url,
+      sortOrder: index,
+      isCover: index === 0,
+    }));
+
+const formatProductImageUrls = (images: Product['images'] = []) =>
+  images
+    .map((image) => image?.file?.url || '')
+    .filter(Boolean)
+    .join('\n');
 
 watch(
   () => product.value,
@@ -139,6 +161,7 @@ watch(
     form.productTypeId = value.productTypeId || '';
     form.sku = variant?.sku || '';
     form.barcode = variant?.barcode || '';
+    form.imageUrlsText = formatProductImageUrls(value.images);
     form.price = variant?.price ?? 0;
     form.stock = variant?.availableStock ?? 0;
   },
@@ -157,6 +180,7 @@ const updateProduct = async () => {
         slug: form.slug,
         brand: form.brand || undefined,
         description: form.description || undefined,
+        images: parseProductImageUrls(form.imageUrlsText),
         status: form.status,
         categoryId: form.categoryId || undefined,
         productTypeId: form.productTypeId || undefined,

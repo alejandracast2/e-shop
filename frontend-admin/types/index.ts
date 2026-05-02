@@ -1,6 +1,8 @@
 export type ProductImage = {
   id: string;
-  file?: { url?: string | null } | null;
+  sortOrder?: number;
+  isCover?: boolean;
+  file?: { id?: string; url?: string | null } | null;
 };
 
 export type Category = {

@@ -125,7 +125,7 @@ async function handleAddToCart(product) {
           <div v-else class="visual-fallback">
             <span>{{ product.initials }}</span>
           </div>
-          <span v-if="product.stockLabel" class="stock-badge">{{ product.stockLabel }}</span>
+          <!-- <span v-if="product.stockLabel" class="stock-badge">{{ product.stockLabel }}</span> -->
         </div>
 
         <div class="product-body">
@@ -305,9 +305,6 @@ async function handleAddToCart(product) {
   min-height: 260px;
   overflow: hidden;
   border-radius: 20px;
-  background:
-    radial-gradient(circle at top, rgba(255, 255, 255, 0.84), transparent 40%),
-    linear-gradient(180deg, #f5eee3, #e8dccd);
 }
 
 .product-visual img {

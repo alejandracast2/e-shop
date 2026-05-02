@@ -101,6 +101,23 @@ Usar `Authorization: Bearer <token>` en endpoints admin.
 - `GET /admin/customers`
 - `GET /admin/customers/:id`
 
+Payload de imagenes en `POST /admin/products` y `PATCH /admin/products/:id`:
+
+```json
+{
+  "images": [
+    {
+      "url": "https://cdn.example.com/producto.jpg",
+      "sortOrder": 0,
+      "isCover": true
+    }
+  ]
+}
+```
+
+Tambien se puede enviar `fileId` si el archivo ya existe en la tabla `files`.
+En `PATCH`, omitir `images` conserva las imagenes actuales; enviar `images: []` las elimina.
+
 ### Storefront (public)
 - `GET /storefront/categories`
 - `GET /storefront/products`

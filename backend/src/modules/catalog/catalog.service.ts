@@ -9,13 +9,19 @@ import { ProductType } from './entities/product-type.entity';
 import { ProductTypeAttribute } from './entities/product-type-attribute.entity';
 import { Product } from './entities/product.entity';
 import { ProductVariant } from './entities/product-variant.entity';
+import { ProductImage } from './entities/product-image.entity';
+import { FileEntity } from './entities/file.entity';
 import { ProductAttributeValue } from './entities/product-attribute-value.entity';
 import { VariantAttributeValue } from './entities/variant-attribute-value.entity';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { CreateAttributeDto } from './dto/create-attribute.dto';
 import { CreateProductTypeDto } from './dto/create-product-type.dto';
-import { CreateProductDto, CreateVariantDto } from './dto/create-product.dto';
+import {
+  CreateProductDto,
+  CreateVariantDto,
+  ProductImageInputDto,
+} from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { UpdateVariantDto } from './dto/update-variant.dto';
 import { InventoryService } from '../inventory/inventory.service';
@@ -39,8 +45,6 @@ export class CatalogService {
     private readonly productRepository: Repository<Product>,
     @InjectRepository(ProductVariant)
     private readonly variantRepository: Repository<ProductVariant>,
-    @InjectRepository(ProductAttributeValue)
-    private readonly productAttributeRepository: Repository<ProductAttributeValue>,
     @InjectRepository(VariantAttributeValue)
     private readonly variantAttributeRepository: Repository<VariantAttributeValue>,
     private readonly requestContext: RequestContextService,
@@ -220,59 +224,86 @@ export class CatalogService {
         }
       }
 
-      return productRepo.findOne({
+      if (dto.images !== undefined) {
+        await this.replaceProductImages(
+          manager,
+          { tenantId, storeId },
+          savedProduct.id,
+          dto.images ?? [],
+        );
+      }
+
+      const productWithRelations = await productRepo.findOne({
         where: { id: savedProduct.id },
         relations: {
           variants: { attributes: { attributeDefinition: true, valueOption: true } },
           attributes: { attributeDefinition: true, valueOption: true },
+          images: { file: true },
         },
       });
+      this.sortProductImages(productWithRelations ? [productWithRelations] : []);
+      return productWithRelations;
     });
   }
 
   async updateProduct(productId: string, dto: UpdateProductDto) {
     const { tenantId, storeId } = this.getContext();
-    const product = await this.productRepository.findOne({
-      where: { id: productId, tenantId, storeId },
-    });
-    if (!product) {
-      throw new NotFoundException('Product not found');
-    }
+    const savedProductId = await this.dataSource.transaction(async (manager) => {
+      const productRepo = manager.getRepository(Product);
+      const product = await productRepo.findOne({
+        where: { id: productId, tenantId, storeId },
+      });
+      if (!product) {
+        throw new NotFoundException('Product not found');
+      }
 
-    const { attributes, variants, tags, ...patch } = dto;
-    const updated = this.productRepository.merge(product, {
-      ...patch,
-      status: patch.status ?? product.status,
-      tags: tags === undefined ? product.tags : this.normalizeTags(tags),
-    });
-    const saved = await this.productRepository.save(updated);
+      const { attributes, variants, tags, images, ...patch } = dto;
+      const updated = productRepo.merge(product, {
+        ...patch,
+        status: patch.status ?? product.status,
+        tags: tags === undefined ? product.tags : this.normalizeTags(tags),
+      });
+      const saved = await productRepo.save(updated);
 
-    if (attributes) {
-      await this.productAttributeRepository.delete({ productId: saved.id });
-      if (attributes.length) {
-        const rows = attributes.map((attr) =>
-          this.productAttributeRepository.create({
-            productId: saved.id,
-            attributeDefinitionId: attr.attributeDefinitionId,
-            valueOptionId: attr.valueOptionId ?? null,
-            valueText: attr.valueText ?? null,
-            valueNumber: attr.valueNumber ?? null,
-            valueBool: attr.valueBool ?? null,
-            valueDate: attr.valueDate ? new Date(attr.valueDate) : null,
-          }),
+      if (attributes !== undefined && attributes !== null) {
+        const attrRepo = manager.getRepository(ProductAttributeValue);
+        await attrRepo.delete({ productId: saved.id });
+        if (attributes.length) {
+          const rows = attributes.map((attr) =>
+            attrRepo.create({
+              productId: saved.id,
+              attributeDefinitionId: attr.attributeDefinitionId,
+              valueOptionId: attr.valueOptionId ?? null,
+              valueText: attr.valueText ?? null,
+              valueNumber: attr.valueNumber ?? null,
+              valueBool: attr.valueBool ?? null,
+              valueDate: attr.valueDate ? new Date(attr.valueDate) : null,
+            }),
+          );
+          await attrRepo.save(rows);
+        }
+      }
+
+      if (variants !== undefined && variants !== null) {
+        await manager.getRepository(ProductVariant).delete({ productId: saved.id });
+        for (const variantDto of variants) {
+          await this.createVariantInternal(manager, saved.id, variantDto);
+        }
+      }
+
+      if (images !== undefined) {
+        await this.replaceProductImages(
+          manager,
+          { tenantId, storeId },
+          saved.id,
+          images ?? [],
         );
-        await this.productAttributeRepository.save(rows);
       }
-    }
 
-    if (variants) {
-      await this.variantRepository.delete({ productId: saved.id });
-      for (const variantDto of variants) {
-        await this.createVariant(saved.id, variantDto);
-      }
-    }
+      return saved.id;
+    });
 
-    return this.getProductAdmin(saved.id);
+    return this.getProductAdmin(savedProductId);
   }
 
   async createVariant(productId: string, dto: CreateVariantDto) {
@@ -345,6 +376,7 @@ export class CatalogService {
       order: { createdAt: 'DESC' },
     });
     await this.attachAvailability({ tenantId, storeId }, products);
+    this.sortProductImages(products);
     return products;
   }
 
@@ -363,6 +395,7 @@ export class CatalogService {
       throw new NotFoundException('Product not found');
     }
     await this.attachAvailability({ tenantId, storeId }, [product]);
+    this.sortProductImages([product]);
     return product;
   }
 
@@ -395,6 +428,7 @@ export class CatalogService {
 
     const products = await query.orderBy('product.createdAt', 'DESC').getMany();
     await this.attachAvailability({ tenantId, storeId }, products);
+    this.sortProductImages(products);
     return products;
   }
 
@@ -413,6 +447,7 @@ export class CatalogService {
       throw new NotFoundException('Product not found');
     }
     await this.attachAvailability({ tenantId, storeId }, [product]);
+    this.sortProductImages([product]);
     return product;
   }
 
@@ -547,6 +582,96 @@ export class CatalogService {
     return variantRepo.findOne({
       where: { id: savedVariant.id },
       relations: { attributes: { attributeDefinition: true, valueOption: true } },
+    });
+  }
+
+  private async replaceProductImages(
+    manager: EntityManager,
+    context: StoreContext,
+    productId: string,
+    images: ProductImageInputDto[],
+  ) {
+    const imageRepo = manager.getRepository(ProductImage);
+    await imageRepo.delete({ productId });
+
+    if (!images.length) return;
+
+    const coverIndex = images.findIndex((image) => image.isCover === true);
+    const effectiveCoverIndex = coverIndex >= 0 ? coverIndex : 0;
+    const rows: ProductImage[] = [];
+
+    for (const [index, image] of images.entries()) {
+      const file = await this.resolveProductImageFile(manager, context, image);
+      rows.push(
+        imageRepo.create({
+          productId,
+          fileId: file.id,
+          sortOrder: image.sortOrder ?? index,
+          isCover: index === effectiveCoverIndex,
+        }),
+      );
+    }
+
+    await imageRepo.save(rows);
+  }
+
+  private async resolveProductImageFile(
+    manager: EntityManager,
+    context: StoreContext,
+    image: ProductImageInputDto,
+  ) {
+    const fileRepo = manager.getRepository(FileEntity);
+    const fileId = image.fileId ?? image.file?.id;
+
+    if (fileId) {
+      const file = await fileRepo.findOne({
+        where: {
+          id: fileId,
+          tenantId: context.tenantId,
+          storeId: context.storeId,
+        },
+      });
+
+      if (!file) {
+        throw new BadRequestException('Image file not found');
+      }
+
+      return file;
+    }
+
+    const url = (image.url ?? image.file?.url)?.trim();
+    if (!url) {
+      throw new BadRequestException('Product image requires fileId or url');
+    }
+
+    const existing = await fileRepo.findOne({
+      where: {
+        tenantId: context.tenantId,
+        storeId: context.storeId,
+        url,
+      },
+    });
+
+    if (existing) return existing;
+
+    return fileRepo.save(
+      fileRepo.create({
+        tenantId: context.tenantId,
+        storeId: context.storeId,
+        provider: 'external',
+        path: url,
+        url,
+      }),
+    );
+  }
+
+  private sortProductImages(products: Product[]) {
+    products.forEach((product) => {
+      product.images?.sort(
+        (a, b) =>
+          Number(b.isCover) - Number(a.isCover) ||
+          (a.sortOrder ?? 0) - (b.sortOrder ?? 0),
+      );
     });
   }
 

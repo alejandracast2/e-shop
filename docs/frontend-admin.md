@@ -34,8 +34,8 @@ Todas las llamadas admin agregan:
 - `x-store-slug`
 
 ## Acciones conectadas al API
-- `POST /admin/products` crear producto con variante.
-- `PATCH /admin/products/:id` editar datos del producto.
+- `POST /admin/products` crear producto con variante e imagenes por URL.
+- `PATCH /admin/products/:id` editar datos del producto e imagenes.
 - `PATCH /admin/variants/:id` editar SKU/precio.
 - `POST /admin/inventory/variants/:id/stock` ajustar stock.
 - `GET/POST /admin/categories` categorias.
