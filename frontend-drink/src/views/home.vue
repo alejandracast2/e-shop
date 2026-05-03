@@ -3,7 +3,6 @@ import StoreHero from '../components/storefront/StoreHero.vue'
 import CategoryCircles from '../components/storefront/CategoryCircles.vue'
 import ProductCatalog from '../components/storefront/ProductCatalog.vue'
 import StoreFeature from '../components/storefront/StoreFeature.vue'
-import StoreFooter from '../components/storefront/StoreFooter.vue'
 </script>
 <template>
 
@@ -15,7 +14,6 @@ import StoreFooter from '../components/storefront/StoreFooter.vue'
         <ProductCatalog />
 
         <StoreFeature />
-        <StoreFooter />
     </main>
 </template>
 <style>

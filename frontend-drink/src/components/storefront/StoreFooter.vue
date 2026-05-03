@@ -41,6 +41,7 @@
   display: grid;
   gap: 18px;
   padding: 36px 0 10px;
+  margin: 10px 20px 0;
 }
 
 .footer-grid {

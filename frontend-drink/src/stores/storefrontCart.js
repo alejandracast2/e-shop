@@ -12,6 +12,11 @@ const CART_STORAGE_KEY = 'frontend-drink-cart-id'
 const SHIPPING_THRESHOLD = 180000
 const SHIPPING_PRICE = 11000
 
+function normalizeCartQuantity(value) {
+  const quantity = Number.parseInt(value, 10)
+  return Number.isFinite(quantity) && quantity > 0 ? quantity : 1
+}
+
 export const useStorefrontCartStore = defineStore('storefrontCart', () => {
   const cart = ref(null)
   const loading = ref(false)
@@ -135,11 +140,14 @@ export const useStorefrontCartStore = defineStore('storefrontCart', () => {
     return restoredCart
   }
 
-  async function addProductToCart(product) {
+  async function addProductToCart(product, quantity = 1) {
     if (!product?.variantId) return null
 
+    const selectedQuantity = normalizeCartQuantity(quantity)
     const existingItem = cartItems.value.find((item) => item.variantId === product.variantId)
-    const nextQuantity = existingItem ? existingItem.quantity + 1 : 1
+    const nextQuantity = existingItem
+      ? existingItem.quantity + selectedQuantity
+      : selectedQuantity
 
     if (cart.value?.id || persistedCartId.value) {
       return upsertItems({

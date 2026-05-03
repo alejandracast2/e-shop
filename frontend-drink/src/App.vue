@@ -3,6 +3,7 @@ import AgeVerification from './components/AgeVerification.vue'
 import CategoryNav from './components/CategoryNav.vue'
 import CartDrawer from './components/storefront/CartDrawer.vue'
 import StoreToast from './components/storefront/StoreToast.vue'
+import StoreFooter from './components/storefront/StoreFooter.vue'
 </script>
 
 <template>
@@ -16,6 +17,7 @@ import StoreToast from './components/storefront/StoreToast.vue'
 
     <CategoryNav />
     <RouterView />
+    <StoreFooter />
 
     <CartDrawer />
     <StoreToast />

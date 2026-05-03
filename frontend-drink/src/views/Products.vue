@@ -2,6 +2,7 @@
 import { computed, onMounted, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 
+import ProductCatalogGrid from '../components/storefront/ProductCatalogGrid.vue'
 import { useStorefrontCartStore } from '../stores/storefrontCart'
 import { useStorefrontCatalogStore } from '../stores/storefrontCatalog'
 import { useStorefrontCategoriesStore } from '../stores/storefrontCategories'
@@ -14,7 +15,7 @@ const categoriesStore = useStorefrontCategoriesStore()
 const productsStore = useStorefrontProductsStore()
 const uiStore = useStorefrontUiStore()
 
-const { loading: cartLoading } = storeToRefs(cartStore)
+const { loading: cartLoading, cartItems } = storeToRefs(cartStore)
 const { activeCategoryId, debouncedSearch, sortKey } = storeToRefs(catalogStore)
 const { catalogProducts, loadingProducts, productsError } = storeToRefs(productsStore)
 
@@ -43,6 +44,10 @@ const sortedProducts = computed(() => {
   return list
 })
 
+const addedProductIds = computed(() =>
+  cartItems.value.map((item) => item.variantId || item.id),
+)
+
 watch([activeCategoryId, debouncedSearch], ([categoryId, search]) => {
   void productsStore.loadProducts({
     categoryId: categoryId || undefined,
@@ -54,23 +59,15 @@ onMounted(() => {
   void categoriesStore.loadCategories()
 })
 
-function formatCurrency(value) {
-  return new Intl.NumberFormat('es-CO', {
-    style: 'currency',
-    currency: 'COP',
-    maximumFractionDigits: 0,
-  }).format(Number(value || 0))
-}
-
 function handleSortChange(event) {
   catalogStore.setSortKey(event.target.value)
 }
 
-async function handleAddToCart(product) {
-  const nextCart = await cartStore.addProductToCart(product)
+async function handleAddToCart({ product, quantity }) {
+  const nextCart = await cartStore.addProductToCart(product, quantity)
 
   if (nextCart?.id) {
-    uiStore.showToast(`${product.title} fue agregado a la canasta`)
+    uiStore.showToast(`${quantity} x ${product.title} fue agregado a la canasta`)
     uiStore.openCart()
   }
 }
@@ -97,63 +94,14 @@ async function handleAddToCart(product) {
       </label>
     </div>
 
-    <div v-if="loadingProducts" class="catalog-status">Cargando productos...</div>
-    <div v-else-if="productsError" class="catalog-status catalog-status--error">{{ productsError }}</div>
-    <div v-else-if="!sortedProducts.length" class="catalog-status">
-      No hay productos activos para los filtros actuales.
-    </div>
-
-    <div v-else class="catalog-grid">
-      <article v-for="product in sortedProducts" :key="product.id" class="product-card">
-        <div class="product-visual">
-          <img v-if="product.imageUrl" :src="product.imageUrl" :alt="product.title" />
-          <div v-else class="visual-fallback">
-            <span>{{ product.initials }}</span>
-          </div>
-
-          <div v-if="product.tags.length" class="product-tags">
-            <span
-              v-for="tag in product.tags"
-              :key="tag"
-              class="product-tag"
-              :class="{
-                'product-tag--discount': tag === product.discountTag,
-                'product-tag--new': tag.toLowerCase() === 'nuevo',
-              }"
-            >
-              {{ tag }}
-            </span>
-          </div>
-          <span v-if="product.stockLabel" class="stock-badge">{{ product.stockLabel }}</span>
-        </div>
-
-        <div class="product-body">
-          <div class="product-copy">
-            <p class="product-category">{{ product.categoryName }}</p>
-            <h3>{{ product.title }}</h3>
-            <p>{{ product.description }}</p>
-          </div>
-
-          <div class="product-meta">
-            <div class="price-row">
-              <strong>{{ formatCurrency(product.price) }}</strong>
-              <span v-if="product.discountPercent">
-                {{ formatCurrency(product.basePrice) }}
-              </span>
-            </div>
-
-            <button
-              class="add-button"
-              type="button"
-              :disabled="!product.variantId || cartLoading"
-              @click="handleAddToCart(product)"
-            >
-              {{ product.variantId ? (cartLoading ? 'Actualizando...' : 'Agregar') : 'Sin variante' }}
-            </button>
-          </div>
-        </div>
-      </article>
-    </div>
+    <ProductCatalogGrid
+      :products="sortedProducts"
+      :loading="loadingProducts"
+      :error="productsError"
+      :cart-loading="cartLoading"
+      :added-product-ids="addedProductIds"
+      @add-to-cart="handleAddToCart"
+    />
   </section>
 </template>
 
@@ -209,193 +157,8 @@ async function handleAddToCart(product) {
   text-transform: none;
 }
 
-.catalog-status {
-  padding: 32px;
-  border-radius: 24px;
-  background: rgba(255, 255, 255, 0.76);
-  border: 1px solid rgba(18, 16, 15, 0.08);
-  color: #5a514c;
-}
-
-.catalog-status--error {
-  color: #8e2f3c;
-}
-
-.catalog-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 18px;
-}
-
-.product-card {
-  display: grid;
-  gap: 16px;
-  padding: 18px;
-  border-radius: 26px;
-  background: rgba(255, 255, 255, 0.94);
-  border: 1px solid rgba(18, 16, 15, 0.08);
-  box-shadow: 0 24px 54px -38px rgba(18, 16, 15, 0.48);
-}
-
-.product-visual {
-  position: relative;
-  min-height: 260px;
-  overflow: hidden;
-  border-radius: 20px;
-  background:
-    radial-gradient(circle at top, rgba(255, 255, 255, 0.84), transparent 40%),
-    linear-gradient(180deg, #f5eee3, #e8dccd);
-}
-
-.product-visual img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.visual-fallback {
-  width: 100%;
-  height: 100%;
-  min-height: 260px;
-  display: grid;
-  place-items: center;
-}
-
-.visual-fallback span {
-  width: 120px;
-  height: 120px;
-  border-radius: 34px;
-  display: grid;
-  place-items: center;
-  background: linear-gradient(160deg, rgba(107, 21, 32, 0.18), rgba(107, 21, 32, 0.05));
-  color: #6b1520;
-  font-family: 'Georgia', serif;
-  font-size: 38px;
-  letter-spacing: -0.06em;
-}
-
-.product-tags {
-  position: absolute;
-  left: 14px;
-  top: 14px;
-  z-index: 2;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  max-width: calc(100% - 28px);
-}
-
-.product-tag {
-  padding: 7px 10px;
-  border-radius: 999px;
-  background: rgba(250, 247, 242, 0.92);
-  color: #12100f;
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
-.product-tag--discount {
-  background: #7b1f2c;
-  color: #faf7f2;
-}
-
-.product-tag--new {
-  background: #12100f;
-  color: #faf7f2;
-}
-
-.stock-badge {
-  position: absolute;
-  left: 14px;
-  bottom: 14px;
-  padding: 7px 10px;
-  border-radius: 999px;
-  background: rgba(18, 16, 15, 0.9);
-  color: #faf7f2;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
-.product-body {
-  display: grid;
-  gap: 18px;
-}
-
-.product-copy {
-  display: grid;
-  gap: 8px;
-}
-
-.product-category {
-  margin: 0;
-  color: #7b1f2c;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-}
-
-.product-copy h3 {
-  margin: 0;
-  color: #12100f;
-  font-size: 20px;
-  line-height: 1.2;
-}
-
-.product-copy p:last-child {
-  margin: 0;
-  color: #5a514c;
-  line-height: 1.65;
-}
-
-.product-meta {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  align-items: end;
-}
-
-.price-row {
-  display: grid;
-  gap: 4px;
-}
-
-.price-row strong {
-  color: #12100f;
-  font-family: 'Georgia', serif;
-  font-size: 28px;
-  letter-spacing: -0.05em;
-}
-
-.price-row span {
-  color: #9a8d86;
-  text-decoration: line-through;
-}
-
-.add-button {
-  padding: 12px 16px;
-  border-radius: 999px;
-  border: 0;
-  background: #6b1520;
-  color: #faf7f2;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-
-.add-button:disabled {
-  background: #bfa7ab;
-  cursor: not-allowed;
-}
-
 @media (max-width: 760px) {
-  .catalog-header,
-  .product-meta {
+  .catalog-header {
     flex-direction: column;
     align-items: stretch;
   }

@@ -58,13 +58,14 @@ function selectCategory(categoryId) {
 <template>
   <header class="site">
     <div class="wrap hrow">
-      <div class="brand">
+      <router-link :to="{
+                name: 'home' }" class="brand">
         <span class="brand-mark">LC</span>
         <span class="brand-text">
           <div class="name" style="font-family: Raleway; font-weight: 600">La <em>Cantina</em></div>
           <div class="sub">Vinos · Licores · Añejos</div>
         </span>
-      </div>
+      </router-link>
       <div class="search">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="11" cy="11" r="7" />
