@@ -149,7 +149,6 @@ function changeQuantity(item, quantity) {
   position: absolute;
   top: 0;
   right: 0;
-  width: min(420px, 100%);
   height: 100%;
   display: grid;
   grid-template-rows: auto 1fr auto;

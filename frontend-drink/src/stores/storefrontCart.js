@@ -141,6 +141,7 @@ export const useStorefrontCartStore = defineStore('storefrontCart', () => {
   }
 
   async function addProductToCart(product, quantity = 1) {
+    console.log('Adding product to cart:', product, 'Quantity:', quantity)
     if (!product?.variantId) return null
 
     const selectedQuantity = normalizeCartQuantity(quantity)

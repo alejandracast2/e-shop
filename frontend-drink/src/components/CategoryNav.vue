@@ -6,17 +6,20 @@ import { useRouter } from 'vue-router'
 import { useStorefrontCartStore } from '../stores/storefrontCart'
 import { useStorefrontCatalogStore } from '../stores/storefrontCatalog'
 import { useStorefrontCategoriesStore } from '../stores/storefrontCategories'
+import { useStorefrontFavoritesStore } from '../stores/storefrontFavorites'
 import { useStorefrontUiStore } from '../stores/storefrontUi'
 
 const router = useRouter()
 const categoriesStore = useStorefrontCategoriesStore()
 const catalogStore = useStorefrontCatalogStore()
 const cartStore = useStorefrontCartStore()
+const favoritesStore = useStorefrontFavoritesStore()
 const uiStore = useStorefrontUiStore()
 
 const { rootCategories, loading, error } = storeToRefs(categoriesStore)
 const { activeCategoryId, searchQuery } = storeToRefs(catalogStore)
 const { cartCount } = storeToRefs(cartStore)
+const { favoriteCount } = storeToRefs(favoritesStore)
 
 const previewCategoryId = ref('')
 
@@ -59,7 +62,8 @@ function selectCategory(categoryId) {
   <header class="site">
     <div class="wrap hrow">
       <router-link :to="{
-                name: 'home' }" class="brand">
+        name: 'home'
+      }" class="brand">
         <span class="brand-mark">LC</span>
         <span class="brand-text">
           <div class="name" style="font-family: Raleway; font-weight: 600">La <em>Cantina</em></div>
@@ -90,13 +94,13 @@ function selectCategory(categoryId) {
             <path d="M10 21a2 2 0 0 0 4 0" />
           </svg>
         </button>
-        <button class="icon-btn" title="Favoritos">
+        <router-link class="icon-btn" title="Favoritos" :to="{ name: 'favorites' }">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path
               d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
           </svg>
-          <span class="badge">1</span>
-        </button>
+          <span class="badge" v-if="favoriteCount">{{ favoriteCount }}</span>
+        </router-link>
         <button class="icon-btn" title="Cuenta">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="12" cy="8" r="4" />

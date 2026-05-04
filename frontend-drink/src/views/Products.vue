@@ -64,6 +64,7 @@ function handleSortChange(event) {
 }
 
 async function handleAddToCart({ product, quantity }) {
+  console.log('Adding product to cart:', product, 'Quantity:', quantity)
   const nextCart = await cartStore.addProductToCart(product, quantity)
 
   if (nextCart?.id) {
@@ -109,6 +110,7 @@ async function handleAddToCart({ product, quantity }) {
 .catalog {
   display: grid;
   gap: 28px;
+  margin : 10px 20px 0;
 }
 
 .catalog-header {

@@ -18,17 +18,15 @@ import StoreFeature from '../components/storefront/StoreFeature.vue'
 </template>
 <style>
 .page-content {
-  width: min(1240px, calc(100% - 32px));
   margin: 0 auto;
-  display: grid;
   gap: 34px;
   padding: 0 0 50px;
+  margin: 0 20px;
 }
 
 @media (max-width: 720px) {
 
   .page-content {
-    width: min(1240px, calc(100% - 20px));
     gap: 24px;
   }
 }

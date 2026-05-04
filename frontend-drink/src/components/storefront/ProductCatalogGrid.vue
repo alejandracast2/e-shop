@@ -1,6 +1,8 @@
 <script setup>
 import { computed, ref } from 'vue'
 
+import { useStorefrontFavoritesStore } from '../../stores/storefrontFavorites'
+
 const props = defineProps({
   products: {
     type: Array,
@@ -19,10 +21,6 @@ const props = defineProps({
     default: false,
   },
   addedProductIds: {
-    type: Array,
-    default: () => [],
-  },
-  favoriteProductIds: {
     type: Array,
     default: () => [],
   },
@@ -56,16 +54,14 @@ const props = defineProps({
   },
 })
 
-const emit = defineEmits(['add-to-cart', 'toggle-favorite'])
+const emit = defineEmits(['add-to-cart'])
+
+const favoritesStore = useStorefrontFavoritesStore()
 
 const selectedQuantities = ref({})
 
 const addedProductIdSet = computed(() =>
   new Set(props.addedProductIds.map((id) => String(id))),
-)
-
-const favoriteProductIdSet = computed(() =>
-  new Set(props.favoriteProductIds.map((id) => String(id))),
 )
 
 function getProductTags(product) {
@@ -137,10 +133,7 @@ function isProductAdded(product) {
 }
 
 function isFavorite(product) {
-  return (
-    favoriteProductIdSet.value.has(String(product?.variantId))
-    || favoriteProductIdSet.value.has(String(product?.id))
-  )
+  return favoritesStore.isFavorite(product)
 }
 
 function handleAddToCart(product) {
@@ -151,7 +144,7 @@ function handleAddToCart(product) {
 }
 
 function handleToggleFavorite(product) {
-  emit('toggle-favorite', product)
+  favoritesStore.toggleFavorite(product)
 }
 </script>
 
@@ -166,33 +159,24 @@ function handleToggleFavorite(product) {
     <article v-for="product in products" :key="product.id" class="product-card">
       <div class="tags">
         <div v-if="getProductTags(product).length" class="tag-list">
-          <span
-            v-for="tag in getProductTags(product)"
-            :key="tag"
-            class="ptag"
-            :class="{
-              sale: isDiscountTag(product, tag),
-              new: isNewTag(tag),
-            }"
-          >
+          <span v-for="tag in getProductTags(product)" :key="tag" class="ptag" :class="{
+            sale: isDiscountTag(product, tag),
+            new: isNewTag(tag),
+          }">
             {{ tag }}
           </span>
         </div>
         <span v-if="isProductAdded(product)" class="ptag added">En canasta</span>
       </div>
 
-      <button
-        v-if="showFavoriteButton"
-        class="fav"
-        :class="{ on: isFavorite(product) }"
-        type="button"
-        :aria-label="`Marcar ${product.title} como favorito`"
-        @click="handleToggleFavorite(product)"
-      >
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <button v-if="showFavoriteButton" class="fav" :class="{ on: isFavorite(product) }" type="button"
+        :aria-pressed="isFavorite(product)" :aria-label="isFavorite(product)
+          ? `Quitar ${product.title} de favoritos`
+          : `Marcar ${product.title} como favorito`" @click="handleToggleFavorite(product)">
+        <svg viewBox="0 0 24 24" :fill="isFavorite(product) ? 'currentColor' : 'none'" stroke="currentColor"
+          stroke-width="2">
           <path
-            d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
-          />
+            d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
         </svg>
       </button>
 
@@ -213,44 +197,22 @@ function handleToggleFavorite(product) {
 
       <div class="pactions">
         <div class="qty">
-          <button
-            type="button"
-            :disabled="!product.variantId || cartLoading || getSelectedQuantity(product) <= 1"
-            @click="decrementQuantity(product)"
-          >
+          <button type="button" :disabled="!product.variantId || cartLoading || getSelectedQuantity(product) <= 1"
+            @click="decrementQuantity(product)">
             -
           </button>
-          <input
-            type="number"
-            min="1"
-            step="1"
-            :max="maxQuantity"
-            :disabled="!product.variantId || cartLoading"
-            :value="getSelectedQuantity(product)"
-            @change="setSelectedQuantity(product, $event.target.value)"
-          />
-          <button
-            type="button"
-            :disabled="!product.variantId || cartLoading"
-            @click="incrementQuantity(product)"
-          >
+          <input type="number" min="1" step="1" :max="maxQuantity" :disabled="!product.variantId || cartLoading"
+            :value="getSelectedQuantity(product)" @change="setSelectedQuantity(product, $event.target.value)" />
+          <button type="button" :disabled="!product.variantId || cartLoading" @click="incrementQuantity(product)">
             +
           </button>
         </div>
-        <button
-          class="addbtn"
-          :class="{ added: isProductAdded(product) }"
-          type="button"
-          :disabled="!product.variantId || cartLoading"
-          @click="handleAddToCart(product)"
-        >
+        <button class="addbtn" :class="{ added: isProductAdded(product) }" type="button"
+          :disabled="!product.variantId || cartLoading" @click="handleAddToCart(product)">
           <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path
-              fill-rule="evenodd"
-              clip-rule="evenodd"
+            <path fill-rule="evenodd" clip-rule="evenodd"
               d="M2 1C1.44772 1 1 1.44772 1 2C1 2.55228 1.44772 3 2 3H3.21922L6.78345 17.2569C5.73276 17.7236 5 18.7762 5 20C5 21.6569 6.34315 23 8 23C9.65685 23 11 21.6569 11 20C11 19.6494 10.9398 19.3128 10.8293 19H15.1707C15.0602 19.3128 15 19.6494 15 20C15 21.6569 16.3431 23 18 23C19.6569 23 21 21.6569 21 20C21 18.3431 19.6569 17 18 17H8.78078L8.28078 15H18C20.0642 15 21.3019 13.6959 21.9887 12.2559C22.6599 10.8487 22.8935 9.16692 22.975 7.94368C23.0884 6.24014 21.6803 5 20.1211 5H5.78078L5.15951 2.51493C4.93692 1.62459 4.13696 1 3.21922 1H2ZM18 13H7.78078L6.28078 7H20.1211C20.6742 7 21.0063 7.40675 20.9794 7.81078C20.9034 8.9522 20.6906 10.3318 20.1836 11.3949C19.6922 12.4251 19.0201 13 18 13ZM18 20.9938C17.4511 20.9938 17.0062 20.5489 17.0062 20C17.0062 19.4511 17.4511 19.0062 18 19.0062C18.5489 19.0062 18.9938 19.4511 18.9938 20C18.9938 20.5489 18.5489 20.9938 18 20.9938ZM7.00617 20C7.00617 20.5489 7.45112 20.9938 8 20.9938C8.54888 20.9938 8.99383 20.5489 8.99383 20C8.99383 19.4511 8.54888 19.0062 8 19.0062C7.45112 19.0062 7.00617 19.4511 7.00617 20Z"
-              fill="currentColor"
-            />
+              fill="currentColor" />
           </svg>
           {{ product.variantId ? (cartLoading ? 'Actualizando...' : 'Agregar') : 'Sin variante' }}
         </button>
@@ -274,8 +236,30 @@ function handleToggleFavorite(product) {
 
 .catalog-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: 18px;
+}
+
+@media(min-width:700px) and (max-width:1100px) {
+  .catalog-grid {
+    grid-template-columns: repeat(3, 1fr)
+  }
+}
+@media (max-width: 760px) {
+    .catalog-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+@media(max-width:640px) {
+  .catalog-grid {
+    grid-template-columns: repeat(2, 1fr)
+  }
+}
+
+@media(max-width:440px) {
+  .catalog-grid {
+    grid-template-columns: 1fr
+  }
 }
 
 .product-card {
