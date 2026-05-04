@@ -21,8 +21,8 @@ const favoriteProducts = computed(() =>
   catalogProducts.value.filter((product) => favoritesStore.isFavorite(product)),
 )
 
-const addedProductIds = computed(() =>
-  cartItems.value.map((item) => item.variantId || item.id),
+const addedVariantIds = computed(() =>
+  cartItems.value.map((item) => item.variantId).filter(Boolean),
 )
 
 onMounted(() => {
@@ -53,7 +53,7 @@ async function handleAddToCart({ product, quantity }) {
       :loading="loadingProducts && favoriteCount > 0"
       :error="productsError"
       :cart-loading="cartLoading"
-      :added-product-ids="addedProductIds"
+      :added-variant-ids="addedVariantIds"
       empty-message="No tienes productos favoritos guardados."
       @add-to-cart="handleAddToCart"
     />

@@ -44,8 +44,8 @@ const sortedProducts = computed(() => {
   return list
 })
 
-const addedProductIds = computed(() =>
-  cartItems.value.map((item) => item.variantId || item.id),
+const addedVariantIds = computed(() =>
+  cartItems.value.map((item) => item.variantId).filter(Boolean),
 )
 
 watch([activeCategoryId, debouncedSearch], ([categoryId, search]) => {
@@ -100,7 +100,7 @@ async function handleAddToCart({ product, quantity }) {
       :loading="loadingProducts"
       :error="productsError"
       :cart-loading="cartLoading"
-      :added-product-ids="addedProductIds"
+      :added-variant-ids="addedVariantIds"
       @add-to-cart="handleAddToCart"
     />
   </section>

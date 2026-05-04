@@ -20,7 +20,7 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
-  addedProductIds: {
+  addedVariantIds: {
     type: Array,
     default: () => [],
   },
@@ -60,8 +60,8 @@ const favoritesStore = useStorefrontFavoritesStore()
 
 const selectedQuantities = ref({})
 
-const addedProductIdSet = computed(() =>
-  new Set(props.addedProductIds.map((id) => String(id))),
+const addedVariantIdSet = computed(() =>
+  new Set(props.addedVariantIds.filter(Boolean).map((id) => String(id))),
 )
 
 function getProductTags(product) {
@@ -126,10 +126,7 @@ function isNewTag(tag) {
 }
 
 function isProductAdded(product) {
-  return (
-    addedProductIdSet.value.has(String(product?.variantId))
-    || addedProductIdSet.value.has(String(product?.id))
-  )
+  return Boolean(product?.variantId) && addedVariantIdSet.value.has(String(product.variantId))
 }
 
 function isFavorite(product) {

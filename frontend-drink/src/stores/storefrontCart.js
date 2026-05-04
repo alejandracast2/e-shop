@@ -35,7 +35,8 @@ export const useStorefrontCartStore = defineStore('storefrontCart', () => {
 
         return {
           id: item.id,
-          variantId: item.variantId,
+          variantId: item.variantId || item.variant?.id || '',
+          productId: item.variant?.product?.id || '',
           title:
             item.titleSnapshot
             || item.variant?.product?.title
@@ -145,7 +146,9 @@ export const useStorefrontCartStore = defineStore('storefrontCart', () => {
     if (!product?.variantId) return null
 
     const selectedQuantity = normalizeCartQuantity(quantity)
-    const existingItem = cartItems.value.find((item) => item.variantId === product.variantId)
+    const existingItem = cartItems.value.find(
+      (item) => String(item.variantId) === String(product.variantId),
+    )
     const nextQuantity = existingItem
       ? existingItem.quantity + selectedQuantity
       : selectedQuantity
