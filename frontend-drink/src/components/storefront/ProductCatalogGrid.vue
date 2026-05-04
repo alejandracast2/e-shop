@@ -163,7 +163,7 @@ function handleToggleFavorite(product) {
             {{ tag }}
           </span>
         </div>
-        <span v-if="isProductAdded(product)" class="ptag added">En canasta</span>
+        <span v-if="isProductAdded(product)" class="ptag added">En carrito</span>
       </div>
 
       <button v-if="showFavoriteButton" class="fav" :class="{ on: isFavorite(product) }" type="button"

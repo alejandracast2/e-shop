@@ -10,6 +10,16 @@ import { UpsertCartItemsDto } from './dto/upsert-cart-items.dto';
 
 type StoreContext = { tenantId: string; storeId: string };
 
+const CART_RELATIONS = {
+  items: {
+    variant: {
+      product: {
+        images: { file: true },
+      },
+    },
+  },
+} as const;
+
 @Injectable()
 export class CartsService {
   constructor(
@@ -28,7 +38,7 @@ export class CartsService {
     if (dto.cartId) {
       const existing = await this.cartRepository.findOne({
         where: { id: dto.cartId, tenantId: context.tenantId, storeId: context.storeId },
-        relations: { items: { variant: { product: true } } },
+        relations: CART_RELATIONS,
       });
       if (existing) {
         if (dto.items?.length) {
@@ -59,11 +69,12 @@ export class CartsService {
     const context = this.getContext();
     const cart = await this.cartRepository.findOne({
       where: { id: cartId, tenantId: context.tenantId, storeId: context.storeId },
-      relations: { items: { variant: { product: true } } },
+      relations: CART_RELATIONS,
     });
     if (!cart) {
       throw new NotFoundException('Cart not found');
     }
+    this.sortCartProductImages(cart);
     return cart;
   }
 
@@ -83,7 +94,7 @@ export class CartsService {
     const variantIds = dto.items.map((item) => item.variantId);
     const variants = await this.variantRepository.find({
       where: { id: In(variantIds) },
-      relations: { product: true },
+      relations: { product: { images: { file: true } } },
     });
     const variantMap = new Map(variants.map((variant) => [variant.id, variant]));
 
@@ -150,6 +161,16 @@ export class CartsService {
     return this.cartRepository.save(cart);
   }
 
+  private sortCartProductImages(cart: Cart) {
+    cart.items?.forEach((item) => {
+      item.variant?.product?.images?.sort(
+        (left, right) =>
+          Number(right.isCover) - Number(left.isCover) ||
+          (left.sortOrder ?? 0) - (right.sortOrder ?? 0),
+      );
+    });
+  }
+
   private getContext(): StoreContext {
     const tenantId = this.requestContext.tenantId;
     const storeId = this.requestContext.storeId;
@@ -159,3 +180,4 @@ export class CartsService {
     return { tenantId, storeId };
   }
 }
+

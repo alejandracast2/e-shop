@@ -8,7 +8,7 @@ import { useStorefrontUiStore } from '../../stores/storefrontUi'
 const cartStore = useStorefrontCartStore()
 const uiStore = useStorefrontUiStore()
 
-const { cartItems, subtotal, shipping, total, loading, error } = storeToRefs(cartStore)
+const { cartItems, cartCount, subtotal, shipping, total, loading, error } = storeToRefs(cartStore)
 const { cartOpen } = storeToRefs(uiStore)
 
 onMounted(() => {
@@ -35,22 +35,35 @@ function initialsFor(title) {
 
 function changeQuantity(item, quantity) {
   void cartStore.changeCartQuantity(item, quantity)
+  if(quantity==0){
+    removeItem(item)
+  }
+}
+
+async function removeItem(item) {
+  await cartStore.removeCartItem(item)
+
+  if (!error.value) {
+    uiStore.showToast(`${item.title} fue retirado de tu carrito.`)
+  }
 }
 </script>
 
 <template>
-  <div class="drawer-layer" :class="{ visible: cartOpen }">
-    <button class="drawer-overlay" type="button" @click="uiStore.closeCart" />
+  <div class="drawer-layer" :class="{ visible: cartOpen }" :inert="!cartOpen" :aria-hidden="cartOpen ? null : 'true'">
+    <button class="drawer-overlay" type="button" aria-label="Cerrar carrito" @click="uiStore.closeCart" />
 
-    <aside class="drawer">
+    <aside class="drawer" role="dialog" aria-modal="true" aria-labelledby="cart-drawer-title">
       <header class="drawer-header">
-        <div>
-          <p class="drawer-kicker">Tu canasta</p>
-          <h2>Resumen en vivo</h2>
+        <div class="drawer-heading">
+          <h2 id="cart-drawer-title">Mi carrito</h2>
+          <span v-if="cartItems.length" class="drawer-count">
+            {{ cartCount }} {{ cartCount === 1 ? 'producto' : 'productos' }}
+          </span>
         </div>
 
-        <button class="close-button" type="button" @click="uiStore.closeCart">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+        <button class="close-button" type="button" aria-label="Cerrar carrito" @click="uiStore.closeCart">
+          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
             <path d="M6 6l12 12M18 6 6 18" />
           </svg>
         </button>
@@ -60,51 +73,67 @@ function changeQuantity(item, quantity) {
 
       <div v-if="!cartItems.length" class="drawer-empty">
         <span class="empty-mark">LC</span>
-        <h3>La canasta esta vacia</h3>
-        <p>Agrega productos del catalogo y aqui se reflejaran con el carrito real.</p>
+        <h3>Mi carrito esta vacio</h3>
+        <p>Agrega productos del catalogo y aqui veras el resumen de tu pedido.</p>
+        <button class="empty-action" type="button" @click="uiStore.closeCart">
+          Explorar catalogo
+        </button>
       </div>
 
-      <div v-else class="drawer-body">
-        <article v-for="item in cartItems" :key="item.id" class="drawer-item">
-          <div class="item-mark">{{ initialsFor(item.title) }}</div>
-
+      <div v-else class="drawer-body" role="list">
+        <article v-for="item in cartItems" :key="item.id" class="drawer-item" role="listitem">
+          <div class="item-image" aria-hidden="true">
+            <img v-if="item.imageUrl" :src="item.imageUrl" :alt="item.title" />
+            <span v-else>{{ initialsFor(item.title) }}</span>
+          </div>
           <div class="item-copy">
-            <strong>{{ item.title }}</strong>
+            <div class="item-heading">
+              <strong>{{ item.title }}</strong>
+              <button class="remove-button" type="button" :disabled="loading"
+                :aria-label="`Quitar ${item.title} del carrito`" @click="removeItem(item)">
+                <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9">
+                  <path d="M4 7h16" />
+                  <path d="M9 7V4h6v3" />
+                  <path d="m6 7 1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13" />
+                  <path d="M10 11v6M14 11v6" />
+                </svg>
+              </button>
+            </div>
             <div class="item-price">
               <span>{{ formatCurrency(item.unitPrice) }}</span>
               <span v-if="item.discountPercent" class="item-price-old">
                 {{ formatCurrency(item.baseUnitPrice) }}
               </span>
             </div>
-          </div>
 
-          <div class="item-actions">
-            <button
-              type="button"
-              :disabled="loading || item.quantity <= 1"
-              @click="changeQuantity(item, item.quantity - 1)"
-            >
-              -
-            </button>
-            <span>{{ item.quantity }}</span>
-            <button
-              type="button"
-              :disabled="loading"
-              @click="changeQuantity(item, item.quantity + 1)"
-            >
-              +
-            </button>
+            <div class="item-footer">
+              <div class="item-actions" aria-label="Cantidad">
+                <button type="button" :disabled="loading"
+                  :aria-label="`Restar una unidad de ${item.title}`" @click="changeQuantity(item, item.quantity - 1)">
+                  -
+                </button>
+                <span aria-live="polite">{{ item.quantity }}</span>
+                <button type="button" :disabled="loading" :aria-label="`Sumar una unidad de ${item.title}`"
+                  @click="changeQuantity(item, item.quantity + 1)">
+                  +
+                </button>
+              </div>
+
+              <strong class="item-total">
+                {{ formatCurrency(item.unitPrice * item.quantity) }}
+              </strong>
+            </div>
           </div>
         </article>
       </div>
 
-      <footer class="drawer-footer">
+      <footer v-if="cartItems.length" class="drawer-footer">
         <div class="summary-row">
           <span>Subtotal</span>
           <strong>{{ formatCurrency(subtotal) }}</strong>
         </div>
         <div class="summary-row">
-          <span>Envio</span>
+          <span>Envio estimado</span>
           <strong>{{ shipping ? formatCurrency(shipping) : 'Gratis' }}</strong>
         </div>
         <div class="summary-row total">
@@ -112,8 +141,7 @@ function changeQuantity(item, quantity) {
           <strong>{{ formatCurrency(total) }}</strong>
         </div>
         <p class="checkout-note">
-          El backend actual soporta carrito y checkout. Esta vista deja lista la canasta para
-          conectar el formulario de confirmacion en el siguiente paso.
+          Revisa productos y cantidades antes de continuar con la confirmacion del pedido.
         </p>
       </footer>
     </aside>
@@ -136,7 +164,8 @@ function changeQuantity(item, quantity) {
   position: absolute;
   inset: 0;
   border: 0;
-  background: rgba(10, 8, 7, 0.56);
+  background: rgba(18, 16, 15, 0.58);
+  cursor: default;
   opacity: 0;
   transition: opacity 0.22s ease;
 }
@@ -149,13 +178,14 @@ function changeQuantity(item, quantity) {
   position: absolute;
   top: 0;
   right: 0;
-  height: 100%;
-  display: grid;
-  grid-template-rows: auto 1fr auto;
-  gap: 20px;
-  padding: 24px;
-  background: #faf7f2;
+  width: min(420px, 100vw);
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bone);
+  border-left: 1px solid var(--line);
   box-shadow: -18px 0 48px rgba(18, 16, 15, 0.18);
+  color: var(--ink);
   transform: translateX(100%);
   transition: transform 0.22s ease;
 }
@@ -166,36 +196,58 @@ function changeQuantity(item, quantity) {
 
 .drawer-header {
   display: flex;
-  align-items: start;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
+  padding: 24px 24px 18px;
+  border-bottom: 1px solid var(--line-2);
+}
+
+.drawer-heading {
+  display: grid;
+  gap: 5px;
 }
 
 .drawer-kicker {
-  margin: 0 0 8px;
-  color: #7b1f2c;
+  margin: 0;
+  color: var(--wine);
   font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0.24em;
+  letter-spacing: 0;
   text-transform: uppercase;
 }
 
 .drawer-header h2 {
   margin: 0;
-  color: #12100f;
-  font-family: 'Georgia', serif;
-  font-size: 34px;
-  letter-spacing: -0.05em;
+  color: var(--ink);
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 30px;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+.drawer-count {
+  color: var(--ink-3);
+  font-size: 13px;
+  font-weight: 600;
 }
 
 .close-button {
-  width: 42px;
-  height: 42px;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 auto;
   display: grid;
   place-items: center;
   border-radius: 50%;
-  border: 1px solid rgba(18, 16, 15, 0.08);
-  background: #ffffff;
+  border: 1px solid var(--line);
+  background: var(--white);
+  color: var(--ink);
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.close-button:hover {
+  background: var(--bone-4);
+  border-color: var(--line);
 }
 
 .close-button svg {
@@ -204,34 +256,45 @@ function changeQuantity(item, quantity) {
 }
 
 .drawer-error {
-  margin: 0;
-  color: #8e2f3c;
+  margin: 14px 24px 0;
+  padding: 11px 12px;
+  border: 1px solid rgba(21, 61, 107, 0.24);
+  border-radius: 8px;
+  background: rgba(161, 177, 255, 0.16);
+  color: var(--wine-3);
+  font-size: 13px;
+  line-height: 1.4;
 }
 
 .drawer-empty {
+  flex: 1;
+  min-height: 0;
   display: grid;
   place-items: center;
   align-content: center;
   text-align: center;
   gap: 12px;
-  color: #5a514c;
+  padding: 28px 24px;
+  color: var(--ink-3);
 }
 
 .empty-mark {
-  width: 78px;
-  height: 78px;
+  width: 72px;
+  height: 72px;
   display: grid;
   place-items: center;
-  border-radius: 26px;
-  background: linear-gradient(160deg, rgba(107, 21, 32, 0.12), rgba(107, 21, 32, 0.04));
-  color: #6b1520;
-  font-family: 'Georgia', serif;
-  font-size: 28px;
+  border-radius: 50%;
+  background: var(--wine);
+  color: var(--bone);
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 24px;
+  font-weight: 700;
 }
 
 .drawer-empty h3 {
   margin: 0;
-  color: #12100f;
+  color: var(--ink);
+  font-size: 20px;
 }
 
 .drawer-empty p {
@@ -240,45 +303,104 @@ function changeQuantity(item, quantity) {
   line-height: 1.7;
 }
 
+.empty-action {
+  margin-top: 6px;
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--bone);
+  font-size: 13px;
+  font-weight: 700;
+}
+
 .drawer-body {
+  flex: 1;
+  min-height: 0;
   display: grid;
   align-content: start;
-  gap: 14px;
+  gap: 10px;
   overflow: auto;
+  padding: 18px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--ink-4) transparent;
 }
 
 .drawer-item {
   display: grid;
-  grid-template-columns: auto 1fr auto;
-  gap: 14px;
-  align-items: center;
-  padding: 14px;
-  border-radius: 18px;
-  background: #ffffff;
-  border: 1px solid rgba(18, 16, 15, 0.08);
+  grid-template-columns: 48px minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+  padding: 12px;
+  border-radius: 8px;
+  background: var(--white);
+  border: 1px solid var(--line-2);
+  box-shadow: 0 1px 2px rgba(18, 16, 15, 0.04);
 }
 
-.item-mark {
-  width: 54px;
-  height: 54px;
+.item-image {
+  width: 48px;
+  height: 48px;
   display: grid;
   place-items: center;
-  border-radius: 18px;
-  background: linear-gradient(160deg, #f6ede0, #ede1d2);
-  color: #6b1520;
-  font-family: 'Georgia', serif;
-  font-size: 18px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--bone-4);
+  color: var(--wine);
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.item-image img {
+  width: 100%;
+  height: 100%;
+  padding: 4px;
+  object-fit: contain;
 }
 
 .item-copy {
   display: grid;
-  gap: 4px;
+  min-width: 0;
+  gap: 6px;
+}
+
+.item-heading {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 32px;
+  gap: 8px;
+  align-items: start;
 }
 
 .item-copy strong {
-  color: #12100f;
+  color: var(--ink);
   font-size: 14px;
   line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.remove-button {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: var(--ink-4);
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.remove-button:hover {
+  background: var(--bone-4);
+  color: var(--wine);
+}
+
+.remove-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.remove-button svg {
+  width: 16px;
+  height: 16px;
 }
 
 .item-price {
@@ -289,25 +411,36 @@ function changeQuantity(item, quantity) {
 }
 
 .item-price span {
-  color: #5a514c;
+  color: var(--ink-3);
   font-size: 13px;
 }
 
 .item-price .item-price-old {
-  color: #9a8d86;
+  color: var(--ink-4);
   text-decoration: line-through;
+}
+
+.item-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 2px;
 }
 
 .item-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
 }
 
 .item-actions button,
 .item-actions span {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   display: grid;
   place-items: center;
   border-radius: 999px;
@@ -315,53 +448,142 @@ function changeQuantity(item, quantity) {
 
 .item-actions button {
   border: 0;
-  background: #12100f;
-  color: #faf7f2;
+  background: var(--bone-4);
+  color: var(--ink-3);
+  font-size: 14px;
+  font-weight: 700;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.item-actions button:last-of-type {
+  background: var(--ink);
+  color: var(--bone);
+}
+
+.item-actions button:hover {
+  background: var(--wine);
+  color: var(--bone);
 }
 
 .item-actions button:disabled {
-  background: #bcaeb1;
+  background: var(--bone-4);
+  color: var(--ink-4);
+  cursor: not-allowed;
+  opacity: 0.5;
 }
 
 .item-actions span {
-  background: rgba(18, 16, 15, 0.06);
-  color: #12100f;
+  background: transparent;
+  color: var(--ink);
   font-weight: 700;
+}
+
+.item-total {
+  color: var(--ink);
+  font-size: 14px;
+  white-space: nowrap;
 }
 
 .drawer-footer {
   display: grid;
   gap: 12px;
-  padding-top: 16px;
-  border-top: 1px solid rgba(18, 16, 15, 0.08);
+  padding: 16px 24px 22px;
+  border-top: 1px solid var(--line);
+  background: var(--bone);
 }
 
 .summary-row {
   display: flex;
   justify-content: space-between;
   gap: 16px;
-  color: #5a514c;
+  color: var(--ink-3);
+  font-size: 14px;
 }
 
 .summary-row strong {
-  color: #12100f;
+  color: var(--ink);
 }
 
 .summary-row.total {
-  color: #12100f;
+  margin-top: 2px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line-2);
+  color: var(--ink);
   font-size: 18px;
 }
 
 .summary-row.total strong {
-  font-family: 'Georgia', serif;
-  font-size: 26px;
-  letter-spacing: -0.05em;
+  font-family: 'Playfair Display', Georgia, serif;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: 0;
 }
 
 .checkout-note {
   margin: 0;
-  color: #5a514c;
-  font-size: 13px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--bone-4);
+  color: var(--ink-3);
+  font-size: 12px;
   line-height: 1.6;
+}
+
+.drawer-overlay:focus-visible,
+.close-button:focus-visible,
+.empty-action:focus-visible,
+.remove-button:focus-visible,
+.item-actions button:focus-visible {
+  outline: 2px solid var(--soft);
+  outline-offset: 2px;
+}
+
+@media (max-width: 520px) {
+  .drawer {
+    width: 100vw;
+  }
+
+  .drawer-header {
+    padding: 20px 18px 16px;
+  }
+
+  .drawer-header h2 {
+    font-size: 26px;
+  }
+
+  .drawer-error {
+    margin: 12px 18px 0;
+  }
+
+  .drawer-body {
+    padding: 14px;
+  }
+
+  .drawer-item {
+    grid-template-columns: 44px minmax(0, 1fr);
+    padding: 10px;
+  }
+
+  .item-image {
+    width: 44px;
+    height: 44px;
+  }
+
+  .item-footer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .drawer-footer {
+    padding: 14px 18px 18px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  .drawer,
+  .drawer-overlay {
+    transition: none;
+  }
 }
 </style>
