@@ -4,6 +4,7 @@ import { CustomerAddress } from './customer-address.entity';
 
 @Entity('customers')
 @Index(['storeId', 'email'], { unique: true })
+@Index(['storeId', 'userId'], { unique: true })
 export class Customer extends BaseEntity {
   @Column({ type: 'uuid' })
   tenantId: string;
@@ -13,6 +14,15 @@ export class Customer extends BaseEntity {
 
   @Column({ type: 'uuid', nullable: true })
   userId?: string | null;
+
+  @Column({ type: 'date', nullable: true })
+  birthDate?: string | null;
+
+  @Column({ type: 'timestamptz', nullable: true })
+  ageConfirmedAt?: Date | null;
+
+  @Column({ type: 'varchar', length: 40, nullable: true })
+  ageConfirmationMethod?: string | null;
 
   @Column({ length: 200 })
   fullName: string;

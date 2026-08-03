@@ -4,6 +4,8 @@ import CategoryNav from './components/CategoryNav.vue'
 import CartDrawer from './components/storefront/CartDrawer.vue'
 import StoreToast from './components/storefront/StoreToast.vue'
 import StoreFooter from './components/storefront/StoreFooter.vue'
+import CustomerAuthModal from './components/CustomerAuthModal.vue'
+import CheckoutModal from './components/storefront/CheckoutModal.vue'
 </script>
 
 <template>
@@ -20,6 +22,8 @@ import StoreFooter from './components/storefront/StoreFooter.vue'
     <StoreFooter />
 
     <CartDrawer />
+    <CustomerAuthModal />
+    <CheckoutModal />
     <StoreToast />
   </div>
 </template>

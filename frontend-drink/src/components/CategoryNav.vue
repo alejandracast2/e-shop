@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useRouter } from 'vue-router'
 
@@ -8,6 +8,7 @@ import { useStorefrontCatalogStore } from '../stores/storefrontCatalog'
 import { useStorefrontCategoriesStore } from '../stores/storefrontCategories'
 import { useStorefrontFavoritesStore } from '../stores/storefrontFavorites'
 import { useStorefrontUiStore } from '../stores/storefrontUi'
+import { useStorefrontAuthStore } from '../stores/storefrontAuth'
 
 const router = useRouter()
 const categoriesStore = useStorefrontCategoriesStore()
@@ -15,6 +16,7 @@ const catalogStore = useStorefrontCatalogStore()
 const cartStore = useStorefrontCartStore()
 const favoritesStore = useStorefrontFavoritesStore()
 const uiStore = useStorefrontUiStore()
+const authStore = useStorefrontAuthStore()
 
 const { rootCategories, loading, error } = storeToRefs(categoriesStore)
 const { activeCategoryId, searchQuery } = storeToRefs(catalogStore)
@@ -22,6 +24,8 @@ const { cartCount } = storeToRefs(cartStore)
 const { favoriteCount } = storeToRefs(favoritesStore)
 
 const previewCategoryId = ref('')
+const accountMenuOpen = ref(false)
+const accountMenu = ref(null)
 
 const activeRootCategoryId = computed(() =>
   categoriesStore.getRootCategoryId(activeCategoryId.value),
@@ -33,6 +37,11 @@ const currentPreviewCategory = computed(() => {
 
 onMounted(() => {
   void categoriesStore.loadCategories()
+  document.addEventListener('click', closeAccountMenuOnOutsideClick)
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', closeAccountMenuOnOutsideClick)
 })
 
 function hasChildren(category) {
@@ -55,6 +64,32 @@ function selectCategory(categoryId) {
   router.push({ name: 'products' })
   catalogStore.selectCategory(categoryId)
   previewCategoryId.value = ''
+}
+
+function toggleAccountMenu() {
+  if (!authStore.isAuthenticated) {
+    uiStore.openAccountModal()
+    return
+  }
+
+  accountMenuOpen.value = !accountMenuOpen.value
+}
+
+function openAccountDetails() {
+  accountMenuOpen.value = false
+  uiStore.openAccountModal('account')
+}
+
+function signOut() {
+  accountMenuOpen.value = false
+  authStore.clearSession()
+  uiStore.showToast('Has cerrado sesión.')
+}
+
+function closeAccountMenuOnOutsideClick(event) {
+  if (accountMenu.value && !accountMenu.value.contains(event.target)) {
+    accountMenuOpen.value = false
+  }
 }
 </script>
 
@@ -101,12 +136,26 @@ function selectCategory(categoryId) {
           </svg>
           <span class="badge" v-if="favoriteCount">{{ favoriteCount }}</span>
         </router-link>
-        <button class="icon-btn" title="Cuenta">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="8" r="4" />
-            <path d="M4 21a8 8 0 0 1 16 0" />
-          </svg>
-        </button>
+        <div ref="accountMenu" class="account-menu-wrapper" @keydown.esc="accountMenuOpen = false">
+          <button
+            class="icon-btn"
+            :aria-expanded="accountMenuOpen"
+            aria-haspopup="menu"
+            aria-label="Cuenta"
+            type="button"
+            @click="toggleAccountMenu"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="8" r="4" />
+              <path d="M4 21a8 8 0 0 1 16 0" />
+            </svg>
+          </button>
+
+          <div v-if="accountMenuOpen" class="account-menu" role="menu" aria-label="Opciones de cuenta">
+            <button role="menuitem" type="button" @click="openAccountDetails">Mi cuenta</button>
+            <button role="menuitem" type="button" @click="signOut">Salir</button>
+          </div>
+        </div>
         <button class="icon-btn" title="Canasta" @click="uiStore.openCart"
           style="background:var(--wine);color:var(--bone)">
           <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -297,6 +346,48 @@ header.site {
   display: flex;
   align-items: center;
   gap: 8px
+}
+
+.account-menu-wrapper {
+  position: relative;
+}
+
+.account-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 60;
+  width: 190px;
+  overflow: hidden;
+  border-radius: 18px;
+  background: #bef747;
+  box-shadow: 0 16px 30px rgba(18, 16, 15, .2);
+}
+
+.account-menu button {
+  display: block;
+  width: 100%;
+  padding: 20px 38px;
+  border: 0;
+  border-bottom: 1px solid rgba(18, 16, 15, .16);
+  background: transparent;
+  color: #12100f;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: .04em;
+  text-align: left;
+  text-transform: uppercase;
+}
+
+.account-menu button:last-child {
+  border-bottom: 0;
+}
+
+.account-menu button:hover,
+.account-menu button:focus-visible {
+  background: rgba(255, 255, 255, .25);
+  outline: none;
 }
 
 .icon-btn {

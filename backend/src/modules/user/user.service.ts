@@ -96,6 +96,57 @@ export class UserService {
     return this.toResponse(updatedUser);
   }
 
+  async findByEmail(email: string) {
+    return this.userRepository.findOne({ where: { email } });
+  }
+
+  async findByGoogleSubject(googleSubject: string) {
+    return this.userRepository.findOne({ where: { googleSubject } });
+  }
+
+  async findUserById(id: string) {
+    return this.findOneEntity(id);
+  }
+
+  async createCustomerUser(params: {
+    name: string;
+    email: string;
+    password: string;
+    phone?: string;
+    googleSubject?: string;
+  }) {
+    const existing = await this.findByEmail(params.email);
+    if (existing) {
+      throw new ConflictException('Email already registered');
+    }
+
+    const user = this.userRepository.create({
+      name: params.name,
+      email: params.email,
+      phone: params.phone ?? null,
+      passwordHash: await bcrypt.hash(params.password, 10),
+      googleSubject: params.googleSubject ?? null,
+      isActive: true,
+    });
+    return this.userRepository.save(user);
+  }
+
+  async linkGoogleSubject(userId: string, googleSubject: string) {
+    const existing = await this.findByGoogleSubject(googleSubject);
+    if (existing && existing.id !== userId) {
+      throw new ConflictException('Google account already linked to another user');
+    }
+
+    await this.userRepository.update(userId, { googleSubject });
+    return this.findOneEntity(userId);
+  }
+
+  async updateCustomerPassword(userId: string, password: string) {
+    const user = await this.findOneEntity(userId, true);
+    user.passwordHash = await bcrypt.hash(password, 10);
+    return this.userRepository.save(user);
+  }
+
   async remove(id: string) {
     const user = await this.findUserEntity(id);
     await this.userRepository.remove(user);
@@ -137,6 +188,17 @@ export class UserService {
       throw new NotFoundException('User not found');
     }
 
+    return user;
+  }
+
+  private async findOneEntity(id: string, withPassword = false) {
+    const user = await this.userRepository.findOne({
+      where: { id },
+      ...(withPassword ? { select: ['id', 'name', 'email', 'phone', 'googleSubject', 'passwordHash', 'isActive', 'lastLoginAt'] } : {}),
+    });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
     return user;
   }
 

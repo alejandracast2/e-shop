@@ -14,16 +14,24 @@ Backend en NestJS con TypeORM y Postgres. Arquitectura multi-tenant (tenant + st
 - `DB_PASS`: password (default `postgres`)
 - `DB_NAME`: nombre de DB (default `ecommerce`)
 - `PORT`: puerto del API (default `4000`)
-- `CORS_ORIGIN`: origins permitidos separados por coma
+- `CORS_ORIGIN`: origins permitidos separados por coma (en desarrollo se permiten `http://localhost:3000` y `http://localhost:5173` por defecto)
 - `JWT_SECRET`: secreto JWT
 - `JWT_EXPIRES_IN`: expiracion JWT (ej `8h`)
 - `DEFAULT_STORE_SLUG`: slug de store fallback (default `default`)
+- `GOOGLE_CLIENT_ID`: OAuth Web Client ID de Google (opcional; habilita el inicio con Google)
+- `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM`: SMTP para enviar códigos de acceso y recuperación. En desarrollo, sin `SMTP_HOST`, el código se registra solamente en la consola del backend.
 
 ## Ejecutar
 ```bash
 cd backend
 npm install
 npm run start:dev
+```
+
+En producción, antes de desplegar esta versión ejecuta la migración de autenticación:
+
+```bash
+npm run migration:run
 ```
 
 ## Seed
@@ -72,6 +80,19 @@ Usar `Authorization: Bearer <token>` en endpoints admin.
 
 ### Auth
 - `POST /auth/login`
+- `POST /auth/customer/register`
+- `POST /auth/customer/login`
+- `POST /auth/customer/email-code/request`
+- `POST /auth/customer/email-code/verify`
+- `POST /auth/customer/password/reset`
+- `POST /auth/customer/google`
+- `PATCH /auth/customer/profile`
+
+Los endpoints `customer` requieren un contexto explícito de tienda mediante
+`x-store-slug` o `x-store-id`. Al registrarse, el usuario se vincula al tenant y
+store actuales mediante el rol `customer` y un perfil `Customer`. El checkout
+requiere JWT customer, una fecha de nacimiento que confirme mayoría de edad y
+un documento de identidad.
 
 ### Platform
 - `POST /platform/tenants`

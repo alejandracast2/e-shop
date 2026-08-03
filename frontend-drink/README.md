@@ -1,11 +1,14 @@
 # frontend-drink
 
-Store en Vue 3 + Vite para la vertical `drink`. La capa de consumo de `storefront` ya queda implementada en Pinia, pero por ahora no esta conectada a nuevas vistas ni al flujo del template. La idea de este cambio es dejar lista la API client-side y documentada para la siguiente etapa.
+Store en Vue 3 + Vite para la vertical `drink`, conectada al catálogo, carrito y autenticación customer.
 
 ## Estado actual
 
 - Se cubren todos los endpoints publicos reales bajo `/storefront`.
-- La UI nueva no fue conectada; solo se agrego la capa de stores/utilidades.
+- El icono de Cuenta abre el modal de registro, inicio de sesión, acceso por código y recuperación de contraseña.
+- Google Sign-In es opcional y se habilita al definir su client ID.
+- El token customer se envía automáticamente a los endpoints protegidos; checkout exige fecha de nacimiento, cédula y una cuenta mayor de edad.
+- El carrito incluye “Finalizar compra” y abre un checkout de datos personales, entrega y pago.
 - Se incluyo tambien `GET /storefront/cart/:id`, porque existe en backend aunque no estaba listado en el resumen corto de docs.
 
 ## Setup
@@ -19,8 +22,10 @@ npm install
 - `VITE_API_URL`: base URL del backend. Default `http://localhost:4000`.
 - `VITE_STORE_SLUG`: slug de la tienda enviado en `x-store-slug`.
 - `VITE_STORE_ID`: id de tienda opcional enviado en `x-store-id`.
+- `VITE_GOOGLE_CLIENT_ID`: OAuth Web Client ID de Google para mostrar el botón opcional de Google Sign-In.
 
 Si defines `VITE_STORE_SLUG` y `VITE_STORE_ID`, ambos headers viajan en cada request de `storefront`.
+Para crear, iniciar sesión o recuperar una cuenta customer, debes definir por lo menos `VITE_STORE_SLUG` o `VITE_STORE_ID`: el backend no permite usar la tienda fallback para esos flujos.
 
 ## Scripts
 
@@ -38,6 +43,8 @@ npm run test:e2e
 src/
   lib/
     storefrontApi.js
+  components/
+    CustomerAuthModal.vue
   stores/
     index.js
     storefrontCategories.js
@@ -46,6 +53,7 @@ src/
     storefrontCheckout.js
     storefrontOrders.js
     storefrontPayments.js
+    storefrontAuth.js
 ```
 
 ## Utilidad base
@@ -84,6 +92,7 @@ storefrontRequest(path, {
 | `/storefront/orders/:orderNumber` | `GET` | `useStorefrontOrdersStore().loadOrder(orderNumber, { email })` |
 | `/storefront/payments/methods` | `GET` | `useStorefrontPaymentsStore().loadPaymentMethods()` |
 | `/storefront/payments/:intentId/proof` | `POST` | `useStorefrontPaymentsStore().submitPaymentProof(intentId, payload)` |
+| `/auth/customer/*` | `POST` / `PATCH` | `useStorefrontAuthStore()` |
 
 ## Stores disponibles
 

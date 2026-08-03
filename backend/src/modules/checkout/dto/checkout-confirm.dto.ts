@@ -48,9 +48,10 @@ export class CheckoutConfirmDto {
   @IsString()
   cartId: string;
 
+  @IsOptional()
   @ValidateNested()
   @Type(() => CheckoutCustomerDto)
-  customer: CheckoutCustomerDto;
+  customer?: CheckoutCustomerDto;
 
   @ValidateNested()
   @Type(() => CheckoutAddressDto)

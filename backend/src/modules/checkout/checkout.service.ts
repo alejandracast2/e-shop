@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CheckoutSession } from './entities/checkout-session.entity';
@@ -35,15 +35,19 @@ export class CheckoutService {
       throw new BadRequestException('Cart is empty');
     }
 
-    const customer = await this.customersService.findOrCreateCustomer(
-      {
-        fullName: dto.customer.fullName,
-        email: dto.customer.email,
-        phone: dto.customer.phone,
-        documentId: dto.customer.documentId,
-      },
-      context,
-    );
+    const userId = this.requestContext.user?.id;
+    if (!userId) {
+      throw new UnauthorizedException('Customer authentication is required');
+    }
+    const customer = await this.customersService.getCustomerForUser(userId, context);
+    if (!customer) {
+      throw new ForbiddenException('Customer account is not available for this store');
+    }
+    if (!this.customersService.isCustomerOfLegalAge(customer) || !customer.documentId) {
+      throw new ForbiddenException(
+        'You must complete your date of birth and identity document before checkout',
+      );
+    }
 
     await this.customersService.addAddress(customer.id, {
       address1: dto.shippingAddress.address1,

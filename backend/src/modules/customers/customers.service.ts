@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { RequestContextService } from '../tenancy/request-context.service';
@@ -8,6 +8,13 @@ import { CreateCustomerDto } from './dto/create-customer.dto';
 import { UpdateCustomerDto } from './dto/update-customer.dto';
 
 type StoreContext = { tenantId: string; storeId: string };
+
+export type CustomerAccountInput = CreateCustomerDto & {
+  userId: string;
+  birthDate?: string;
+  ageConfirmedAt?: Date;
+  ageConfirmationMethod?: string;
+};
 
 @Injectable()
 export class CustomersService {
@@ -48,6 +55,77 @@ export class CustomersService {
       }
     }
     return this.createCustomer(dto, { tenantId, storeId });
+  }
+
+  async findOrCreateCustomerAccount(input: CustomerAccountInput, context?: StoreContext) {
+    const { tenantId, storeId } = this.resolveContext(context);
+    const existingByUser = await this.customerRepository.findOne({
+      where: { tenantId, storeId, userId: input.userId },
+    });
+    const existingByEmail = await this.customerRepository.findOne({
+      where: { tenantId, storeId, email: input.email },
+    });
+    const customer = existingByUser ?? existingByEmail;
+
+    if (customer && customer.userId && customer.userId !== input.userId) {
+      throw new ConflictException('The customer email is already linked to another account');
+    }
+
+    if (customer) {
+      const merged = this.customerRepository.merge(customer, {
+        userId: input.userId,
+        fullName: input.fullName ?? customer.fullName,
+        email: input.email ?? customer.email,
+        phone: input.phone ?? customer.phone,
+        documentId: input.documentId ?? customer.documentId,
+        birthDate: input.birthDate ?? customer.birthDate,
+        ageConfirmedAt: input.ageConfirmedAt ?? customer.ageConfirmedAt,
+        ageConfirmationMethod:
+          input.ageConfirmationMethod ?? customer.ageConfirmationMethod,
+      });
+      return this.customerRepository.save(merged);
+    }
+
+    return this.customerRepository.save(
+      this.customerRepository.create({
+        tenantId,
+        storeId,
+        userId: input.userId,
+        fullName: input.fullName,
+        email: input.email,
+        phone: input.phone ?? null,
+        documentId: input.documentId ?? null,
+        birthDate: input.birthDate ?? null,
+        ageConfirmedAt: input.ageConfirmedAt ?? null,
+        ageConfirmationMethod: input.ageConfirmationMethod ?? null,
+      }),
+    );
+  }
+
+  async getCustomerForUser(userId: string, context?: StoreContext) {
+    const { tenantId, storeId } = this.resolveContext(context);
+    return this.customerRepository.findOne({
+      where: { tenantId, storeId, userId },
+      relations: { addresses: true },
+    });
+  }
+
+  isCustomerOfLegalAge(customer: Customer) {
+    if (!customer.ageConfirmedAt || !customer.birthDate) {
+      return false;
+    }
+
+    const [year, month, day] = customer.birthDate.split('-').map(Number);
+    if (!year || !month || !day) return false;
+
+    const today = new Date();
+    let age = today.getUTCFullYear() - year;
+    const monthDifference = today.getUTCMonth() + 1 - month;
+    const dayDifference = today.getUTCDate() - day;
+    if (monthDifference < 0 || (monthDifference === 0 && dayDifference < 0)) {
+      age -= 1;
+    }
+    return age >= 18;
   }
 
   async addAddress(

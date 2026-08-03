@@ -10,6 +10,9 @@ export class User extends BaseEntity {
   @Column({ length: 160, unique: true })
   email: string;
 
+  @Column({ type: 'varchar', length: 255, nullable: true, unique: true })
+  googleSubject?: string | null;
+
   @Column({ type: 'varchar', length: 40, nullable: true })
   phone?: string | null;
 

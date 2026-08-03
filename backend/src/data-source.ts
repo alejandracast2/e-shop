@@ -9,5 +9,6 @@ export const AppDataSource = new DataSource({
   password: process.env.DB_PASS ?? 'postgres',
   database: process.env.DB_NAME ?? 'ecommerce',
   entities: [__dirname + '/**/*.entity{.ts,.js}'],
+  migrations: [__dirname + '/migrations/*{.ts,.js}'],
   synchronize: process.env.NODE_ENV !== 'production',
 });

@@ -9,6 +9,7 @@ declare module 'express-serve-static-core' {
     context?: {
       tenantId?: string;
       storeId?: string;
+      isExplicitStoreContext?: boolean;
       user?: { id: string; email: string; roles?: Array<{ role: string; tenantId?: string; storeId?: string }> };
     };
   }
@@ -32,13 +33,17 @@ export class TenancyMiddleware implements NestMiddleware {
     const defaultSlug = process.env.DEFAULT_STORE_SLUG ?? 'default';
 
     let store: Store | null = null;
+    let isExplicitStoreContext = false;
 
     if (storeIdHeader) {
       store = await this.storeRepository.findOne({ where: { id: storeIdHeader } });
+      isExplicitStoreContext = Boolean(store);
     } else if (storeSlugHeader) {
       store = await this.storeRepository.findOne({ where: { slug: storeSlugHeader } });
+      isExplicitStoreContext = Boolean(store);
     } else if (hostSlug && !['localhost', 'www'].includes(hostSlug)) {
       store = await this.storeRepository.findOne({ where: { slug: hostSlug } });
+      isExplicitStoreContext = Boolean(store);
     }
 
     if (!store && !tenantIdHeader) {
@@ -48,9 +53,11 @@ export class TenancyMiddleware implements NestMiddleware {
     if (store) {
       req.context.tenantId = store.tenantId;
       req.context.storeId = store.id;
+      req.context.isExplicitStoreContext = isExplicitStoreContext;
     } else if (tenantIdHeader) {
       req.context.tenantId = tenantIdHeader;
       req.context.storeId = undefined;
+      req.context.isExplicitStoreContext = false;
     }
 
     next();

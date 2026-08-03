@@ -3,6 +3,9 @@ import { defineStore } from 'pinia'
 
 export const useStorefrontUiStore = defineStore('storefrontUi', () => {
   const cartOpen = ref(false)
+  const accountModalOpen = ref(false)
+  const accountModalMode = ref('')
+  const checkoutModalOpen = ref(false)
   const toast = reactive({
     visible: false,
     message: '',
@@ -16,6 +19,24 @@ export const useStorefrontUiStore = defineStore('storefrontUi', () => {
 
   function closeCart() {
     cartOpen.value = false
+  }
+
+  function openAccountModal(mode = '') {
+    accountModalMode.value = mode
+    accountModalOpen.value = true
+  }
+
+  function closeAccountModal() {
+    accountModalOpen.value = false
+    accountModalMode.value = ''
+  }
+
+  function openCheckoutModal() {
+    checkoutModalOpen.value = true
+  }
+
+  function closeCheckoutModal() {
+    checkoutModalOpen.value = false
   }
 
   function showToast(message) {
@@ -32,9 +53,16 @@ export const useStorefrontUiStore = defineStore('storefrontUi', () => {
 
   return {
     cartOpen,
+    accountModalOpen,
+    accountModalMode,
+    checkoutModalOpen,
     toast,
     openCart,
     closeCart,
+    openAccountModal,
+    closeAccountModal,
+    openCheckoutModal,
+    closeCheckoutModal,
     showToast,
   }
 })

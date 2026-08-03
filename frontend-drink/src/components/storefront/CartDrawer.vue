@@ -4,9 +4,11 @@ import { storeToRefs } from 'pinia'
 
 import { useStorefrontCartStore } from '../../stores/storefrontCart'
 import { useStorefrontUiStore } from '../../stores/storefrontUi'
+import { useStorefrontAuthStore } from '../../stores/storefrontAuth'
 
 const cartStore = useStorefrontCartStore()
 const uiStore = useStorefrontUiStore()
+const authStore = useStorefrontAuthStore()
 
 const { cartItems, cartCount, subtotal, shipping, total, loading, error } = storeToRefs(cartStore)
 const { cartOpen } = storeToRefs(uiStore)
@@ -46,6 +48,18 @@ async function removeItem(item) {
   if (!error.value) {
     uiStore.showToast(`${item.title} fue retirado de tu carrito.`)
   }
+}
+
+function beginCheckout() {
+  if (!authStore.isAuthenticated) {
+    uiStore.closeCart()
+    uiStore.openAccountModal()
+    uiStore.showToast('Inicia sesión para finalizar tu compra.')
+    return
+  }
+
+  uiStore.closeCart()
+  uiStore.openCheckoutModal()
 }
 </script>
 
@@ -143,6 +157,9 @@ async function removeItem(item) {
         <p class="checkout-note">
           Revisa productos y cantidades antes de continuar con la confirmacion del pedido.
         </p>
+        <button class="checkout-action" type="button" @click="beginCheckout">
+          Finalizar compra
+        </button>
       </footer>
     </aside>
   </div>
@@ -527,6 +544,19 @@ async function removeItem(item) {
   color: var(--ink-3);
   font-size: 12px;
   line-height: 1.6;
+}
+
+.checkout-action {
+  min-height: 48px;
+  border: 0;
+  border-radius: 999px;
+  background: #bef747;
+  color: var(--ink);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: .06em;
+  text-transform: uppercase;
 }
 
 .drawer-overlay:focus-visible,

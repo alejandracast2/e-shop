@@ -28,6 +28,7 @@ import { CustomersModule } from './modules/customers/customers.module';
         password: configService.get<string>('DB_PASS', 'postgres'),
         database: configService.get<string>('DB_NAME', 'ecommerce'),
         autoLoadEntities: true,
+        migrations: [__dirname + '/migrations/*{.ts,.js}'],
         synchronize: configService.get<string>('NODE_ENV') !== 'production',
       }),
     }),

@@ -4,6 +4,7 @@ import { REQUEST } from '@nestjs/core';
 export type RequestContextData = {
   tenantId?: string;
   storeId?: string;
+  isExplicitStoreContext?: boolean;
   user?: { id: string; email: string; roles?: Array<{ role: string; tenantId?: string; storeId?: string }> };
 };
 
@@ -17,6 +18,10 @@ export class RequestContextService {
 
   get storeId() {
     return this.request.context?.storeId;
+  }
+
+  get isExplicitStoreContext() {
+    return this.request.context?.isExplicitStoreContext ?? false;
   }
 
   get user() {
