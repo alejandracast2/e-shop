@@ -202,7 +202,7 @@ function beginCheckout() {
   background: var(--bone);
   border-left: 1px solid var(--line);
   box-shadow: -18px 0 48px rgba(18, 16, 15, 0.18);
-  color: var(--ink);
+  color: var(--text-primary);
   transform: translateX(100%);
   transition: transform 0.22s ease;
 }
@@ -227,7 +227,7 @@ function beginCheckout() {
 
 .drawer-kicker {
   margin: 0;
-  color: var(--wine);
+  color: var(--text-brand);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0;
@@ -236,15 +236,15 @@ function beginCheckout() {
 
 .drawer-header h2 {
   margin: 0;
-  color: var(--ink);
-  font-family: 'Playfair Display', Georgia, serif;
+  color: var(--text-primary);
+  font-family: var(--font-display);
   font-size: 30px;
   font-weight: 600;
   letter-spacing: 0;
 }
 
 .drawer-count {
-  color: var(--ink-3);
+  color: var(--text-secondary);
   font-size: 13px;
   font-weight: 600;
 }
@@ -258,7 +258,7 @@ function beginCheckout() {
   border-radius: 50%;
   border: 1px solid var(--line);
   background: var(--white);
-  color: var(--ink);
+  color: var(--text-primary);
   transition: background 0.15s ease, border-color 0.15s ease;
 }
 
@@ -275,10 +275,10 @@ function beginCheckout() {
 .drawer-error {
   margin: 14px 24px 0;
   padding: 11px 12px;
-  border: 1px solid rgba(21, 61, 107, 0.24);
+  border: 1px solid rgba(179, 38, 30, 0.24);
   border-radius: 8px;
-  background: rgba(161, 177, 255, 0.16);
-  color: var(--wine-3);
+  background: rgba(243, 230, 232, 0.72);
+  color: var(--text-brand-dark);
   font-size: 13px;
   line-height: 1.4;
 }
@@ -292,7 +292,7 @@ function beginCheckout() {
   text-align: center;
   gap: 12px;
   padding: 28px 24px;
-  color: var(--ink-3);
+  color: var(--text-secondary);
 }
 
 .empty-mark {
@@ -302,15 +302,15 @@ function beginCheckout() {
   place-items: center;
   border-radius: 50%;
   background: var(--wine);
-  color: var(--bone);
-  font-family: 'Playfair Display', Georgia, serif;
+  color: var(--text-on-dark);
+  font-family: var(--font-display);
   font-size: 24px;
   font-weight: 700;
 }
 
 .drawer-empty h3 {
   margin: 0;
-  color: var(--ink);
+  color: var(--text-primary);
   font-size: 20px;
 }
 
@@ -325,7 +325,7 @@ function beginCheckout() {
   padding: 10px 16px;
   border-radius: 999px;
   background: var(--ink);
-  color: var(--bone);
+  color: var(--text-on-dark);
   font-size: 13px;
   font-weight: 700;
 }
@@ -362,8 +362,8 @@ function beginCheckout() {
   border-radius: 8px;
   overflow: hidden;
   background: var(--bone-4);
-  color: var(--wine);
-  font-family: 'Playfair Display', Georgia, serif;
+  color: var(--text-brand);
+  font-family: var(--font-display);
   font-size: 17px;
   font-weight: 700;
 }
@@ -389,7 +389,7 @@ function beginCheckout() {
 }
 
 .item-copy strong {
-  color: var(--ink);
+  color: var(--text-primary);
   font-size: 14px;
   line-height: 1.4;
   overflow-wrap: anywhere;
@@ -401,13 +401,13 @@ function beginCheckout() {
   display: grid;
   place-items: center;
   border-radius: 50%;
-  color: var(--ink-4);
+  color: var(--text-secondary);
   transition: background 0.15s ease, color 0.15s ease;
 }
 
 .remove-button:hover {
   background: var(--bone-4);
-  color: var(--wine);
+  color: var(--text-brand);
 }
 
 .remove-button:disabled {
@@ -428,12 +428,12 @@ function beginCheckout() {
 }
 
 .item-price span {
-  color: var(--ink-3);
+  color: var(--text-secondary);
   font-size: 13px;
 }
 
 .item-price .item-price-old {
-  color: var(--ink-4);
+  color: var(--text-secondary);
   text-decoration: line-through;
 }
 
@@ -466,7 +466,7 @@ function beginCheckout() {
 .item-actions button {
   border: 0;
   background: var(--bone-4);
-  color: var(--ink-3);
+  color: var(--text-secondary);
   font-size: 14px;
   font-weight: 700;
   transition: background 0.15s ease, color 0.15s ease;
@@ -474,29 +474,29 @@ function beginCheckout() {
 
 .item-actions button:last-of-type {
   background: var(--ink);
-  color: var(--bone);
+  color: var(--text-on-dark);
 }
 
 .item-actions button:hover {
   background: var(--wine);
-  color: var(--bone);
+  color: var(--text-on-dark);
 }
 
 .item-actions button:disabled {
   background: var(--bone-4);
-  color: var(--ink-4);
+  color: var(--text-secondary);
   cursor: not-allowed;
   opacity: 0.5;
 }
 
 .item-actions span {
   background: transparent;
-  color: var(--ink);
+  color: var(--text-primary);
   font-weight: 700;
 }
 
 .item-total {
-  color: var(--ink);
+  color: var(--text-primary);
   font-size: 14px;
   white-space: nowrap;
 }
@@ -513,24 +513,24 @@ function beginCheckout() {
   display: flex;
   justify-content: space-between;
   gap: 16px;
-  color: var(--ink-3);
+  color: var(--text-secondary);
   font-size: 14px;
 }
 
 .summary-row strong {
-  color: var(--ink);
+  color: var(--text-primary);
 }
 
 .summary-row.total {
   margin-top: 2px;
   padding-top: 12px;
   border-top: 1px solid var(--line-2);
-  color: var(--ink);
+  color: var(--text-primary);
   font-size: 18px;
 }
 
 .summary-row.total strong {
-  font-family: 'Playfair Display', Georgia, serif;
+  font-family: var(--font-display);
   font-size: 24px;
   font-weight: 700;
   letter-spacing: 0;
@@ -541,7 +541,7 @@ function beginCheckout() {
   padding: 10px 12px;
   border-radius: 8px;
   background: var(--bone-4);
-  color: var(--ink-3);
+  color: var(--text-secondary);
   font-size: 12px;
   line-height: 1.6;
 }
@@ -550,8 +550,8 @@ function beginCheckout() {
   min-height: 48px;
   border: 0;
   border-radius: 999px;
-  background: #bef747;
-  color: var(--ink);
+  background: var(--wine);
+  color: var(--text-on-dark);
   font: inherit;
   font-size: 13px;
   font-weight: 800;

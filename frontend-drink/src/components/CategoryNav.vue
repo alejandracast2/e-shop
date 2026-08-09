@@ -26,6 +26,10 @@ const { favoriteCount } = storeToRefs(favoritesStore)
 const previewCategoryId = ref('')
 const accountMenuOpen = ref(false)
 const accountMenu = ref(null)
+const accountName = computed(
+  () => authStore.user?.name || authStore.customer?.fullName || authStore.customer?.name || 'Cliente',
+)
+const accountEmail = computed(() => authStore.user?.email || authStore.customer?.email || '')
 
 const activeRootCategoryId = computed(() =>
   categoriesStore.getRootCategoryId(activeCategoryId.value),
@@ -77,7 +81,22 @@ function toggleAccountMenu() {
 
 function openAccountDetails() {
   accountMenuOpen.value = false
-  uiStore.openAccountModal('account')
+  router.push({ name: 'account' })
+}
+
+function openFavorites() {
+  accountMenuOpen.value = false
+  router.push({ name: 'favorites' })
+}
+
+function openCart() {
+  accountMenuOpen.value = false
+  uiStore.openCart()
+}
+
+function showUnavailableAccountOption() {
+  accountMenuOpen.value = false
+  uiStore.showToast('Esta sección estará disponible próximamente.')
 }
 
 function signOut() {
@@ -101,7 +120,7 @@ function closeAccountMenuOnOutsideClick(event) {
       }" class="brand">
         <span class="brand-mark">LC</span>
         <span class="brand-text">
-          <div class="name" style="font-family: Raleway; font-weight: 600">La <em>Cantina</em></div>
+          <div class="name">La <em>Cantina</em></div>
           <div class="sub">Vinos · Licores · Añejos</div>
         </span>
       </router-link>
@@ -138,7 +157,8 @@ function closeAccountMenuOnOutsideClick(event) {
         </router-link>
         <div ref="accountMenu" class="account-menu-wrapper" @keydown.esc="accountMenuOpen = false">
           <button
-            class="icon-btn"
+            class="icon-btn account-trigger"
+            :class="{ 'account-trigger--active': accountMenuOpen }"
             :aria-expanded="accountMenuOpen"
             aria-haspopup="menu"
             aria-label="Cuenta"
@@ -152,12 +172,85 @@ function closeAccountMenuOnOutsideClick(event) {
           </button>
 
           <div v-if="accountMenuOpen" class="account-menu" role="menu" aria-label="Opciones de cuenta">
-            <button role="menuitem" type="button" @click="openAccountDetails">Mi cuenta</button>
-            <button role="menuitem" type="button" @click="signOut">Salir</button>
+            <button class="account-menu__profile" role="menuitem" type="button" @click="openAccountDetails">
+              <span class="account-menu__avatar" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+                  <circle cx="12" cy="8" r="3.5" />
+                  <path d="M5 21a7 7 0 0 1 14 0" />
+                </svg>
+              </span>
+              <span class="account-menu__identity">
+                <strong>{{ accountName }}</strong>
+                <small v-if="accountEmail">{{ accountEmail }}</small>
+              </span>
+            </button>
+
+            <div class="account-menu__divider" aria-hidden="true"></div>
+
+            <div class="account-menu__section">
+              <button class="account-menu__item" role="menuitem" type="button" @click="openAccountDetails">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                  <circle cx="12" cy="8" r="3.5" />
+                  <path d="M5 21a7 7 0 0 1 14 0" />
+                </svg>
+                <span>Mi perfil</span>
+                <svg class="account-menu__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg>
+              </button>
+              <button class="account-menu__item" role="menuitem" type="button" @click="showUnavailableAccountOption">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                  <path d="m4 7 8-4 8 4-8 4-8-4Z" />
+                  <path d="M4 7v10l8 4 8-4V7M12 11v10" />
+                </svg>
+                <span>Mis pedidos</span>
+                <svg class="account-menu__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg>
+              </button>
+              <button class="account-menu__item" role="menuitem" type="button" @click="openFavorites">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78Z" /></svg>
+                <span>Favoritos</span>
+                <span v-if="favoriteCount" class="account-menu__count">{{ favoriteCount }}</span>
+              </button>
+              <button class="account-menu__item" role="menuitem" type="button" @click="openCart">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 4h2l2.2 11.1a2 2 0 0 0 2 1.6h7.9a2 2 0 0 0 2-1.6L21 8H6" /><circle cx="10" cy="20" r="1" /><circle cx="18" cy="20" r="1" /></svg>
+                <span>Mi carrito</span>
+                <span v-if="cartCount" class="account-menu__count">{{ cartCount }}</span>
+              </button>
+              <button class="account-menu__item" role="menuitem" type="button" @click="showUnavailableAccountOption">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z" /><circle cx="12" cy="10" r="2.5" /></svg>
+                <span>Mis direcciones</span>
+                <svg class="account-menu__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg>
+              </button>
+              <button class="account-menu__item" role="menuitem" type="button" @click="showUnavailableAccountOption">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2" /><path d="M3 10h18M7 15h3" /></svg>
+                <span>Métodos de pago</span>
+                <svg class="account-menu__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg>
+              </button>
+            </div>
+
+            <div class="account-menu__divider" aria-hidden="true"></div>
+
+            <div class="account-menu__section">
+              <button class="account-menu__item" role="menuitem" type="button" @click="showUnavailableAccountOption">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.12 2.12-.06-.06a1.7 1.7 0 0 0-1.88-.34 1.7 1.7 0 0 0-1.04 1.56V20.3h-3v-.08a1.7 1.7 0 0 0-1.04-1.56 1.7 1.7 0 0 0-1.88.34l-.06.06-2.12-2.12.06-.06A1.7 1.7 0 0 0 7 15a1.7 1.7 0 0 0-1.56-1.04h-.08v-3h.08A1.7 1.7 0 0 0 7 9.92a1.7 1.7 0 0 0-.34-1.88l-.06-.06 2.12-2.12.06.06a1.7 1.7 0 0 0 1.88.34A1.7 1.7 0 0 0 11.7 4.7v-.08h3v.08a1.7 1.7 0 0 0 1.04 1.56 1.7 1.7 0 0 0 1.88-.34l.06-.06 2.12 2.12-.06.06a1.7 1.7 0 0 0-.34 1.88 1.7 1.7 0 0 0 1.56 1.04h.08v3h-.08A1.7 1.7 0 0 0 19.4 15Z" /></svg>
+                <span>Configuración</span>
+                <svg class="account-menu__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg>
+              </button>
+              <button class="account-menu__item" role="menuitem" type="button" @click="showUnavailableAccountOption">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M9.5 9a2.5 2.5 0 1 1 4.2 1.82c-.96.87-1.7 1.38-1.7 2.68" /><path d="M12 17h.01" /></svg>
+                <span>Ayuda y soporte</span>
+                <svg class="account-menu__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m9 18 6-6-6-6" /></svg>
+              </button>
+            </div>
+
+            <div class="account-menu__divider" aria-hidden="true"></div>
+
+            <button class="account-menu__item account-menu__item--sign-out" role="menuitem" type="button" @click="signOut">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M10 17l5-5-5-5" /><path d="M15 12H3" /><path d="M21 19V5a2 2 0 0 0-2-2h-7" /></svg>
+              <span>Cerrar sesión</span>
+            </button>
           </div>
         </div>
         <button class="icon-btn" title="Canasta" @click="uiStore.openCart"
-          style="background:var(--wine);color:var(--bone)">
+          style="background:var(--wine);color:var(--text-on-dark)">
           <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path fill-rule="evenodd" clip-rule="evenodd"
               d="M2 1C1.44772 1 1 1.44772 1 2C1 2.55228 1.44772 3 2 3H3.21922L6.78345 17.2569C5.73276 17.7236 5 18.7762 5 20C5 21.6569 6.34315 23 8 23C9.65685 23 11 21.6569 11 20C11 19.6494 10.9398 19.3128 10.8293 19H15.1707C15.0602 19.3128 15 19.6494 15 20C15 21.6569 16.3431 23 18 23C19.6569 23 21 21.6569 21 20C21 18.3431 19.6569 17 18 17H8.78078L8.28078 15H18C20.0642 15 21.3019 13.6959 21.9887 12.2559C22.6599 10.8487 22.8935 9.16692 22.975 7.94368C23.0884 6.24014 21.6803 5 20.1211 5H5.78078L5.15951 2.51493C4.93692 1.62459 4.13696 1 3.21922 1H2ZM18 13H7.78078L6.28078 7H20.1211C20.6742 7 21.0063 7.40675 20.9794 7.81078C20.9034 8.9522 20.6906 10.3318 20.1836 11.3949C19.6922 12.4251 19.0201 13 18 13ZM18 20.9938C17.4511 20.9938 17.0062 20.5489 17.0062 20C17.0062 19.4511 17.4511 19.0062 18 19.0062C18.5489 19.0062 18.9938 19.4511 18.9938 20C18.9938 20.5489 18.5489 20.9938 18 20.9938ZM7.00617 20C7.00617 20.5489 7.45112 20.9938 8 20.9938C8.54888 20.9938 8.99383 20.5489 8.99383 20C8.99383 19.4511 8.54888 19.0062 8 19.0062C7.45112 19.0062 7.00617 19.4511 7.00617 20Z"
@@ -223,7 +316,7 @@ function closeAccountMenuOnOutsideClick(event) {
 
 .submenu-link {
   text-decoration: none;
-  color: var(--white);
+  color: var(--text-on-dark);
   font-size: 12px;
   letter-spacing: 1.2px;
   text-transform: uppercase;
@@ -231,7 +324,7 @@ function closeAccountMenuOnOutsideClick(event) {
 }
 
 .submenu-link:hover {
-  color: var(--soft);
+  color: var(--text-accent);
 }
 
 .submenu-meta {
@@ -242,7 +335,7 @@ function closeAccountMenuOnOutsideClick(event) {
 
 /* ---------- Header ---------- */
 .wrap {
-  max-width: 1280px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 0 28px
 }
@@ -257,7 +350,7 @@ header.site {
 
 .hrow {
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: 36px;
   padding: 22px 0 18px;
@@ -276,8 +369,8 @@ header.site {
   background: var(--wine);
   display: grid;
   place-items: center;
-  color: var(--bone);
-  font-family: 'Playfair Display', serif;
+  color: var(--text-on-dark);
+  font-family: var(--font-display);
   font-style: italic;
   font-weight: 700;
   font-size: 24px;
@@ -289,14 +382,14 @@ header.site {
 }
 
 .brand-text .name {
-  font-family: 'Playfair Display', serif;
+  font-family: var(--font-display);
   font-size: 26px;
   font-weight: 700;
   letter-spacing: -.01em;
 }
 
 .brand-text .name em {
-  color: var(--wine);
+  color: var(--text-brand);
   font-style: italic;
   font-weight: 500
 }
@@ -305,12 +398,13 @@ header.site {
   font-size: 10px;
   letter-spacing: .42em;
   text-transform: uppercase;
-  color: var(--ink-3);
+  color: var(--text-secondary);
   margin-top: 4px;
 }
 
 .search {
   position: relative;
+  min-width: 0;
   max-width: 520px;
   width: 100%;
   justify-self: center;
@@ -339,7 +433,7 @@ header.site {
   transform: translateY(-50%);
   width: 16px;
   height: 16px;
-  color: var(--ink-3);
+  color: var(--text-secondary);
 }
 
 .htools {
@@ -354,40 +448,168 @@ header.site {
 
 .account-menu {
   position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
+  top: calc(100% + 14px);
+  right: -24px;
   z-index: 60;
-  width: 190px;
-  overflow: hidden;
-  border-radius: 18px;
-  background: #bef747;
-  box-shadow: 0 16px 30px rgba(18, 16, 15, .2);
+  width: min(272px, calc(100vw - 32px));
+  padding: 8px 0;
+  border: 1px solid rgba(18, 16, 15, .08);
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 14px 30px rgba(18, 16, 15, .16);
+  color: var(--text-primary);
 }
 
-.account-menu button {
-  display: block;
+.account-menu::before {
+  position: absolute;
+  top: -7px;
+  right: 37px;
+  width: 13px;
+  height: 13px;
+  border-top: 1px solid rgba(18, 16, 15, .08);
+  border-left: 1px solid rgba(18, 16, 15, .08);
+  background: #fff;
+  content: '';
+  transform: rotate(45deg);
+}
+
+.account-menu__profile,
+.account-menu__item {
   width: 100%;
-  padding: 20px 38px;
   border: 0;
-  border-bottom: 1px solid rgba(18, 16, 15, .16);
   background: transparent;
-  color: #12100f;
+  color: inherit;
   font: inherit;
-  font-size: 13px;
-  font-weight: 800;
-  letter-spacing: .04em;
   text-align: left;
-  text-transform: uppercase;
+  cursor: pointer;
+  transition: background .15s ease, color .15s ease;
 }
 
-.account-menu button:last-child {
-  border-bottom: 0;
+.account-menu__profile {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 10px 20px 15px;
 }
 
-.account-menu button:hover,
-.account-menu button:focus-visible {
-  background: rgba(255, 255, 255, .25);
-  outline: none;
+.account-menu__avatar {
+  flex: 0 0 54px;
+  width: 54px;
+  height: 54px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--bone-2);
+  color: var(--text-primary);
+}
+
+.account-menu__avatar svg {
+  width: 28px;
+  height: 28px;
+}
+
+.account-menu__identity {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.account-menu__identity strong {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.account-menu__identity small {
+  overflow: hidden;
+  color: var(--text-secondary);
+  font-size: 11px;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account-menu__divider {
+  height: 1px;
+  margin: 0 18px;
+  background: rgba(18, 16, 15, .12);
+}
+
+.account-menu__section {
+  padding: 7px 12px;
+}
+
+.account-menu__item {
+  min-height: 36px;
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 8px;
+  border-radius: 7px;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.account-menu__item > svg:first-child {
+  width: 18px;
+  height: 18px;
+}
+
+.account-menu__chevron {
+  width: 16px;
+  height: 16px;
+  color: var(--text-secondary);
+}
+
+.account-menu__count {
+  min-width: 19px;
+  height: 19px;
+  padding: 0 5px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--wine);
+  color: var(--text-on-dark);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.account-menu__item--sign-out {
+  margin: 7px 12px 0;
+  width: calc(100% - 24px);
+  color: var(--wine);
+}
+
+.account-menu__profile:hover,
+.account-menu__item:hover {
+  background: var(--bone-2);
+}
+
+.account-menu__profile:focus-visible,
+.account-menu__item:focus-visible {
+  outline: 2px solid var(--wine);
+  outline-offset: -2px;
+}
+
+.account-trigger--active {
+  background: #fff;
+  box-shadow: 0 0 0 1px var(--wine);
+}
+
+.account-trigger--active:hover {
+  background: #fff;
+}
+
+@media (max-width: 640px) {
+  .account-menu {
+    right: -12px;
+  }
+
+  .account-menu::before {
+    right: 25px;
+  }
 }
 
 .icon-btn {
@@ -396,7 +618,7 @@ header.site {
   border-radius: 50%;
   display: grid;
   place-items: center;
-  color: var(--ink);
+  color: var(--text-primary);
   position: relative;
   transition: .15s background;
 }
@@ -418,7 +640,7 @@ header.site {
   height: 18px;
   padding: 0 5px;
   background: var(--wine);
-  color: var(--bone);
+  color: var(--text-on-dark);
   border-radius: 999px;
   font-size: 10px;
   font-weight: 600;
@@ -438,7 +660,7 @@ header.site {
 }
 
 .locator .lbl {
-  color: var(--ink-3);
+  color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: .12em;
   font-size: 10px
@@ -447,7 +669,7 @@ header.site {
 .locator b {
   font-weight: 600;
   border-bottom: 1px dashed var(--wine);
-  color: var(--wine)
+  color: var(--text-brand)
 }
 
 
@@ -483,9 +705,9 @@ header.site {
   display: grid;
   place-items: center;
   border-radius: 50%;
-  background: linear-gradient(160deg, #5d101b, #7e2030);
-  color: #faf7f2;
-  font-family: 'Georgia', serif;
+  background: linear-gradient(160deg, var(--wine-3), var(--wine-2));
+  color: var(--text-on-dark);
+  font-family: var(--font-display);
   font-size: 16px;
   letter-spacing: 0.12em;
   box-shadow:
@@ -499,9 +721,9 @@ header.site {
 }
 
 .brand-title {
-  color: #12100f;
+  color: var(--text-primary);
   text-decoration: none;
-  font-family: 'Georgia', serif;
+  font-family: var(--font-display);
   font-size: 28px;
   font-weight: 700;
   letter-spacing: -0.03em;
@@ -509,7 +731,7 @@ header.site {
 
 .brand-subtitle {
   margin: 0;
-  color: #5a514c;
+  color: var(--text-secondary);
   font-size: 11px;
   letter-spacing: 0.18em;
   text-transform: uppercase;
@@ -526,14 +748,14 @@ header.site {
   left: 16px;
   width: 17px;
   height: 17px;
-  color: #7d736d;
+  color: var(--text-secondary);
 }
 
 .search-bar input {
   width: 100%;
   border: 1px solid rgba(18, 16, 15, 0.1);
   background: rgba(241, 236, 226, 0.95);
-  color: #12100f;
+  color: var(--text-primary);
   border-radius: 999px;
   padding: 14px 18px 14px 44px;
   font-size: 14px;
@@ -542,7 +764,7 @@ header.site {
 }
 
 .search-bar input:focus {
-  border-color: rgba(107, 21, 32, 0.6);
+  border-color: rgba(179, 38, 30, 0.6);
   background: #ffffff;
 }
 
@@ -562,14 +784,14 @@ header.site {
 }
 
 .status-label {
-  color: #7d736d;
+  color: var(--text-secondary);
   font-size: 10px;
   letter-spacing: 0.16em;
   text-transform: uppercase;
 }
 
 .status-pill strong {
-  color: #6b1520;
+  color: var(--text-brand);
   font-size: 12px;
 }
 
@@ -582,7 +804,7 @@ header.site {
   border: 0;
   border-radius: 999px;
   background: #12100f;
-  color: #faf7f2;
+  color: var(--text-on-dark);
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.14em;
@@ -601,15 +823,15 @@ header.site {
   display: grid;
   place-items: center;
   border-radius: 999px;
-  background: #8f2230;
-  color: #faf7f2;
+  background: var(--wine-2);
+  color: var(--text-on-dark);
   font-size: 11px;
   letter-spacing: 0;
 }
 
 .category-nav {
   background: #12100f;
-  color: #faf7f2;
+  color: var(--text-on-dark);
   border-bottom: 1px solid rgba(250, 247, 242, 0.08);
 }
 
@@ -632,7 +854,7 @@ header.site {
   white-space: nowrap;
   border: 0;
   background: transparent;
-  color: rgba(250, 247, 242, 0.7);
+  color: rgba(246, 240, 230, .72);
   font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.18em;
@@ -682,7 +904,7 @@ header.site {
 
 .submenu-kicker {
   margin: 0;
-  color: var(--soft);
+  color: var(--text-accent);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.2em;
@@ -691,7 +913,7 @@ header.site {
 
 .submenu-copy h2 {
   margin: 0;
-  font-family: 'Georgia', serif;
+  font-family: var(--font-display);
   font-size: 32px;
   font-weight: 700;
   letter-spacing: -0.03em;
@@ -699,7 +921,7 @@ header.site {
 
 .submenu-copy p {
   margin: 0;
-  color: rgba(250, 247, 242, 0.72);
+  color: rgba(246, 240, 230, .72);
   line-height: 1.6;
 }
 

@@ -50,14 +50,14 @@ function formatCurrency(value) {
   padding: 32px;
   border-radius: 28px;
   background:
-    radial-gradient(circle at top right, rgba(143, 34, 48, 0.16), transparent 30%),
+    radial-gradient(circle at top right, rgba(179, 38, 30, 0.16), transparent 30%),
     linear-gradient(160deg, #161210, #090707 72%);
-  color: #faf7f2;
+  color: var(--text-on-dark);
 }
 
 .eyebrow {
   margin: 0 0 12px;
-  color: #ebb7c0;
+  color: var(--text-accent);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.24em;
@@ -67,7 +67,7 @@ function formatCurrency(value) {
 .feature-copy h2,
 .feature-card h3 {
   margin: 0;
-  font-family: 'Georgia', serif;
+  font-family: var(--font-display);
   letter-spacing: -0.05em;
 }
 
@@ -78,7 +78,7 @@ function formatCurrency(value) {
 .feature-copy p:last-child {
   margin: 18px 0 0;
   max-width: 58ch;
-  color: rgba(250, 247, 242, 0.75);
+  color: rgba(246, 240, 230, .75);
   line-height: 1.75;
 }
 
@@ -94,7 +94,7 @@ function formatCurrency(value) {
 
 .feature-label {
   margin: 0;
-  color: rgba(250, 247, 242, 0.62);
+  color: rgba(246, 240, 230, .62);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.2em;
@@ -115,15 +115,15 @@ function formatCurrency(value) {
 }
 
 .feature-meta span {
-  color: rgba(250, 247, 242, 0.72);
+  color: rgba(246, 240, 230, .72);
   text-transform: uppercase;
   font-size: 11px;
   letter-spacing: 0.18em;
 }
 
 .feature-meta strong {
-  color: #f0d2d7;
-  font-family: 'Georgia', serif;
+  color: var(--text-accent);
+  font-family: var(--font-display);
   font-size: 28px;
 }
 

@@ -34,7 +34,7 @@ function confirmAge() {
   position: fixed;
   inset: 0;
   background: var(--ink);
-  color: var(--bone);
+  color: var(--text-on-dark);
   z-index: 300;
   display: grid;
   place-items: center;
@@ -59,17 +59,17 @@ function confirmAge() {
   border-radius: 50%;
   margin: 0 auto 24px;
   background: var(--wine);
-  color: var(--bone);
+  color: var(--text-on-dark);
   display: grid;
   place-items: center;
-  font-family: 'Playfair Display', serif;
+  font-family: var(--font-display);
   font-style: italic;
   font-weight: 700;
   font-size: 34px;
 }
 
 .age-gate h2 {
-  font-family: 'Playfair Display', serif;
+  font-family: var(--font-display);
   font-size: 38px;
   margin: 0 0 14px;
   font-weight: 700;
@@ -77,7 +77,7 @@ function confirmAge() {
 }
 
 .age-gate p {
-  color: rgba(250, 247, 242, .7);
+  color: rgba(246, 240, 230, .72);
   font-size: 14px;
   line-height: 1.6;
   margin: 0 0 28px
@@ -91,7 +91,7 @@ function confirmAge() {
 
 .age-gate .b-yes {
   background: var(--bone);
-  color: var(--ink);
+  color: var(--text-primary);
   padding: 14px 30px;
   border-radius: 999px;
   font-size: 12px;
@@ -107,11 +107,11 @@ function confirmAge() {
   font-size: 12px;
   letter-spacing: .18em;
   text-transform: uppercase;
-  color: rgba(250, 247, 242, .7)
+  color: rgba(246, 240, 230, .72)
 }
 
 .age-gate .b-yes:hover {
   background: var(--wine);
-  color: var(--bone)
+  color: var(--text-on-dark)
 }
 </style>

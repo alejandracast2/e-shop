@@ -19,7 +19,7 @@ const uiStore = useStorefrontUiStore()
   padding: 14px 18px;
   border-radius: 999px;
   background: #12100f;
-  color: #faf7f2;
+  color: var(--text-on-dark);
   box-shadow: 0 20px 44px -30px rgba(0, 0, 0, 0.6);
   transform: translate(-50%, 16px);
   opacity: 0;

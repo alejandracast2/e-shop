@@ -54,7 +54,7 @@
 
 .eyebrow {
   margin: 0 0 12px;
-  color: #7b1f2c;
+  color: var(--text-brand);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.24em;
@@ -63,8 +63,8 @@
 
 .footer-brand h2 {
   margin: 0;
-  color: #12100f;
-  font-family: 'Georgia', serif;
+  color: var(--text-primary);
+  font-family: var(--font-display);
   font-size: 38px;
   letter-spacing: -0.05em;
 }
@@ -72,13 +72,13 @@
 .footer-brand p:last-child {
   margin: 14px 0 0;
   max-width: 48ch;
-  color: #5a514c;
+  color: var(--text-secondary);
   line-height: 1.7;
 }
 
 section h3 {
   margin: 0 0 14px;
-  color: #12100f;
+  color: var(--text-primary);
   font-size: 13px;
   letter-spacing: 0.18em;
   text-transform: uppercase;
@@ -94,7 +94,7 @@ ul {
 
 li,
 a {
-  color: #5a514c;
+  color: var(--text-secondary);
   text-decoration: none;
 }
 
@@ -103,7 +103,7 @@ a {
   justify-content: space-between;
   gap: 16px;
   padding: 16px 0 10px;
-  color: #7d736d;
+  color: var(--text-secondary);
   font-size: 12px;
   letter-spacing: 0.12em;
   text-transform: uppercase;

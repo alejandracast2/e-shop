@@ -124,7 +124,7 @@ function scrollToCatalog() {
 .hero-copy {
   padding: 44px;
   background:
-    radial-gradient(circle at top right, rgba(143, 34, 48, 0.16), transparent 34%),
+    radial-gradient(circle at top right, rgba(179, 38, 30, 0.16), transparent 34%),
     linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(244, 238, 228, 0.9));
   border: 1px solid rgba(18, 16, 15, 0.08);
   box-shadow: 0 26px 60px -42px rgba(40, 18, 20, 0.45);
@@ -133,7 +133,7 @@ function scrollToCatalog() {
 .hero-kicker,
 .card-kicker {
   margin: 0 0 18px;
-  color: #7b1f2c;
+  color: var(--text-brand);
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.26em;
@@ -143,15 +143,15 @@ function scrollToCatalog() {
 .hero-copy h1 {
   margin: 0;
   max-width: 10ch;
-  color: #12100f;
-  font-family: 'Georgia', serif;
+  color: var(--text-primary);
+  font-family: var(--font-display);
   font-size: clamp(48px, 8vw, 82px);
   line-height: 0.94;
   letter-spacing: -0.05em;
 }
 
 .hero-copy h1 em {
-  color: #6b1520;
+  color: var(--text-brand);
   font-style: italic;
   font-weight: 600;
 }
@@ -159,7 +159,7 @@ function scrollToCatalog() {
 .hero-lede {
   max-width: 560px;
   margin: 22px 0 0;
-  color: #2f2926;
+  color: var(--text-secondary);
   font-size: 17px;
   line-height: 1.7;
 }
@@ -182,13 +182,13 @@ function scrollToCatalog() {
 }
 
 .primary-button {
-  background: #6b1520;
-  color: #faf7f2;
+  background: var(--wine);
+  color: var(--text-on-dark);
 }
 
 .ghost-button {
   border: 1px solid rgba(18, 16, 15, 0.16);
-  color: #12100f;
+  color: var(--text-primary);
   background: transparent;
 }
 
@@ -207,14 +207,14 @@ function scrollToCatalog() {
 }
 
 .hero-stats strong {
-  color: #12100f;
-  font-family: 'Georgia', serif;
+  color: var(--text-primary);
+  font-family: var(--font-display);
   font-size: clamp(26px, 4vw, 34px);
   letter-spacing: -0.05em;
 }
 
 .hero-stats span {
-  color: #5a514c;
+  color: var(--text-secondary);
   font-size: 12px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -227,13 +227,13 @@ function scrollToCatalog() {
   background:
     radial-gradient(circle at top left, rgba(255, 255, 255, 0.12), transparent 24%),
     linear-gradient(160deg, #241815, #0d0a09 72%);
-  color: #faf7f2;
+  color: var(--text-on-dark);
   box-shadow: 0 32px 70px -40px rgba(18, 16, 15, 0.9);
 }
 
 .hero-card h2 {
   margin: 0;
-  font-family: 'Georgia', serif;
+  font-family: var(--font-display);
   font-size: clamp(34px, 5vw, 48px);
   line-height: 0.96;
   letter-spacing: -0.04em;
@@ -241,7 +241,7 @@ function scrollToCatalog() {
 
 .hero-card p {
   margin: 0;
-  color: rgba(250, 247, 242, 0.75);
+  color: rgba(246, 240, 230, .75);
   line-height: 1.7;
 }
 
@@ -256,15 +256,15 @@ function scrollToCatalog() {
 }
 
 .card-meta span {
-  color: rgba(250, 247, 242, 0.68);
+  color: rgba(246, 240, 230, .68);
   font-size: 12px;
   letter-spacing: 0.16em;
   text-transform: uppercase;
 }
 
 .card-meta strong {
-  color: #f2d5d9;
-  font-family: 'Georgia', serif;
+  color: var(--text-accent);
+  font-family: var(--font-display);
   font-size: 28px;
 }
 
@@ -291,13 +291,13 @@ function scrollToCatalog() {
   border-radius: 36px;
   display: grid;
   place-items: center;
-  background: linear-gradient(160deg, rgba(242, 213, 217, 0.18), rgba(143, 34, 48, 0.22));
+  background: linear-gradient(160deg, rgba(234, 183, 191, 0.18), rgba(179, 38, 30, 0.22));
   box-shadow: inset 0 0 0 1px rgba(250, 247, 242, 0.12);
 }
 
 .visual-fallback span {
-  color: #f2d5d9;
-  font-family: 'Georgia', serif;
+  color: var(--text-accent);
+  font-family: var(--font-display);
   font-size: 52px;
   letter-spacing: -0.06em;
 }

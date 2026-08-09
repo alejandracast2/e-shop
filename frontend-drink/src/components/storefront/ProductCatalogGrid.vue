@@ -224,11 +224,11 @@ function handleToggleFavorite(product) {
   border-radius: 24px;
   background: rgba(255, 255, 255, 0.76);
   border: 1px solid rgba(18, 16, 15, 0.08);
-  color: #5a514c;
+  color: var(--text-secondary);
 }
 
 .catalog-status--error {
-  color: #8e2f3c;
+  color: var(--text-brand-dark);
 }
 
 .catalog-grid {
@@ -280,14 +280,14 @@ function handleToggleFavorite(product) {
   border-radius: 50%;
   display: grid;
   place-items: center;
-  color: var(--ink-4);
+  color: var(--text-secondary);
   z-index: 2;
   transition: 0.15s all;
 }
 
 .fav:hover,
 .fav.on {
-  color: var(--wine);
+  color: var(--text-brand);
 }
 
 .fav svg {
@@ -322,17 +322,17 @@ function handleToggleFavorite(product) {
 
 .ptag.sale {
   background: var(--wine);
-  color: var(--bone);
+  color: var(--text-on-dark);
 }
 
 .ptag.new {
   background: var(--ink);
-  color: var(--bone);
+  color: var(--text-on-dark);
 }
 
 .ptag.added {
   background: var(--bone);
-  color: var(--wine);
+  color: var(--text-brand);
   border: 1px solid var(--wine);
 }
 
@@ -363,9 +363,9 @@ function handleToggleFavorite(product) {
   border-radius: 34px;
   display: grid;
   place-items: center;
-  background: linear-gradient(160deg, rgba(107, 21, 32, 0.18), rgba(107, 21, 32, 0.05));
-  color: #6b1520;
-  font-family: 'Georgia', serif;
+  background: linear-gradient(160deg, rgba(179, 38, 30, 0.18), rgba(179, 38, 30, 0.05));
+  color: var(--text-brand);
+  font-family: var(--font-display);
   font-size: 38px;
   letter-spacing: -0.06em;
 }
@@ -378,28 +378,28 @@ function handleToggleFavorite(product) {
 }
 
 .pprice .now {
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-sans);
   font-size: 19px;
   font-weight: 700;
   letter-spacing: -0.01em;
-  color: var(--ink);
+  color: var(--text-primary);
 }
 
 .pprice .was {
   font-size: 13px;
-  color: var(--ink-4);
+  color: var(--text-secondary);
   text-decoration: line-through;
   font-weight: 400;
 }
 
 .pname {
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-sans);
   font-size: 14px;
   line-height: 1.3;
   font-weight: 400;
   margin: 0 0 12px;
   letter-spacing: 0;
-  color: var(--ink-2);
+  color: var(--text-primary);
   min-height: 38px;
 }
 
@@ -425,14 +425,14 @@ function handleToggleFavorite(product) {
   border-radius: 50%;
   display: grid;
   place-items: center;
-  color: var(--ink-3);
+  color: var(--text-secondary);
   font-size: 14px;
   background: var(--bone-4);
 }
 
 .qty button:last-of-type {
   background: var(--ink);
-  color: var(--bone);
+  color: var(--text-on-dark);
 }
 
 .qty button:hover {
@@ -450,7 +450,7 @@ function handleToggleFavorite(product) {
   text-align: center;
   border: 0;
   background: transparent;
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-sans);
   font-size: 14px;
   font-weight: 500;
   -moz-appearance: textfield;
@@ -468,7 +468,7 @@ function handleToggleFavorite(product) {
   padding: 10px 16px;
   border-radius: 999px;
   background: var(--wine);
-  color: var(--bone);
+  color: var(--text-on-dark);
   font-size: 13px;
   letter-spacing: 0.01em;
   font-weight: 500;
@@ -485,7 +485,7 @@ function handleToggleFavorite(product) {
 
 .addbtn.added {
   background: var(--wine-3);
-  color: var(--bone);
+  color: var(--text-on-dark);
 }
 
 .addbtn:disabled {

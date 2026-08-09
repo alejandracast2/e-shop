@@ -74,7 +74,7 @@ async function handleAddToCart({ product, quantity }) {
 
 .eyebrow {
   margin: 0;
-  color: #7b1f2c;
+  color: var(--text-brand);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.24em;
@@ -83,8 +83,8 @@ async function handleAddToCart({ product, quantity }) {
 
 .favorites-header h1 {
   margin: 0;
-  color: #12100f;
-  font-family: 'Georgia', serif;
+  color: var(--text-primary);
+  font-family: var(--font-display);
   font-size: clamp(34px, 4vw, 46px);
   letter-spacing: -0.04em;
 }

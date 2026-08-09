@@ -29,16 +29,13 @@ import CheckoutModal from './components/storefront/CheckoutModal.vue'
 </template>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
-
-
 :global(body) {
   margin: 0;
   background:
-    radial-gradient(circle at top left, rgba(143, 34, 48, 0.08), transparent 22%),
+    radial-gradient(circle at top left, rgba(179, 38, 30, 0.08), transparent 22%),
     linear-gradient(180deg, #faf7f2, #f4ede3 42%, #fbf9f6);
-  color: #12100f;
-  font-family: 'Manrope', 'Segoe UI', sans-serif;
+  color: var(--text-primary);
+  font-family: var(--font-sans);
 }
 
 :global(*) {
@@ -52,7 +49,7 @@ import CheckoutModal from './components/storefront/CheckoutModal.vue'
 /* ---------- Announcement bar ---------- */
 .announce {
   background: var(--ink);
-  color: var(--bone);
+  color: var(--text-on-dark);
   font-size: 12px;
   letter-spacing: .14em;
   text-transform: uppercase;
@@ -66,7 +63,7 @@ import CheckoutModal from './components/storefront/CheckoutModal.vue'
 }
 
 .announce strong {
-  color: var(--soft);
+  color: var(--text-accent);
   font-weight: 500;
   letter-spacing: .18em
 }
@@ -79,14 +76,14 @@ import CheckoutModal from './components/storefront/CheckoutModal.vue'
   padding: 34px;
   border-radius: 30px;
   background:
-    radial-gradient(circle at top right, rgba(143, 34, 48, 0.16), transparent 28%),
+    radial-gradient(circle at top right, rgba(179, 38, 30, 0.16), transparent 28%),
     #faf7f2;
   box-shadow: 0 32px 80px -50px rgba(0, 0, 0, 0.6);
 }
 
 .eyebrow {
   margin: 0 0 12px;
-  color: #7b1f2c;
+  color: var(--text-brand);
   font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.24em;
@@ -95,15 +92,15 @@ import CheckoutModal from './components/storefront/CheckoutModal.vue'
 
 .age-card h1 {
   margin: 0;
-  color: #12100f;
-  font-family: 'Georgia', serif;
+  color: var(--text-primary);
+  font-family: var(--font-display);
   font-size: 48px;
   letter-spacing: -0.06em;
 }
 
 .age-card p:last-of-type {
   margin: 18px 0 0;
-  color: #453d38;
+  color: var(--text-secondary);
   line-height: 1.75;
 }
 
@@ -127,13 +124,13 @@ import CheckoutModal from './components/storefront/CheckoutModal.vue'
 
 .primary-button {
   border: 0;
-  background: #6b1520;
-  color: #faf7f2;
+  background: var(--wine);
+  color: var(--text-on-dark);
 }
 
 .ghost-button {
   border: 1px solid rgba(18, 16, 15, 0.12);
-  color: #12100f;
+  color: var(--text-primary);
 }
 
 @media (max-width: 720px) {

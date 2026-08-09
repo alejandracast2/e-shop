@@ -78,7 +78,7 @@ function initialsFor(name) {
   font-size: 11px;
   letter-spacing: .28em;
   text-transform: uppercase;
-  color: var(--ink-3);
+  color: var(--text-secondary);
   margin-bottom: 14px;
   display: flex;
   align-items: center;
@@ -93,7 +93,7 @@ function initialsFor(name) {
 }
 
 .sec-head .left h2 {
-  font-family: 'Playfair Display', serif;
+  font-family: var(--font-display);
   font-size: 42px;
   line-height: 1;
   letter-spacing: -.02em;
@@ -102,7 +102,7 @@ function initialsFor(name) {
 }
 
 .sec-head .left h2 em {
-  color: var(--wine);
+  color: var(--text-brand);
   font-weight: 500;
 }
  /* ---------- Categorías circulares ---------- */
@@ -145,12 +145,12 @@ function initialsFor(name) {
     background:var(--bone);border-radius:2px;
   }
   .cat-circle .cname{
-    font-family:'Playfair Display', serif;
+    font-family:var(--font-display);
     font-size:16px;font-weight:600;
   }
   .cat-circle .ccount{
     font-size:10px;letter-spacing:.2em;text-transform:uppercase;
-    color:var(--ink-4);margin-top:3px;
+    color:var(--text-secondary);margin-top:3px;
   }
   .cat-circle.active .cat-disc{
     border-color:var(--wine);
@@ -172,7 +172,7 @@ function initialsFor(name) {
 
 .eyebrow {
   margin: 0 0 12px;
-  color: #7b1f2c;
+  color: var(--text-brand);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.24em;
@@ -181,15 +181,15 @@ function initialsFor(name) {
 
 .section-header h2 {
   margin: 0;
-  color: #12100f;
-  font-family: 'Georgia', serif;
+  color: var(--text-primary);
+  font-family: var(--font-display);
   font-size: clamp(34px, 4vw, 46px);
   letter-spacing: -0.04em;
 }
 
 .section-header p:last-child {
   margin: 0;
-  color: #5a514c;
+  color: var(--text-secondary);
   line-height: 1.7;
 }
 
@@ -214,8 +214,8 @@ function initialsFor(name) {
 .circle-card:hover,
 .circle-card.active {
   transform: translateY(-2px);
-  border-color: rgba(107, 21, 32, 0.22);
-  box-shadow: 0 24px 52px -36px rgba(107, 21, 32, 0.34);
+  border-color: rgba(179, 38, 30, 0.22);
+  box-shadow: 0 24px 52px -36px rgba(179, 38, 30, 0.34);
 }
 
 .circle-disc {
@@ -227,8 +227,8 @@ function initialsFor(name) {
   background:
     radial-gradient(circle at top, rgba(255, 255, 255, 0.8), transparent 46%),
     linear-gradient(180deg, #f5eee3, #ece2d4);
-  color: #6b1520;
-  font-family: 'Georgia', serif;
+  color: var(--text-brand);
+  font-family: var(--font-display);
   font-size: 26px;
   letter-spacing: -0.05em;
   overflow: hidden;
@@ -242,12 +242,12 @@ function initialsFor(name) {
 }
 
 .circle-card strong {
-  color: #12100f;
+  color: var(--text-primary);
   font-size: 16px;
 }
 
 .circle-card small {
-  color: #7d736d;
+  color: var(--text-secondary);
   font-size: 10px;
   letter-spacing: 0.14em;
   text-transform: uppercase;

@@ -118,7 +118,7 @@ async function handleAddToCart({ product, quantity }) {
 
 .eyebrow {
   margin: 0 0 12px;
-  color: #7b1f2c;
+  color: var(--text-brand);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.24em;
@@ -127,8 +127,8 @@ async function handleAddToCart({ product, quantity }) {
 
 .catalog-header h2 {
   margin: 0;
-  color: #12100f;
-  font-family: 'Georgia', serif;
+  color: var(--text-primary);
+  font-family: var(--font-display);
   font-size: clamp(34px, 4vw, 46px);
   letter-spacing: -0.04em;
 }
@@ -136,7 +136,7 @@ async function handleAddToCart({ product, quantity }) {
 .sort-control {
   display: grid;
   gap: 8px;
-  color: #5a514c;
+  color: var(--text-secondary);
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.16em;
@@ -148,7 +148,7 @@ async function handleAddToCart({ product, quantity }) {
   border: 1px solid rgba(18, 16, 15, 0.1);
   border-radius: 16px;
   background: #ffffff;
-  color: #12100f;
+  color: var(--text-primary);
   padding: 12px 14px;
   font: inherit;
   letter-spacing: normal;

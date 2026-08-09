@@ -381,7 +381,7 @@ async function renderGoogleButton() {
   overflow: auto;
   border-radius: 18px;
   background: #fff;
-  color: #12100f;
+  color: var(--text-primary);
   box-shadow: 0 28px 70px rgba(0, 0, 0, .28);
 }
 
@@ -394,7 +394,7 @@ async function renderGoogleButton() {
   border: 0;
   border-radius: 50%;
   background: #878787;
-  color: #fff;
+  color: var(--text-on-dark);
   font-size: 34px;
   font-weight: 300;
   line-height: 1;
@@ -407,7 +407,7 @@ async function renderGoogleButton() {
 
 .auth-kicker {
   margin: 0 0 4px;
-  color: var(--wine);
+  color: var(--text-brand);
   font-size: 11px;
   font-weight: 800;
   letter-spacing: .2em;
@@ -422,7 +422,7 @@ async function renderGoogleButton() {
 
 .auth-description {
   margin: 10px 0 0;
-  color: #625d59;
+  color: var(--text-secondary);
   font-size: 13px;
   line-height: 1.5;
 }
@@ -446,7 +446,7 @@ async function renderGoogleButton() {
   place-items: center;
   border-radius: 50%;
   background: var(--wine);
-  color: var(--bone);
+  color: var(--text-on-dark);
   font-size: 20px;
   font-weight: 800;
 }
@@ -462,7 +462,7 @@ async function renderGoogleButton() {
 
 .account-summary p {
   margin-top: 3px;
-  color: #625d59;
+  color: var(--text-secondary);
   font-size: 13px;
 }
 
@@ -478,7 +478,7 @@ async function renderGoogleButton() {
 }
 
 .account-summary__details dt {
-  color: #827c76;
+  color: var(--text-secondary);
   font-size: 11px;
   font-weight: 800;
   letter-spacing: .1em;
@@ -487,7 +487,7 @@ async function renderGoogleButton() {
 
 .account-summary__details dd {
   margin: 0;
-  color: #12100f;
+  color: var(--text-primary);
   font-size: 14px;
   font-weight: 700;
 }
@@ -501,13 +501,13 @@ async function renderGoogleButton() {
 .auth-form label {
   display: grid;
   gap: 7px;
-  color: #2b2927;
+  color: var(--text-primary);
   font-size: 12px;
   font-weight: 700;
 }
 
 .auth-form label span {
-  color: #827c76;
+  color: var(--text-secondary);
   font-weight: 500;
 }
 
@@ -518,14 +518,14 @@ async function renderGoogleButton() {
   border-radius: 999px;
   padding: 12px 18px;
   outline: none;
-  color: #12100f;
+  color: var(--text-primary);
   font: inherit;
   font-size: 15px;
 }
 
 .auth-form input:focus {
   border-color: var(--wine);
-  box-shadow: 0 0 0 3px rgba(143, 34, 48, .12);
+  box-shadow: 0 0 0 3px rgba(179, 38, 30, .12);
 }
 
 .checkbox-label {
@@ -542,8 +542,8 @@ async function renderGoogleButton() {
   min-height: 51px;
   border: 0;
   border-radius: 999px;
-  background: #bef747;
-  color: #12100f;
+  background: var(--wine);
+  color: var(--text-on-dark);
   font-size: 15px;
   font-weight: 800;
 }
@@ -559,7 +559,7 @@ async function renderGoogleButton() {
 .auth-switch button {
   border: 0;
   background: transparent;
-  color: #12100f;
+  color: var(--text-brand);
   font: inherit;
   font-size: 13px;
   font-weight: 800;
@@ -591,8 +591,8 @@ async function renderGoogleButton() {
 }
 
 .auth-feedback--success {
-  background: #effae1;
-  color: #345e10;
+  background: var(--wine-wash);
+  color: var(--text-brand-dark);
 }
 
 .auth-options {
@@ -619,7 +619,7 @@ async function renderGoogleButton() {
   border: 1px solid #e7e2de;
   border-radius: 999px;
   background: #fff;
-  color: #12100f;
+  color: var(--text-primary);
   font: inherit;
   font-size: 14px;
   font-weight: 800;
