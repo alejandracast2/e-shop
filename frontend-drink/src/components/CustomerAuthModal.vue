@@ -19,6 +19,8 @@ const phone = ref('')
 const documentId = ref('')
 const birthDate = ref('')
 const confirmsAdultAge = ref(false)
+const passwordVisible = ref(false)
+const phoneCountryCode = ref('+57')
 const googleButton = ref(null)
 const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || ''
 const canUseGoogle = computed(() => Boolean(googleClientId))
@@ -61,7 +63,7 @@ watch(
       mode.value = 'account'
       return
     }
-    if (!isOpen || activeMode !== 'login') return
+    if (!isOpen || !['login', 'register'].includes(activeMode)) return
     await nextTick()
     void renderGoogleButton()
   },
@@ -84,6 +86,10 @@ function setMode(nextMode) {
   authStore.message = ''
 }
 
+function showGoogleSetupMessage() {
+  authStore.error = 'El inicio de sesión con Google no está configurado todavía.'
+}
+
 async function submitLogin() {
   const response = await authStore.login(email.value, password.value)
   completeAuthentication(response)
@@ -94,9 +100,9 @@ async function submitRegistration() {
     name: name.value,
     email: email.value,
     password: password.value,
-    phone: phone.value || undefined,
+    phone: phone.value ? `${phoneCountryCode.value} ${phone.value}` : undefined,
     birthDate: birthDate.value,
-    confirmsAdultAge: confirmsAdultAge.value,
+    confirmsAdultAge: true,
   })
   completeAuthentication(response)
 }
@@ -191,8 +197,8 @@ async function renderGoogleButton() {
       theme: 'outline',
       size: 'large',
       text: 'continue_with',
-      shape: 'pill',
-      width: 360,
+      shape: 'rectangular',
+      width: 340,
       locale: 'es',
     })
   } catch (requestError) {
@@ -211,9 +217,21 @@ async function renderGoogleButton() {
     <section class="auth-modal" role="dialog" aria-modal="true" :aria-label="activeTitle">
       <button class="auth-close" type="button" aria-label="Cerrar" @click="close">×</button>
 
-      <header class="auth-heading">
-        <p class="auth-kicker">La Cantina</p>
-        <h2>{{ activeTitle }}</h2>
+      <div class="auth-modal__scroll">
+
+      <header class="auth-heading" :class="{ 'auth-heading--login': mode === 'login', 'auth-heading--register': mode === 'register' }">
+        <template v-if="mode === 'login'">
+          <h2>Iniciar <em>sesión</em></h2>
+          <p>Bienvenido de nuevo a <strong>La Cantina</strong></p>
+        </template>
+        <template v-else-if="mode === 'register'">
+          <h2>Crear <em>cuenta</em></h2>
+          <p>Únete a <strong>La Cantina</strong> y disfruta de beneficios exclusivos</p>
+        </template>
+        <template v-else>
+          <p class="auth-kicker">La Cantina</p>
+          <h2>{{ activeTitle }}</h2>
+        </template>
         <p v-if="mode === 'profile'" class="auth-description">
           Necesitamos confirmar tu fecha de nacimiento antes de permitir compras de licor.
         </p>
@@ -247,53 +265,147 @@ async function renderGoogleButton() {
         </dl>
       </section>
 
-      <form v-else-if="mode === 'login'" class="auth-form" @submit.prevent="submitLogin">
+      <form v-else-if="mode === 'login'" class="auth-form auth-form--login" @submit.prevent="submitLogin">
         <label>
           Correo electrónico
-          <input v-model.trim="email" autocomplete="email" type="email" required placeholder="Escribe tu correo electrónico" />
+          <span class="auth-input">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+              <rect x="3" y="5" width="18" height="14" rx="2" />
+              <path d="m3 7 9 6 9-6" />
+            </svg>
+            <input v-model.trim="email" autocomplete="email" type="email" required placeholder="Ingresa tu correo electrónico" />
+          </span>
         </label>
         <label>
           Contraseña
-          <input v-model="password" autocomplete="current-password" type="password" minlength="8" required placeholder="Escribe tu contraseña" />
+          <span class="auth-input">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+              <rect x="4" y="10" width="16" height="10" rx="2" />
+              <path d="M8 10V7a4 4 0 0 1 8 0v3" />
+            </svg>
+            <input v-model="password" autocomplete="current-password" :type="passwordVisible ? 'text' : 'password'" minlength="8" required placeholder="Ingresa tu contraseña" />
+            <button class="auth-password-toggle" type="button" :aria-label="passwordVisible ? 'Ocultar contraseña' : 'Mostrar contraseña'" @click="passwordVisible = !passwordVisible">
+              <svg v-if="passwordVisible" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                <path d="M3 3l18 18" />
+                <path d="M10.6 10.7a2 2 0 0 0 2.7 2.7M9.9 5.1A10.7 10.7 0 0 1 12 4.9c5.2 0 8.7 5.1 8.7 7.1a8.8 8.8 0 0 1-2.1 3.5M6.2 6.2C3.7 8 3.3 10.8 3.3 12c0 2 3.5 7.1 8.7 7.1 1 0 2-.2 2.9-.6" />
+              </svg>
+              <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                <path d="M3.3 12S6.8 4.9 12 4.9s8.7 7.1 8.7 7.1-3.5 7.1-8.7 7.1S3.3 12 3.3 12Z" />
+                <circle cx="12" cy="12" r="2.8" />
+              </svg>
+            </button>
+          </span>
         </label>
         <button class="text-action text-action--right" type="button" @click="setMode('reset')">
-          Olvidé mi contraseña
+          ¿Olvidaste tu contraseña?
         </button>
         <button class="auth-submit" :disabled="loading" type="submit">
-          {{ loading ? 'Ingresando…' : 'Entrar' }}
+          {{ loading ? 'Iniciando sesión…' : 'Iniciar sesión' }}
         </button>
-        <p class="auth-switch">¿No tiene una cuenta? <button type="button" @click="setMode('register')">Regístrese</button></p>
+        <div class="auth-divider"><span>o continuar con</span></div>
+        <div v-if="canUseGoogle" ref="googleButton" class="google-button" aria-label="Continuar con Google" />
+        <button v-else class="google-button" type="button" @click="showGoogleSetupMessage">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path fill="#4285F4" d="M21.35 12.23c0-.7-.06-1.38-.18-2.03H12v3.84h5.24a4.49 4.49 0 0 1-1.94 2.95v2.49h3.14c1.84-1.69 2.91-4.18 2.91-7.25Z" />
+            <path fill="#34A853" d="M12 21.74c2.63 0 4.83-.87 6.44-2.36l-3.14-2.49c-.87.58-1.99.93-3.3.93-2.54 0-4.7-1.72-5.47-4.03H3.29v2.57a9.73 9.73 0 0 0 8.71 5.38Z" />
+            <path fill="#FBBC05" d="M6.53 13.79a5.9 5.9 0 0 1 0-3.58V7.64H3.29a9.74 9.74 0 0 0 0 8.72l3.24-2.57Z" />
+            <path fill="#EA4335" d="M12 6.18c1.43 0 2.72.49 3.73 1.46l2.79-2.79C16.83 3.27 14.63 2.26 12 2.26a9.73 9.73 0 0 0-8.71 5.38l3.24 2.57C7.3 7.9 9.46 6.18 12 6.18Z" />
+          </svg>
+          <span>Continuar con Google</span>
+        </button>
+        <p class="auth-switch">¿No tienes una cuenta? <button type="button" @click="setMode('register')">Crear cuenta</button></p>
       </form>
 
-      <form v-else-if="mode === 'register'" class="auth-form" @submit.prevent="submitRegistration">
+      <form v-else-if="mode === 'register'" class="auth-form auth-form--register" @submit.prevent="submitRegistration">
         <label>
           Nombre completo
-          <input v-model.trim="name" autocomplete="name" required placeholder="Cómo quieres que te llamemos" />
+          <span class="auth-input">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+              <circle cx="12" cy="8" r="3.5" />
+              <path d="M4.5 20a7.5 7.5 0 0 1 15 0" />
+            </svg>
+            <input v-model.trim="name" autocomplete="name" required placeholder="Ingresa tu nombre completo" />
+          </span>
         </label>
         <label>
           Correo electrónico
-          <input v-model.trim="email" autocomplete="email" type="email" required placeholder="correo@ejemplo.com" />
+          <span class="auth-input">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+              <rect x="3" y="5" width="18" height="14" rx="2" />
+              <path d="m3 7 9 6 9-6" />
+            </svg>
+            <input v-model.trim="email" autocomplete="email" type="email" required placeholder="Ingresa tu correo electrónico" />
+          </span>
         </label>
         <label>
           Contraseña
-          <input v-model="password" autocomplete="new-password" type="password" minlength="8" required placeholder="Mínimo 8 caracteres" />
+          <span class="auth-input">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+              <rect x="4" y="10" width="16" height="10" rx="2" />
+              <path d="M8 10V7a4 4 0 0 1 8 0v3" />
+            </svg>
+            <input v-model="password" autocomplete="new-password" :type="passwordVisible ? 'text' : 'password'" minlength="8" required placeholder="Crea una contraseña" />
+            <button class="auth-password-toggle" type="button" :aria-label="passwordVisible ? 'Ocultar contraseña' : 'Mostrar contraseña'" @click="passwordVisible = !passwordVisible">
+              <svg v-if="passwordVisible" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                <path d="M3 3l18 18" />
+                <path d="M10.6 10.7a2 2 0 0 0 2.7 2.7M9.9 5.1A10.7 10.7 0 0 1 12 4.9c5.2 0 8.7 5.1 8.7 7.1a8.8 8.8 0 0 1-2.1 3.5M6.2 6.2C3.7 8 3.3 10.8 3.3 12c0 2 3.5 7.1 8.7 7.1 1 0 2-.2 2.9-.6" />
+              </svg>
+              <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                <path d="M3.3 12S6.8 4.9 12 4.9s8.7 7.1 8.7 7.1-3.5 7.1-8.7 7.1S3.3 12 3.3 12Z" />
+                <circle cx="12" cy="12" r="2.8" />
+              </svg>
+            </button>
+          </span>
+          <small class="auth-field-hint">Mínimo 8 caracteres, incluye números y letras.</small>
         </label>
         <label>
           Fecha de nacimiento
-          <input v-model="birthDate" type="date" required />
+          <span class="auth-input auth-date-input">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+              <rect x="3" y="5" width="18" height="16" rx="2" />
+              <path d="M7 3v4M17 3v4M3 10h18" />
+            </svg>
+            <input v-model="birthDate" type="date" required aria-label="Fecha de nacimiento" />
+            <span v-if="!birthDate" class="auth-date-placeholder">Selecciona tu fecha de nacimiento</span>
+          </span>
         </label>
         <label>
           Teléfono <span>(opcional)</span>
-          <input v-model.trim="phone" autocomplete="tel" type="tel" placeholder="Tu número de contacto" />
+          <span class="auth-input auth-phone-input">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+              <path d="M5.4 3.7 8.1 3c.5-.1 1 .1 1.2.6l1.3 3.1c.2.5.1 1-.3 1.3L8.7 9.4a15.2 15.2 0 0 0 5.9 5.9l1.4-1.6c.3-.4.8-.5 1.3-.3l3.1 1.3c.5.2.7.7.6 1.2l-.7 2.7c-.1.5-.6.9-1.1.9C10.4 19.5 4.5 13.6 4.5 4.8c0-.5.4-1 .9-1.1Z" />
+            </svg>
+            <select v-model="phoneCountryCode" aria-label="Indicativo telefónico">
+              <option value="+57">+57</option>
+            </select>
+            <input v-model.trim="phone" autocomplete="tel" type="tel" placeholder="Ingresa tu número de teléfono" />
+          </span>
         </label>
-        <label class="checkbox-label">
-          <input v-model="confirmsAdultAge" type="checkbox" required />
-          Confirmo que soy mayor de edad.
-        </label>
+        <aside class="auth-data-note" aria-label="Protección de datos">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+            <rect x="5" y="10" width="14" height="10" rx="2" />
+            <path d="M8.5 10V7.5a3.5 3.5 0 0 1 7 0V10" />
+          </svg>
+          <div>
+            <strong>Tus datos están protegidos</strong>
+            <p>Usamos tu información únicamente para mejorar tu experiencia y ofrecerte los mejores productos.</p>
+          </div>
+        </aside>
         <button class="auth-submit" :disabled="loading" type="submit">
           {{ loading ? 'Creando cuenta…' : 'Crear cuenta' }}
         </button>
-        <p class="auth-switch">¿Ya tiene cuenta? <button type="button" @click="setMode('login')">Inicie sesión</button></p>
+        <div class="auth-divider"><span>o continuar con</span></div>
+        <div v-if="canUseGoogle" ref="googleButton" class="google-button" aria-label="Continuar con Google" />
+        <button v-else class="google-button" type="button" @click="showGoogleSetupMessage">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path fill="#4285F4" d="M21.35 12.23c0-.7-.06-1.38-.18-2.03H12v3.84h5.24a4.49 4.49 0 0 1-1.94 2.95v2.49h3.14c1.84-1.69 2.91-4.18 2.91-7.25Z" />
+            <path fill="#34A853" d="M12 21.74c2.63 0 4.83-.87 6.44-2.36l-3.14-2.49c-.87.58-1.99.93-3.3.93-2.54 0-4.7-1.72-5.47-4.03H3.29v2.57a9.73 9.73 0 0 0 8.71 5.38Z" />
+            <path fill="#FBBC05" d="M6.53 13.79a5.9 5.9 0 0 1 0-3.58V7.64H3.29a9.74 9.74 0 0 0 0 8.72l3.24-2.57Z" />
+            <path fill="#EA4335" d="M12 6.18c1.43 0 2.72.49 3.73 1.46l2.79-2.79C16.83 3.27 14.63 2.26 12 2.26a9.73 9.73 0 0 0-8.71 5.38l3.24 2.57C7.3 7.9 9.46 6.18 12 6.18Z" />
+          </svg>
+          <span>Continuar con Google</span>
+        </button>
+        <p class="auth-switch">¿Ya tienes una cuenta? <button type="button" @click="setMode('login')">Iniciar sesión</button></p>
       </form>
 
       <form v-else-if="mode === 'code'" class="auth-form" @submit.prevent="submitCode">
@@ -352,13 +464,7 @@ async function renderGoogleButton() {
         <button class="auth-submit" :disabled="loading" type="submit">{{ loading ? 'Guardando…' : 'Confirmar y continuar' }}</button>
       </form>
 
-      <footer v-if="mode === 'login' || mode === 'register'" class="auth-options">
-        <p>Selecciona una opción para ingresar</p>
-        <button class="secondary-option" :disabled="loading" type="button" @click="requestCode('login')">
-          Recibir código de acceso por e-mail
-        </button>
-        <div v-if="canUseGoogle" ref="googleButton" class="google-button" aria-label="Entrar con Google" />
-      </footer>
+      </div>
     </section>
   </div>
 </template>
@@ -371,38 +477,79 @@ async function renderGoogleButton() {
   display: grid;
   place-items: center;
   padding: 18px;
-  background: rgba(18, 16, 15, .62);
+  background: rgba(18, 16, 15, .58);
 }
 
 .auth-modal {
   position: relative;
-  width: min(520px, 100%);
-  max-height: min(92dvh, 760px);
-  overflow: auto;
-  border-radius: 18px;
+  width: min(400px, 100%);
+  max-height: min(92dvh, 720px);
+  overflow: hidden;
+  border: 1px solid rgba(36, 31, 26, .08);
+  border-radius: 14px;
   background: #fff;
   color: var(--text-primary);
-  box-shadow: 0 28px 70px rgba(0, 0, 0, .28);
+  box-shadow: 0 24px 54px rgba(0, 0, 0, .25);
+}
+
+.auth-modal__scroll {
+  max-height: min(92dvh, 720px);
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-color: rgba(113, 105, 100, .55) transparent;
+  scrollbar-width: thin;
+}
+
+.auth-modal__scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.auth-modal__scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.auth-modal__scroll::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: rgba(113, 105, 100, .52);
+  background-clip: padding-box;
+}
+
+.auth-modal__scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(113, 105, 100, .74);
+  background-clip: padding-box;
 }
 
 .auth-close {
   position: absolute;
-  top: 16px;
-  right: 16px;
-  width: 40px;
-  height: 40px;
+  z-index: 1;
+  top: 12px;
+  right: 13px;
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
   border: 0;
-  border-radius: 50%;
-  background: #878787;
-  color: var(--text-on-dark);
-  font-size: 34px;
-  font-weight: 300;
+  background: transparent;
+  color: #2d2926;
+  font-size: 26px;
+  font-weight: 400;
   line-height: 1;
 }
 
+.auth-close:hover {
+  color: var(--text-brand);
+}
+
 .auth-heading {
-  padding: 52px 46px 10px;
+  padding: 34px 30px 10px;
   text-align: center;
+}
+
+.auth-heading--login,
+.auth-heading--register {
+  padding-bottom: 8px;
 }
 
 .auth-kicker {
@@ -416,8 +563,31 @@ async function renderGoogleButton() {
 
 .auth-heading h2 {
   margin: 0;
-  font-size: 24px;
-  letter-spacing: -.03em;
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: -.045em;
+  line-height: 1.15;
+}
+
+.auth-heading h2 em {
+  color: var(--text-brand);
+  font-style: italic;
+  font-weight: 500;
+}
+
+.auth-heading--login > p,
+.auth-heading--register > p {
+  margin: 4px 0 0;
+  color: var(--text-secondary);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.auth-heading--login > p strong,
+.auth-heading--register > p strong {
+  color: var(--text-brand);
+  font-weight: 800;
 }
 
 .auth-description {
@@ -428,7 +598,7 @@ async function renderGoogleButton() {
 }
 
 .account-summary {
-  padding: 24px 46px 38px;
+  padding: 24px 30px 34px;
 }
 
 .account-summary__identity {
@@ -494,16 +664,27 @@ async function renderGoogleButton() {
 
 .auth-form {
   display: grid;
-  gap: 14px;
-  padding: 22px 46px 28px;
+  gap: 13px;
+  padding: 20px 30px 30px;
+}
+
+.auth-form--login {
+  gap: 12px;
+  padding-top: 7px;
+}
+
+.auth-form--register {
+  gap: 10px;
+  padding-top: 8px;
+  padding-bottom: 22px;
 }
 
 .auth-form label {
   display: grid;
-  gap: 7px;
+  gap: 5px;
   color: var(--text-primary);
-  font-size: 12px;
-  font-weight: 700;
+  font-size: 10px;
+  font-weight: 600;
 }
 
 .auth-form label span {
@@ -513,19 +694,169 @@ async function renderGoogleButton() {
 
 .auth-form input:not([type='checkbox']) {
   width: 100%;
-  min-height: 50px;
-  border: 1px solid #1f1d1b;
-  border-radius: 999px;
-  padding: 12px 18px;
+  min-height: 43px;
+  border: 1px solid #dedad7;
+  border-radius: 6px;
+  padding: 10px 13px;
   outline: none;
   color: var(--text-primary);
   font: inherit;
-  font-size: 15px;
+  font-size: 11px;
+  font-weight: 500;
+  transition: border-color .15s ease, box-shadow .15s ease;
 }
 
 .auth-form input:focus {
   border-color: var(--wine);
-  box-shadow: 0 0 0 3px rgba(179, 38, 30, .12);
+  box-shadow: 0 0 0 3px rgba(179, 38, 30, .1);
+}
+
+.auth-input {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: 43px;
+  border: 1px solid #dedad7;
+  border-radius: 6px;
+  color: #8b8581;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+
+.auth-input:focus-within {
+  border-color: var(--wine);
+  box-shadow: 0 0 0 3px rgba(179, 38, 30, .1);
+}
+
+.auth-input > svg {
+  width: 15px;
+  height: 15px;
+  flex: 0 0 auto;
+  margin-left: 12px;
+}
+
+.auth-input input:not([type='checkbox']) {
+  min-width: 0;
+  min-height: 41px;
+  border: 0;
+  border-radius: 0;
+  padding: 9px 10px;
+  box-shadow: none;
+}
+
+.auth-input input:focus {
+  box-shadow: none;
+}
+
+.auth-input input::placeholder {
+  color: #aaa5a1;
+  opacity: 1;
+}
+
+.auth-field-hint {
+  display: block;
+  margin-top: -1px;
+  color: #857e79;
+  font-size: 8px;
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+.auth-phone-input select {
+  min-height: 25px;
+  width: 60px;
+  flex: 0 0 47px;
+  padding: 0 14px 0 3px;
+  border: 0;
+  border-right: 1px solid #e7e2df;
+  border-radius: 0;
+  outline: none;
+  background: transparent;
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.auth-phone-input input:not([type='checkbox']) {
+  padding-left: 10px;
+}
+
+.auth-date-input {
+  position: relative;
+}
+
+.auth-date-placeholder {
+  position: absolute;
+  top: 1px;
+  right: 2px;
+  bottom: 1px;
+  left: 36px;
+  display: flex;
+  align-items: center;
+  padding-left: 10px;
+  border-radius: 4px;
+  background: #fff;
+  color: #aaa5a1 !important;
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  pointer-events: none;
+}
+
+.auth-password-toggle {
+  display: grid;
+  width: 33px;
+  height: 33px;
+  flex: 0 0 33px;
+  margin-right: 3px;
+  place-items: center;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: #807a77;
+}
+
+.auth-password-toggle:hover {
+  background: #f7f4f1;
+  color: var(--text-brand);
+}
+
+.auth-password-toggle svg {
+  width: 15px;
+  height: 15px;
+}
+
+.auth-data-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 11px 12px;
+  border: 1px solid #e5e1de;
+  border-radius: 9px;
+  background: #f7f6f5;
+}
+
+.auth-data-note > svg {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+  margin-top: 1px;
+  color: #4d4844;
+}
+
+.auth-data-note strong {
+  display: block;
+  color: #36312e;
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 1.3;
+}
+
+.auth-data-note p {
+  margin: 3px 0 0;
+  color: #7c746f;
+  font-size: 7px;
+  font-weight: 500;
+  line-height: 1.4;
 }
 
 .checkbox-label {
@@ -539,13 +870,22 @@ async function renderGoogleButton() {
 }
 
 .auth-submit {
-  min-height: 51px;
+  min-height: 42px;
   border: 0;
-  border-radius: 999px;
+  border-radius: 6px;
   background: var(--wine);
   color: var(--text-on-dark);
-  font-size: 15px;
-  font-weight: 800;
+  font-size: 11px;
+  font-weight: 700;
+  transition: background .15s ease, transform .15s ease;
+}
+
+.auth-submit:hover:not(:disabled) {
+  background: var(--wine-2);
+}
+
+.auth-submit:active:not(:disabled) {
+  transform: translateY(1px);
 }
 
 .auth-submit:disabled,
@@ -561,9 +901,9 @@ async function renderGoogleButton() {
   background: transparent;
   color: var(--text-brand);
   font: inherit;
-  font-size: 13px;
-  font-weight: 800;
-  text-decoration: underline;
+  font-size: 10px;
+  font-weight: 700;
+  text-decoration: none;
 }
 
 .text-action--right {
@@ -571,17 +911,37 @@ async function renderGoogleButton() {
 }
 
 .auth-switch {
-  margin: 4px 0 0;
+  margin: 3px 0 0;
+  color: var(--text-primary);
   text-align: center;
-  font-size: 13px;
-  font-weight: 700;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 3px 0 0;
+  color: #827c78;
+  font-size: 9px;
+  line-height: 1;
+  text-align: center;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  height: 1px;
+  flex: 1;
+  background: #e6e2df;
+  content: '';
 }
 
 .auth-feedback {
-  margin: 8px 46px 0;
-  border-radius: 10px;
-  padding: 10px 12px;
-  font-size: 13px;
+  margin: 8px 30px 0;
+  border-radius: 6px;
+  padding: 9px 10px;
+  font-size: 11px;
   line-height: 1.4;
 }
 
@@ -598,35 +958,43 @@ async function renderGoogleButton() {
 .auth-options {
   display: grid;
   gap: 12px;
-  padding: 18px 46px 28px;
-  border-top: 1px solid #ece8e5;
-  background: #f7f7f7;
+  padding: 0 30px 30px;
   text-align: center;
 }
 
 .auth-options p {
   margin: 0;
-  font-size: 15px;
+  font-size: 11px;
   font-weight: 800;
 }
 
 .secondary-option,
 .google-button {
   display: grid;
-  min-height: 50px;
+  min-height: 42px;
   place-items: center;
   width: 100%;
-  border: 1px solid #e7e2de;
-  border-radius: 999px;
+  border: 1px solid #e2dedb;
+  border-radius: 6px;
   background: #fff;
   color: var(--text-primary);
   font: inherit;
-  font-size: 14px;
-  font-weight: 800;
+  font-size: 11px;
+  font-weight: 700;
 }
 
 .google-button {
   overflow: hidden;
+}
+
+.google-button:hover {
+  border-color: #c9c3bf;
+  background: #fdfcfc;
+}
+
+.google-button svg {
+  width: 15px;
+  height: 15px;
 }
 
 @media (max-width: 560px) {
@@ -639,6 +1007,10 @@ async function renderGoogleButton() {
     max-height: 100dvh;
     min-height: 100dvh;
     border-radius: 0;
+  }
+
+  .auth-modal__scroll {
+    max-height: 100dvh;
   }
 
   .auth-heading,
