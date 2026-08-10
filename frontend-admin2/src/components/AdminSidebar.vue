@@ -8,6 +8,7 @@ const navItems = [
   { label: 'Dashboard', to: '/' },
   { label: 'Productos', to: '/products' },
   { label: 'Categorias', to: '/categories' },
+  { label: 'Banners', to: '/banners' },
   { label: 'Atributos', to: '/attributes' },
   { label: 'Tipos', to: '/product-types' },
   { label: 'Pedidos', to: '/orders' },

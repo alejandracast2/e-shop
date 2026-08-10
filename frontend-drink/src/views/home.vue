@@ -1,5 +1,5 @@
 <script setup>
-import StoreHero from '../components/storefront/StoreHero.vue'
+import StoreBannerCarousel from '../components/storefront/StoreBannerCarousel.vue'
 import CategoryCircles from '../components/storefront/CategoryCircles.vue'
 import ProductCatalog from '../components/storefront/ProductCatalog.vue'
 import StoreFeature from '../components/storefront/StoreFeature.vue'
@@ -7,7 +7,7 @@ import StoreFeature from '../components/storefront/StoreFeature.vue'
 <template>
 
     <main class="page-content">
-        <!-- <StoreHero /> -->
+        <StoreBannerCarousel />
 
         <CategoryCircles />
 

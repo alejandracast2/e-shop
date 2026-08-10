@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
 import { storeToRefs } from 'pinia'
 
 import { useStorefrontCartStore } from '../../stores/storefrontCart'
@@ -12,6 +12,14 @@ const authStore = useStorefrontAuthStore()
 
 const { cartItems, cartCount, subtotal, shipping, total, loading, error } = storeToRefs(cartStore)
 const { cartOpen } = storeToRefs(uiStore)
+
+const FREE_SHIPPING_THRESHOLD = 180000
+const shippingProgress = computed(() =>
+  Math.min((Number(subtotal.value || 0) / FREE_SHIPPING_THRESHOLD) * 100, 100),
+)
+const remainingForFreeShipping = computed(() =>
+  Math.max(FREE_SHIPPING_THRESHOLD - Number(subtotal.value || 0), 0),
+)
 
 onMounted(() => {
   void cartStore.restorePersistedCart()
@@ -70,10 +78,7 @@ function beginCheckout() {
     <aside class="drawer" role="dialog" aria-modal="true" aria-labelledby="cart-drawer-title">
       <header class="drawer-header">
         <div class="drawer-heading">
-          <h2 id="cart-drawer-title">Mi carrito</h2>
-          <span v-if="cartItems.length" class="drawer-count">
-            {{ cartCount }} {{ cartCount === 1 ? 'producto' : 'productos' }}
-          </span>
+          <h2 id="cart-drawer-title">Mi carrito ({{ cartCount }})</h2>
         </div>
 
         <button class="close-button" type="button" aria-label="Cerrar carrito" @click="uiStore.closeCart">
@@ -85,12 +90,33 @@ function beginCheckout() {
 
       <p v-if="error" class="drawer-error">{{ error }}</p>
 
+      <section v-if="cartItems.length" class="shipping-progress" aria-live="polite">
+        <div class="shipping-progress__message">
+          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M3 6h11v10H3zM14 9h3.6L21 12.5V16h-7z" />
+            <path d="M7 19a2 2 0 1 0 0-4 2 2 0 0 0 0 4ZM17 19a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z" />
+          </svg>
+          <p v-if="remainingForFreeShipping">
+            Te faltan <strong>{{ formatCurrency(remainingForFreeShipping) }}</strong> para obtener envío gratis
+          </p>
+          <p v-else>Tu pedido tiene <strong>envío gratis</strong></p>
+        </div>
+        <div class="shipping-progress__track" role="progressbar" aria-label="Progreso para envío gratis"
+          aria-valuemin="0" :aria-valuenow="shippingProgress" aria-valuemax="100">
+          <span :style="{ width: `${shippingProgress}%` }" />
+        </div>
+        <div class="shipping-progress__values">
+          <strong>{{ formatCurrency(subtotal) }}</strong>
+          <span>{{ formatCurrency(FREE_SHIPPING_THRESHOLD) }}</span>
+        </div>
+      </section>
+
       <div v-if="!cartItems.length" class="drawer-empty">
         <span class="empty-mark">LC</span>
-        <h3>Mi carrito esta vacio</h3>
-        <p>Agrega productos del catalogo y aqui veras el resumen de tu pedido.</p>
+        <h3>Mi carrito está vacío</h3>
+        <p>Agrega productos del catálogo y aquí verás el resumen de tu pedido.</p>
         <button class="empty-action" type="button" @click="uiStore.closeCart">
-          Explorar catalogo
+          Explorar catálogo
         </button>
       </div>
 
@@ -101,64 +127,57 @@ function beginCheckout() {
             <span v-else>{{ initialsFor(item.title) }}</span>
           </div>
           <div class="item-copy">
-            <div class="item-heading">
-              <strong>{{ item.title }}</strong>
-              <button class="remove-button" type="button" :disabled="loading"
-                :aria-label="`Quitar ${item.title} del carrito`" @click="removeItem(item)">
-                <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9">
-                  <path d="M4 7h16" />
-                  <path d="M9 7V4h6v3" />
-                  <path d="m6 7 1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13" />
-                  <path d="M10 11v6M14 11v6" />
-                </svg>
-              </button>
-            </div>
-            <div class="item-price">
-              <span>{{ formatCurrency(item.unitPrice) }}</span>
-              <span v-if="item.discountPercent" class="item-price-old">
-                {{ formatCurrency(item.baseUnitPrice) }}
-              </span>
-            </div>
-
-            <div class="item-footer">
-              <div class="item-actions" aria-label="Cantidad">
-                <button type="button" :disabled="loading"
-                  :aria-label="`Restar una unidad de ${item.title}`" @click="changeQuantity(item, item.quantity - 1)">
-                  -
-                </button>
-                <span aria-live="polite">{{ item.quantity }}</span>
-                <button type="button" :disabled="loading" :aria-label="`Sumar una unidad de ${item.title}`"
-                  @click="changeQuantity(item, item.quantity + 1)">
-                  +
-                </button>
-              </div>
-
-              <strong class="item-total">
-                {{ formatCurrency(item.unitPrice * item.quantity) }}
-              </strong>
-            </div>
+            <strong class="item-name">{{ item.title }}</strong>
+            <span class="item-detail">Precio por unidad</span>
           </div>
+          <div class="item-pricing">
+            <strong class="item-total">{{ formatCurrency(item.unitPrice) }}</strong>
+            <span v-if="item.discountPercent" class="item-price-old">
+              {{ formatCurrency(item.baseUnitPrice) }}
+            </span>
+          </div>
+          <div class="item-actions" aria-label="Cantidad">
+            <button type="button" :disabled="loading"
+              :aria-label="`Restar una unidad de ${item.title}`" @click="changeQuantity(item, item.quantity - 1)">
+              −
+            </button>
+            <span aria-live="polite">{{ item.quantity }}</span>
+            <button type="button" :disabled="loading" :aria-label="`Sumar una unidad de ${item.title}`"
+              @click="changeQuantity(item, item.quantity + 1)">
+              +
+            </button>
+          </div>
+          <button class="remove-button" type="button" :disabled="loading"
+            :aria-label="`Quitar ${item.title} del carrito`" @click="removeItem(item)">
+            <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9">
+              <path d="M4 7h16" />
+              <path d="M9 7V4h6v3" />
+              <path d="m6 7 1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13" />
+              <path d="M10 11v6M14 11v6" />
+            </svg>
+          </button>
         </article>
       </div>
 
       <footer v-if="cartItems.length" class="drawer-footer">
+        <h3>Resumen del pedido</h3>
         <div class="summary-row">
-          <span>Subtotal</span>
+          <span>Subtotal ({{ cartCount }} {{ cartCount === 1 ? 'producto' : 'productos' }})</span>
           <strong>{{ formatCurrency(subtotal) }}</strong>
         </div>
         <div class="summary-row">
-          <span>Envio estimado</span>
-          <strong>{{ shipping ? formatCurrency(shipping) : 'Gratis' }}</strong>
+          <span>Envío</span>
+          <strong :class="{ 'is-free': !shipping }">{{ shipping ? formatCurrency(shipping) : 'Gratis' }}</strong>
         </div>
         <div class="summary-row total">
           <span>Total</span>
           <strong>{{ formatCurrency(total) }}</strong>
         </div>
-        <p class="checkout-note">
-          Revisa productos y cantidades antes de continuar con la confirmacion del pedido.
-        </p>
         <button class="checkout-action" type="button" @click="beginCheckout">
           Finalizar compra
+        </button>
+        <button class="view-cart-action" type="button" @click="uiStore.closeCart">
+          Ver carrito
         </button>
       </footer>
     </aside>
@@ -614,6 +633,379 @@ function beginCheckout() {
   .drawer,
   .drawer-overlay {
     transition: none;
+  }
+}
+
+/* Cart visual refresh */
+.drawer {
+  width: min(400px, 100vw);
+  background: #fff;
+  border-left: 1px solid #ece9e7;
+  box-shadow: -18px 0 48px rgba(26, 20, 17, 0.16);
+}
+
+.drawer-header {
+  align-items: center;
+  padding: 26px 26px 18px;
+  border-bottom: 0;
+}
+
+.drawer-header h2 {
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.035em;
+}
+
+.close-button {
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+}
+
+.close-button:hover {
+  border-color: transparent;
+  background: #f7f5f4;
+}
+
+.close-button svg {
+  width: 19px;
+  height: 19px;
+}
+
+.drawer-error {
+  margin: 0 26px 12px;
+  border-radius: 6px;
+}
+
+.shipping-progress {
+  display: grid;
+  gap: 10px;
+  margin: 4px 26px 13px;
+  padding: 18px;
+  border-radius: 9px;
+  background: #fdf8f6;
+}
+
+.shipping-progress__message {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: #403b38;
+}
+
+.shipping-progress__message svg {
+  width: 17px;
+  height: 17px;
+  flex: 0 0 auto;
+}
+
+.shipping-progress__message p {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.shipping-progress__message strong,
+.shipping-progress__values strong {
+  color: var(--wine);
+}
+
+.shipping-progress__track {
+  height: 7px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e8e3e1;
+}
+
+.shipping-progress__track span {
+  display: block;
+  height: 100%;
+  min-width: 3px;
+  border-radius: inherit;
+  background: var(--wine);
+  transition: width 0.2s ease;
+}
+
+.shipping-progress__values {
+  display: flex;
+  justify-content: space-between;
+  color: #5d5652;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.drawer-empty {
+  padding: 28px 26px;
+}
+
+.empty-mark {
+  width: 64px;
+  height: 64px;
+  background: var(--wine);
+}
+
+.empty-action {
+  border-radius: 6px;
+  background: var(--wine);
+}
+
+.drawer-body {
+  gap: 0;
+  padding: 8px 26px 18px;
+  scrollbar-color: #d6d0cd transparent;
+}
+
+.drawer-item {
+  grid-template-columns: 52px minmax(0, 1fr) auto;
+  grid-template-areas:
+    'image copy pricing'
+    'image quantity remove';
+  column-gap: 13px;
+  row-gap: 8px;
+  align-items: start;
+  padding: 20px 0;
+  border: 0;
+  border-radius: 0;
+  border-bottom: 1px solid #f0eeec;
+  background: transparent;
+  box-shadow: none;
+}
+
+.drawer-item:last-child {
+  border-bottom: 0;
+}
+
+.item-image {
+  grid-area: image;
+  width: 52px;
+  height: 72px;
+  border-radius: 4px;
+  background: #faf8f7;
+}
+
+.item-image img {
+  height: 100%;
+  padding: 0;
+  object-fit: contain;
+}
+
+.item-copy {
+  grid-area: copy;
+  align-content: start;
+  gap: 4px;
+  padding-top: 1px;
+}
+
+.item-copy .item-name {
+  color: #28221f;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.45;
+}
+
+.item-detail {
+  color: #766e69;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.item-pricing {
+  grid-area: pricing;
+  display: grid;
+  justify-items: end;
+  gap: 2px;
+  padding-top: 1px;
+}
+
+.item-total {
+  color: #1f1b19;
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.item-price-old {
+  color: #958d89;
+  font-size: 10px;
+  text-decoration: line-through;
+}
+
+.item-actions {
+  grid-area: quantity;
+  width: fit-content;
+  gap: 0;
+  padding: 0;
+  border-color: #e2deda;
+  border-radius: 9px;
+}
+
+.item-actions button,
+.item-actions span {
+  width: 29px;
+  height: 34px;
+  border-radius: 7px;
+}
+
+.item-actions button,
+.item-actions button:last-of-type {
+  background: transparent;
+  color: #433c38;
+  font-size: 17px;
+  font-weight: 500;
+}
+
+.item-actions button:hover,
+.item-actions button:last-of-type:hover {
+  background: #f7f2f0;
+  color: var(--wine);
+}
+
+.item-actions span {
+  width: 27px;
+  color: #292321;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.remove-button {
+  grid-area: remove;
+  align-self: center;
+  width: 28px;
+  height: 34px;
+  border-radius: 6px;
+  color: #514a46;
+}
+
+.remove-button:hover {
+  background: #f9eeee;
+  color: var(--wine);
+}
+
+.remove-button svg {
+  width: 15px;
+  height: 15px;
+}
+
+.drawer-footer {
+  gap: 13px;
+  padding: 22px 26px 26px;
+  border-top: 1px solid #e8e5e3;
+  background: #fff;
+}
+
+.drawer-footer h3 {
+  margin: 0 0 1px;
+  color: #2e2926;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.summary-row {
+  color: #655d58;
+  font-size: 12px;
+}
+
+.summary-row strong {
+  color: #332d2a;
+  font-size: 12px;
+}
+
+.summary-row strong.is-free {
+  color: #237a3d;
+}
+
+.summary-row.total {
+  margin-top: 4px;
+  padding-top: 15px;
+  border-top-color: #ebe8e6;
+  color: #241f1c;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.summary-row.total strong {
+  font-family: var(--font-sans);
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.checkout-action,
+.view-cart-action {
+  min-height: 47px;
+  border-radius: 6px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: none;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.checkout-action {
+  margin-top: 4px;
+  background: var(--wine);
+  color: #fff;
+}
+
+.checkout-action:hover {
+  background: var(--wine-2);
+}
+
+.view-cart-action {
+  border: 1px solid var(--wine);
+  background: #fff;
+  color: var(--wine);
+}
+
+.view-cart-action:hover {
+  background: #fff6f5;
+}
+
+.drawer-overlay:focus-visible,
+.close-button:focus-visible,
+.empty-action:focus-visible,
+.remove-button:focus-visible,
+.item-actions button:focus-visible,
+.checkout-action:focus-visible,
+.view-cart-action:focus-visible {
+  outline: 2px solid var(--soft);
+  outline-offset: 2px;
+}
+
+@media (max-width: 520px) {
+  .drawer-header {
+    padding: 22px 20px 16px;
+  }
+
+  .shipping-progress {
+    margin: 2px 20px 10px;
+  }
+
+  .drawer-error {
+    margin-right: 20px;
+    margin-left: 20px;
+  }
+
+  .drawer-body {
+    padding-right: 20px;
+    padding-left: 20px;
+  }
+
+  .drawer-item {
+    grid-template-columns: 48px minmax(0, 1fr) auto;
+    column-gap: 11px;
+  }
+
+  .item-image {
+    width: 48px;
+    height: 68px;
+  }
+
+  .drawer-footer {
+    padding: 20px;
   }
 }
 </style>

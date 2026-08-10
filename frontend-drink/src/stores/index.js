@@ -1,4 +1,5 @@
 export { useStorefrontCategoriesStore } from './storefrontCategories'
+export { useStorefrontBannersStore } from './storefrontBanners'
 export { useStorefrontProductsStore } from './storefrontProducts'
 export { useStorefrontCartStore } from './storefrontCart'
 export { useStorefrontFavoritesStore } from './storefrontFavorites'

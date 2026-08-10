@@ -14,6 +14,7 @@ import { CheckoutModule } from './modules/checkout/checkout.module';
 import { OrdersModule } from './modules/orders/orders.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { CustomersModule } from './modules/customers/customers.module';
+import { BannersModule } from './modules/banners/banners.module';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { CustomersModule } from './modules/customers/customers.module';
     OrdersModule,
     PaymentsModule,
     CustomersModule,
+    BannersModule,
   ],
   controllers: [AppController],
   providers: [AppService],

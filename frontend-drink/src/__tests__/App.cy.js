@@ -1,7 +1,21 @@
 import App from '../App.vue'
 
 describe('App', () => {
-  it('renders the storefront layout with live categories and products', () => {
+  it('renders the storefront layout with live banners, categories and products', () => {
+    cy.intercept('GET', '**/storefront/banners', {
+      statusCode: 200,
+      body: [
+        {
+          id: 'banner-1',
+          title: 'Brinda con la casa',
+          subtitle: 'Una seleccion para compartir grandes momentos.',
+          imageUrl: 'https://images.example.com/banner.jpg',
+          ctaLabel: 'Ver seleccion',
+          ctaUrl: '/products',
+        },
+      ],
+    }).as('getBanners')
+
     cy.intercept('GET', '**/storefront/categories', {
       statusCode: 200,
       body: [
@@ -44,15 +58,16 @@ describe('App', () => {
     }).as('getProducts')
 
     cy.mount(App)
+    cy.wait('@getBanners')
     cy.wait('@getCategories')
     cy.wait('@getProducts')
 
     cy.get('.site-header').should('exist')
     cy.contains('.brand-title', 'La Cantina')
     cy.get('.category-link').should('contain.text', 'Vinos')
-    cy.get('.hero').should('exist')
-    cy.contains('.hero h1', 'alma de cantina')
-    cy.get('.circle-card').should('have.length', 2)
+    cy.get('.store-banner-carousel').should('exist')
+    cy.get('.banner-image-link').should('have.attr', 'href', '/products')
+    cy.get('.cat-circle').should('have.length', 2)
     cy.get('.catalog-grid .product-card').should('have.length', 2)
     cy.contains('.product-card h3', 'Malbec Reserva')
   })

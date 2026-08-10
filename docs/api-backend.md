@@ -105,6 +105,10 @@ un documento de identidad.
 - `POST /admin/products`
 - `PATCH /admin/products/:id`
 - `POST /admin/products/:id/variants`
+- `GET /admin/banners`
+- `POST /admin/banners`
+- `PATCH /admin/banners/:id`
+- `DELETE /admin/banners/:id`
 - `PATCH /admin/variants/:id`
 - `GET /admin/categories`
 - `POST /admin/categories`
@@ -140,6 +144,7 @@ Tambien se puede enviar `fileId` si el archivo ya existe en la tabla `files`.
 En `PATCH`, omitir `images` conserva las imagenes actuales; enviar `images: []` las elimina.
 
 ### Storefront (public)
+- `GET /storefront/banners`
 - `GET /storefront/categories`
 - `GET /storefront/products`
 - `GET /storefront/products/:slug`

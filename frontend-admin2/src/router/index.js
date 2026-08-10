@@ -12,6 +12,7 @@ import OrdersView from '@/views/OrdersView.vue'
 import OrderDetailView from '@/views/OrderDetailView.vue'
 import PaymentsView from '@/views/PaymentsView.vue'
 import CustomersView from '@/views/CustomersView.vue'
+import BannersView from '@/views/BannersView.vue'
 import { pinia } from '@/stores'
 import { useAuthStore } from '@/stores/auth'
 import { useAdminStore } from '@/stores/admin'
@@ -121,6 +122,14 @@ const router = createRouter({
           component: CustomersView,
           meta: {
             title: 'Clientes',
+          },
+        },
+        {
+          path: 'banners',
+          name: 'banners',
+          component: BannersView,
+          meta: {
+            title: 'Banners',
           },
         },
       ],
