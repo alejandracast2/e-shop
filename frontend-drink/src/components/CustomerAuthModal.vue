@@ -360,13 +360,12 @@ async function renderGoogleButton() {
         </label>
         <label>
           Fecha de nacimiento
-          <span class="auth-input auth-date-input">
+          <span class="auth-input">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
               <rect x="3" y="5" width="18" height="16" rx="2" />
               <path d="M7 3v4M17 3v4M3 10h18" />
             </svg>
-            <input v-model="birthDate" type="date" required aria-label="Fecha de nacimiento" />
-            <span v-if="!birthDate" class="auth-date-placeholder">Selecciona tu fecha de nacimiento</span>
+            <input v-model="birthDate" type="date" autocomplete="bday" required aria-label="Fecha de nacimiento" />
           </span>
         </label>
         <label>
@@ -779,27 +778,6 @@ async function renderGoogleButton() {
 
 .auth-phone-input input:not([type='checkbox']) {
   padding-left: 10px;
-}
-
-.auth-date-input {
-  position: relative;
-}
-
-.auth-date-placeholder {
-  position: absolute;
-  top: 1px;
-  right: 2px;
-  bottom: 1px;
-  left: 36px;
-  display: flex;
-  align-items: center;
-  padding-left: 10px;
-  border-radius: 4px;
-  background: #fff;
-  color: #aaa5a1 !important;
-  font-size: 11px !important;
-  font-weight: 500 !important;
-  pointer-events: none;
 }
 
 .auth-password-toggle {
