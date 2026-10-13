@@ -7,7 +7,7 @@ Store en Vue 3 + Vite para la vertical `drink`, conectada al catálogo, carrito 
 - Se cubren todos los endpoints publicos reales bajo `/storefront`.
 - El icono de Cuenta abre el modal de registro, inicio de sesión, acceso por código y recuperación de contraseña.
 - Google Sign-In es opcional y se habilita al definir su client ID.
-- El token customer se envía automáticamente a los endpoints protegidos; checkout exige fecha de nacimiento, cédula y una cuenta mayor de edad.
+- La sesión customer se mantiene en una cookie `HttpOnly`; el frontend no guarda tokens ni datos personales sensibles en `localStorage`. Checkout exige fecha de nacimiento, cédula y una cuenta mayor de edad.
 - El carrito incluye “Finalizar compra” y abre un checkout de datos personales, entrega y pago.
 - Se incluyo tambien `GET /storefront/cart/:id`, porque existe en backend aunque no estaba listado en el resumen corto de docs.
 
@@ -77,6 +77,11 @@ storefrontRequest(path, {
 })
 ```
 
+Todas las peticiones incluyen `credentials: 'include'` para que el navegador
+envíe la cookie de sesión. La ficha con documento y fecha de nacimiento se carga
+solamente desde `GET /auth/customer/profile` mientras la persona consulta o edita
+su perfil; no se persiste entre recargas.
+
 ## Cobertura de endpoints
 
 | Endpoint | Metodo | Store / accion |
@@ -92,7 +97,7 @@ storefrontRequest(path, {
 | `/storefront/orders/:orderNumber` | `GET` | `useStorefrontOrdersStore().loadOrder(orderNumber, { email })` |
 | `/storefront/payments/methods` | `GET` | `useStorefrontPaymentsStore().loadPaymentMethods()` |
 | `/storefront/payments/:intentId/proof` | `POST` | `useStorefrontPaymentsStore().submitPaymentProof(intentId, payload)` |
-| `/auth/customer/*` | `POST` / `PATCH` | `useStorefrontAuthStore()` |
+| `/auth/customer/*` | `GET` / `POST` / `PATCH` | `useStorefrontAuthStore()` |
 
 ## Stores disponibles
 

@@ -45,7 +45,10 @@ const profileIsComplete = computed(() =>
 watch(checkoutModalOpen, async (isOpen) => {
   if (!isOpen) return
 
-  authStore.restoreSession()
+  await authStore.restoreSession()
+  if (authStore.isAuthenticated) {
+    await authStore.loadCustomerProfile()
+  }
   checkoutStore.resetCheckout()
   completedOrder.value = null
   profileError.value = ''
@@ -57,10 +60,11 @@ watch(checkoutModalOpen, async (isOpen) => {
 })
 
 function fillPersonalForm() {
-  personalForm.name = authStore.customer?.fullName || authStore.user?.name || ''
-  personalForm.documentId = authStore.customer?.documentId || ''
-  personalForm.phone = authStore.customer?.phone || authStore.user?.phone || ''
-  personalForm.birthDate = authStore.customer?.birthDate || ''
+  const profile = authStore.customerProfile || authStore.customer
+  personalForm.name = profile?.fullName || authStore.user?.name || ''
+  personalForm.documentId = profile?.documentId || ''
+  personalForm.phone = profile?.phone || ''
+  personalForm.birthDate = profile?.birthDate || ''
 }
 
 function formatCurrency(value) {
@@ -97,6 +101,7 @@ async function continueFromPersonalData() {
     profileError.value = authStore.error || 'No fue posible guardar tus datos personales.'
     return
   }
+  await authStore.loadCustomerProfile()
   step.value = 2
 }
 

@@ -27,7 +27,7 @@ const previewCategoryId = ref('')
 const accountMenuOpen = ref(false)
 const accountMenu = ref(null)
 const accountName = computed(
-  () => authStore.user?.name || authStore.customer?.fullName || authStore.customer?.name || 'Cliente',
+  () => authStore.customer?.fullName || authStore.user?.name || 'Cliente',
 )
 const accountEmail = computed(() => authStore.user?.email || authStore.customer?.email || '')
 

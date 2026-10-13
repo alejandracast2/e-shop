@@ -1,5 +1,4 @@
 const FALLBACK_API_URL = 'http://localhost:4000'
-const CUSTOMER_SESSION_STORAGE_KEY = 'frontend-drink-customer-session'
 
 function sanitizeBaseUrl(baseUrl) {
   return (baseUrl || FALLBACK_API_URL).replace(/\/+$/, '')
@@ -89,23 +88,7 @@ export function buildStorefrontHeaders(customHeaders = {}, hasBody = false) {
     headers['x-store-id'] = storefrontEnvironment.storeId
   }
 
-  const accessToken = getCustomerAccessToken()
-  if (accessToken && !headers.Authorization) {
-    headers.Authorization = `Bearer ${accessToken}`
-  }
-
   return headers
-}
-
-function getCustomerAccessToken() {
-  if (typeof window === 'undefined') return ''
-
-  try {
-    const session = JSON.parse(window.localStorage.getItem(CUSTOMER_SESSION_STORAGE_KEY) || '{}')
-    return typeof session.accessToken === 'string' ? session.accessToken : ''
-  } catch {
-    return ''
-  }
 }
 
 export async function storefrontRequest(path, options = {}) {
@@ -116,6 +99,7 @@ export async function storefrontRequest(path, options = {}) {
   const response = await fetch(requestUrl, {
     method,
     headers: buildStorefrontHeaders(headers, hasBody),
+    credentials: 'include',
     ...(hasBody ? { body: JSON.stringify(body) } : {}),
   })
 

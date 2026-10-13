@@ -3,64 +3,87 @@ import { defineStore } from 'pinia'
 
 import { storefrontRequest } from '../lib/storefrontApi'
 
-export const CUSTOMER_SESSION_STORAGE_KEY = 'frontend-drink-customer-session'
+const LEGACY_CUSTOMER_SESSION_STORAGE_KEY = 'frontend-drink-customer-session'
 
 function resolveError(error, fallback) {
   return error instanceof Error ? error.message : fallback
 }
 
 export const useStorefrontAuthStore = defineStore('storefrontAuth', () => {
-  const accessToken = ref('')
   const user = ref(null)
   const customer = ref(null)
+  const customerProfile = ref(null)
   const requiresAgeConfirmation = ref(false)
   const loading = ref(false)
   const error = ref('')
   const message = ref('')
+  let restoreSessionPromise = null
 
-  const isAuthenticated = computed(() => Boolean(accessToken.value && user.value?.id))
-  const customerName = computed(() => user.value?.name || user.value?.email || 'Cuenta')
+  const isAuthenticated = computed(() => Boolean(user.value?.id))
+  const customerName = computed(() => customer.value?.fullName || user.value?.name || user.value?.email || 'Cuenta')
 
-  function restoreSession() {
+  function removeLegacySession() {
     if (typeof window === 'undefined') return
 
     try {
-      const session = JSON.parse(window.localStorage.getItem(CUSTOMER_SESSION_STORAGE_KEY) || '{}')
-      accessToken.value = session.accessToken || ''
-      user.value = session.user || null
-      customer.value = session.customer || null
-      requiresAgeConfirmation.value = Boolean(session.requiresAgeConfirmation)
-    } catch {
-      clearSession()
-    }
+      window.localStorage.removeItem(LEGACY_CUSTOMER_SESSION_STORAGE_KEY)
+    } catch {}
   }
 
   function saveSession(response) {
-    accessToken.value = response.accessToken || ''
     user.value = response.user || null
     customer.value = response.customer || null
+    customerProfile.value = null
     requiresAgeConfirmation.value = Boolean(response.requiresAgeConfirmation)
+  }
 
-    if (typeof window !== 'undefined') {
-      window.localStorage.setItem(
-        CUSTOMER_SESSION_STORAGE_KEY,
-        JSON.stringify({
-          accessToken: accessToken.value,
-          user: user.value,
-          customer: customer.value,
-          requiresAgeConfirmation: requiresAgeConfirmation.value,
-        }),
-      )
+  function resetSession() {
+    user.value = null
+    customer.value = null
+    customerProfile.value = null
+    requiresAgeConfirmation.value = false
+  }
+
+  async function restoreSession() {
+    removeLegacySession()
+    if (restoreSessionPromise) return restoreSessionPromise
+
+    restoreSessionPromise = (async () => {
+      try {
+        const response = await storefrontRequest('/auth/customer/session')
+        saveSession(response)
+        return response
+      } catch {
+        resetSession()
+        return null
+      } finally {
+        restoreSessionPromise = null
+      }
+    })()
+
+    return restoreSessionPromise
+  }
+
+  async function loadCustomerProfile() {
+    if (!isAuthenticated.value) return null
+
+    try {
+      const response = await storefrontRequest('/auth/customer/profile')
+      customerProfile.value = response.customer || null
+      return customerProfile.value
+    } catch (requestError) {
+      error.value = resolveError(requestError, 'No fue posible cargar tu perfil.')
+      return null
     }
   }
 
-  function clearSession() {
-    accessToken.value = ''
-    user.value = null
-    customer.value = null
-    requiresAgeConfirmation.value = false
-    if (typeof window !== 'undefined') {
-      window.localStorage.removeItem(CUSTOMER_SESSION_STORAGE_KEY)
+  async function clearSession() {
+    resetSession()
+    removeLegacySession()
+    try {
+      await storefrontRequest('/auth/customer/logout', { method: 'POST' })
+    } catch {
+      // The browser state is already cleared; a failed logout must not restore it.
     }
   }
 
@@ -154,9 +177,9 @@ export const useStorefrontAuthStore = defineStore('storefrontAuth', () => {
   }
 
   return {
-    accessToken,
     user,
     customer,
+    customerProfile,
     requiresAgeConfirmation,
     loading,
     error,
@@ -164,6 +187,7 @@ export const useStorefrontAuthStore = defineStore('storefrontAuth', () => {
     isAuthenticated,
     customerName,
     restoreSession,
+    loadCustomerProfile,
     clearSession,
     login,
     register,

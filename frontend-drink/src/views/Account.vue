@@ -13,7 +13,7 @@ const authStore = useStorefrontAuthStore()
 const cartStore = useStorefrontCartStore()
 const favoritesStore = useStorefrontFavoritesStore()
 const uiStore = useStorefrontUiStore()
-const { user, customer, isAuthenticated, loading, error } = storeToRefs(authStore)
+const { user, customer, customerProfile, isAuthenticated, loading, error } = storeToRefs(authStore)
 const { cartCount } = storeToRefs(cartStore)
 const { favoriteCount } = storeToRefs(favoritesStore)
 
@@ -27,8 +27,9 @@ const form = reactive({
   birthDate: '',
 })
 
-const accountName = computed(() => user.value?.name || customer.value?.fullName || 'Cliente')
-const email = computed(() => user.value?.email || customer.value?.email || 'Sin correo registrado')
+const profile = computed(() => customerProfile.value || customer.value)
+const accountName = computed(() => profile.value?.fullName || user.value?.name || 'Cliente')
+const email = computed(() => user.value?.email || profile.value?.email || 'Sin correo registrado')
 
 function formatDate(date) {
   if (!date) return 'Sin registrar'
@@ -45,9 +46,9 @@ function formatDate(date) {
 
 function beginEditing() {
   form.name = accountName.value === 'Cliente' ? '' : accountName.value
-  form.phone = customer.value?.phone || user.value?.phone || ''
-  form.documentId = customer.value?.documentId || ''
-  form.birthDate = customer.value?.birthDate || ''
+  form.phone = profile.value?.phone || ''
+  form.documentId = profile.value?.documentId || ''
+  form.birthDate = profile.value?.birthDate || ''
   authStore.error = ''
   editing.value = true
 }
@@ -61,6 +62,7 @@ async function saveProfile() {
   const response = await authStore.completeAgeProfile({ ...form })
   if (!response) return
 
+  await authStore.loadCustomerProfile()
   editing.value = false
   uiStore.showToast('Tu perfil fue actualizado.')
 }
@@ -77,20 +79,21 @@ function openCart() {
   uiStore.openCart()
 }
 
-function signOut() {
-  authStore.clearSession()
+async function signOut() {
+  await authStore.clearSession()
   uiStore.showToast('Has cerrado sesión.')
   router.push({ name: 'home' })
 }
 
-onMounted(() => {
-  authStore.restoreSession()
+onMounted(async () => {
+  await authStore.restoreSession()
   if (!isAuthenticated.value) {
     router.replace({ name: 'home' })
     uiStore.openAccountModal()
     return
   }
 
+  await authStore.loadCustomerProfile()
   ready.value = true
 })
 </script>
@@ -183,10 +186,10 @@ onMounted(() => {
               </div>
               <dl class="information-grid">
                 <div class="information-item"><dt>Nombre completo</dt><dd>{{ accountName }}</dd></div>
-                <div class="information-item"><dt>Fecha de nacimiento</dt><dd>{{ formatDate(customer?.birthDate) }}</dd></div>
+                <div class="information-item"><dt>Fecha de nacimiento</dt><dd>{{ formatDate(profile?.birthDate) }}</dd></div>
                 <div class="information-item"><dt>Correo electrónico</dt><dd>{{ email }}</dd></div>
-                <div class="information-item"><dt>Documento de identidad</dt><dd>{{ customer?.documentId || 'Sin registrar' }}</dd></div>
-                <div class="information-item"><dt>Teléfono</dt><dd>{{ customer?.phone || user?.phone || 'Sin registrar' }}</dd></div>
+                <div class="information-item"><dt>Documento de identidad</dt><dd>{{ profile?.documentId || 'Sin registrar' }}</dd></div>
+                <div class="information-item"><dt>Teléfono</dt><dd>{{ profile?.phone || 'Sin registrar' }}</dd></div>
                 <div class="information-item"><dt>Género</dt><dd>No especificado</dd></div>
               </dl>
             </section>

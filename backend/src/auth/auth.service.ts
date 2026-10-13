@@ -270,6 +270,40 @@ export class AuthService {
     return this.createSession(user, updatedCustomer);
   }
 
+  async getCustomerSession(userId: string) {
+    const context = this.getStoreContext();
+    const user = await this.userService.findUserById(userId);
+    if (!user || !user.isActive) {
+      throw new UnauthorizedException('Account is disabled');
+    }
+
+    const customer = await this.requireCustomerForCurrentStore(userId, context);
+    return this.createSession(user, customer);
+  }
+
+  async getCustomerProfile(userId: string) {
+    const customer = await this.requireCustomerForCurrentStore(userId);
+    const isAgeConfirmed = Boolean(
+      customer.ageConfirmedAt && customer.birthDate && this.isAdult(customer.birthDate),
+    );
+
+    // This endpoint is intentionally separate from the session response. These
+    // fields are required only while a customer views or edits their profile and
+    // must never be persisted in browser storage.
+    return {
+      customer: {
+        id: customer.id,
+        fullName: customer.fullName,
+        email: customer.email ?? undefined,
+        phone: customer.phone ?? undefined,
+        documentId: customer.documentId ?? undefined,
+        birthDate: customer.birthDate ?? undefined,
+        isAgeConfirmed,
+        isCheckoutProfileComplete: Boolean(isAgeConfirmed && customer.documentId),
+      },
+    };
+  }
+
   private async createSession(user: {
     id: string;
     email: string;
@@ -294,7 +328,6 @@ export class AuthService {
       tenantId: assignment.tenantId ?? undefined,
       storeId: assignment.storeId ?? undefined,
     }));
-    const { passwordHash: _passwordHash, googleSubject: _googleSubject, ...safeUser } = user;
     const isAgeConfirmed = Boolean(
       customer?.ageConfirmedAt && customer.birthDate && this.isAdult(customer.birthDate),
     );
@@ -302,15 +335,17 @@ export class AuthService {
     const payload = { sub: user.id, email: user.email, roles };
     return {
       accessToken: await this.jwtService.signAsync(payload),
-      user: { ...safeUser, roles },
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        roles,
+      },
       customer: customer
         ? {
             id: customer.id,
             fullName: customer.fullName,
-            email: customer.email ?? undefined,
             phone: customer.phone ?? undefined,
-            documentId: customer.documentId ?? undefined,
-            birthDate: customer.birthDate ?? undefined,
             isAgeConfirmed,
             isCheckoutProfileComplete: Boolean(isAgeConfirmed && customer.documentId),
           }

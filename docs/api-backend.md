@@ -19,6 +19,7 @@ Backend en NestJS con TypeORM y Postgres. Arquitectura multi-tenant (tenant + st
 - `JWT_EXPIRES_IN`: expiracion JWT (ej `8h`)
 - `DEFAULT_STORE_SLUG`: slug de store fallback (default `default`)
 - `GOOGLE_CLIENT_ID`: OAuth Web Client ID de Google (opcional; habilita el inicio con Google)
+- `NODE_ENV=production`: marca la cookie de sesión customer como `Secure`; el API debe servirse por HTTPS.
 - `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM`: SMTP para enviar códigos de acceso y recuperación. En desarrollo, sin `SMTP_HOST`, el código se registra solamente en la consola del backend.
 
 ## Ejecutar
@@ -87,11 +88,21 @@ Usar `Authorization: Bearer <token>` en endpoints admin.
 - `POST /auth/customer/password/reset`
 - `POST /auth/customer/google`
 - `PATCH /auth/customer/profile`
+- `GET /auth/customer/session`
+- `GET /auth/customer/profile`
+- `POST /auth/customer/logout`
+
+Las sesiones `customer` se entregan en una cookie `HttpOnly`, `SameSite=Lax`
+(y `Secure` en producción); no se devuelve el token en el JSON. El frontend debe
+enviar las peticiones con credenciales y nunca persistir el token, documento o
+fecha de nacimiento en `localStorage`. `GET /auth/customer/session` restaura el
+estado seguro de la sesión y `GET /auth/customer/profile` entrega los datos
+sensibles únicamente al cliente autenticado para visualizar o editar su perfil.
 
 Los endpoints `customer` requieren un contexto explícito de tienda mediante
 `x-store-slug` o `x-store-id`. Al registrarse, el usuario se vincula al tenant y
 store actuales mediante el rol `customer` y un perfil `Customer`. El checkout
-requiere JWT customer, una fecha de nacimiento que confirme mayoría de edad y
+requiere una sesión customer, una fecha de nacimiento que confirme mayoría de edad y
 un documento de identidad.
 
 ### Platform

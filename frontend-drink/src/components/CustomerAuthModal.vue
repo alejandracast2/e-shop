@@ -8,7 +8,7 @@ import { useStorefrontUiStore } from '../stores/storefrontUi'
 const authStore = useStorefrontAuthStore()
 const uiStore = useStorefrontUiStore()
 const { accountModalOpen, accountModalMode } = storeToRefs(uiStore)
-const { loading, error, message, requiresAgeConfirmation, isAuthenticated, user, customer } = storeToRefs(authStore)
+const { loading, error, message, requiresAgeConfirmation, isAuthenticated, user, customer, customerProfile } = storeToRefs(authStore)
 
 const mode = ref('login')
 const email = ref('')
@@ -35,23 +35,25 @@ const titles = {
 }
 
 const activeTitle = computed(() => titles[mode.value] || titles.login)
-const accountName = computed(() => user.value?.name || customer.value?.name || 'Cliente')
-const accountEmail = computed(() => user.value?.email || customer.value?.email || '')
-const accountPhone = computed(() => customer.value?.phone || user.value?.phone || '')
+const profile = computed(() => customerProfile.value || customer.value)
+const accountName = computed(() => profile.value?.fullName || user.value?.name || 'Cliente')
+const accountEmail = computed(() => user.value?.email || profile.value?.email || '')
+const accountPhone = computed(() => profile.value?.phone || '')
 const accountDocument = computed(() => {
-  const documentId = customer.value?.documentId
+  const documentId = profile.value?.documentId
   if (!documentId) return ''
   return `•••• ${documentId.slice(-4)}`
 })
 
 onMounted(() => {
-  authStore.restoreSession()
+  void authStore.restoreSession()
 })
 
 watch(
   [accountModalOpen, accountModalMode, mode, isAuthenticated, requiresAgeConfirmation],
   async ([isOpen, requestedMode, activeMode, authenticated, needsAgeConfirmation]) => {
     if (isOpen && requestedMode === 'account' && authenticated) {
+      await authStore.loadCustomerProfile()
       mode.value = 'account'
       return
     }
@@ -258,9 +260,9 @@ async function renderGoogleButton() {
             <dt>Documento</dt>
             <dd>{{ accountDocument }}</dd>
           </div>
-          <div v-if="customer?.birthDate">
+          <div v-if="profile?.birthDate">
             <dt>Fecha de nacimiento</dt>
-            <dd>{{ customer.birthDate }}</dd>
+            <dd>{{ profile.birthDate }}</dd>
           </div>
         </dl>
       </section>
