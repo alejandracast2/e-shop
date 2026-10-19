@@ -1,7 +1,41 @@
-backend/node_modules
-frontend-customer/node_modules
-frontend-customer/.nuxt
-frontend-admin/node_modules
-frontend-admin/.nuxt
-backend/dist
+# Dependencies and generated output
+**/node_modules/
+**/dist/
+**/.nuxt/
+**/.output/
+**/coverage/
+**/.cache/
+
+# Local environment files (commit only sanitized examples)
+.env
+.env.*
+**/.env
+**/.env.*
+!.env.example
+!**/.env.example
+
+# Credentials and private keys
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+credentials*.json
+service-account*.json
+
+# Local data and backups
+*.db
+*.sqlite
+*.sqlite3
 backups/
+*.bak
+*.dump
+
+# Logs, editor and OS files
+*.log
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
