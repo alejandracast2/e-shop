@@ -10,9 +10,10 @@
 - `store_settings`: brandingJson, checkoutSettingsJson, paymentSettingsJson.
 
 ## IAM / Users
-- `users`: email, passwordHash, isActive, lastLoginAt.
+- `users`: email, passwordHash, googleSubject, isActive, lastLoginAt.
 - `roles`: platform_admin, tenant_owner, store_admin, store_staff, customer.
 - `user_roles`: scope por tenant/store.
+- `customer_email_codes`: codigos temporales de acceso y recuperacion, con expiracion, intentos y consumo.
 
 ## Catalogo
 - `categories`: jerarquia con `parentId`, `slug`.
@@ -31,8 +32,11 @@
 - `inventory_reservations`
 
 ## Customers
-- `customers`: perfil por store.
+- `customers`: perfil por store, fecha de nacimiento y confirmacion de mayoria de edad.
 - `customer_addresses`
+
+## Contenido del storefront
+- `banners`: imagenes desktop/mobile, CTA, posicion, vigencia y estado por tenant/store.
 
 ## Cart y Checkout
 - `carts` + `cart_items`

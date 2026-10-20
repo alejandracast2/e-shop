@@ -5,6 +5,7 @@ Store en Vue 3 + Vite para la vertical `drink`, conectada al catálogo, carrito 
 ## Estado actual
 
 - Se cubren todos los endpoints publicos reales bajo `/storefront`.
+- La portada consume banners activos y vigentes desde `GET /storefront/banners`.
 - El icono de Cuenta abre el modal de registro, inicio de sesión, acceso por código y recuperación de contraseña.
 - Google Sign-In es opcional y se habilita al definir su client ID.
 - La sesión customer se mantiene en una cookie `HttpOnly`; el frontend no guarda tokens ni datos personales sensibles en `localStorage`. Checkout exige fecha de nacimiento, cédula y una cuenta mayor de edad.
@@ -36,6 +37,15 @@ npm run preview
 npm run test:unit
 npm run test:e2e
 ```
+
+## Rutas
+
+- `/`: inicio, banners y catalogo destacado.
+- `/products`: catalogo y filtros.
+- `/favorites`: favoritos locales.
+- `/account`: perfil y pedidos del cliente autenticado.
+
+El carrito y el checkout se presentan como paneles/modales dentro del storefront.
 
 ## Estructura agregada
 
@@ -86,6 +96,7 @@ su perfil; no se persiste entre recargas.
 
 | Endpoint | Metodo | Store / accion |
 | --- | --- | --- |
+| `/storefront/banners` | `GET` | `useStorefrontBannersStore().loadBanners()` |
 | `/storefront/categories` | `GET` | `useStorefrontCategoriesStore().loadCategories()` |
 | `/storefront/products` | `GET` | `useStorefrontProductsStore().loadProducts(filters)` |
 | `/storefront/products/:slug` | `GET` | `useStorefrontProductsStore().loadProduct(slug)` |
@@ -412,7 +423,3 @@ await paymentsStore.submitPaymentProof('intent-id', {
   fileUrl: 'https://example.com/proof.png',
 })
 ```
-
-## Siguiente paso sugerido
-
-La siguiente etapa natural es conectar estos stores a rutas/paginas reales de `frontend-drink` para catalogo, detalle, carrito, checkout y consulta de pedidos. En este cambio eso se dejo deliberadamente fuera para no convertir la app en el template funcional todavia.

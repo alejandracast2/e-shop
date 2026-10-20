@@ -37,3 +37,14 @@ npm run build
 - Pedidos: listado, filtro por estado y detalle editable segun rol.
 - Pagos: listado y revision para roles con permisos.
 - Clientes: listado con buscador.
+- Banners: crear, ordenar, programar, activar, editar y eliminar banners del storefront.
+
+## Rutas
+
+- `/`: dashboard.
+- `/products`, `/products/new`, `/products/:id`: catalogo.
+- `/categories`, `/attributes`, `/product-types`: configuracion del catalogo.
+- `/orders`, `/orders/:id`: pedidos.
+- `/payments`: revision de pagos.
+- `/customers`: clientes.
+- `/banners`: contenido promocional del storefront.

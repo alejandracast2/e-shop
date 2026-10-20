@@ -1,432 +1,141 @@
-# E-Shop Project
+# E-Shop
 
-## Arquitectura y Tecnologías
+Plataforma de comercio electrónico multi-tenant. El repositorio incluye una API en NestJS, PostgreSQL y varias interfaces para clientes, administradores y operadores de plataforma.
 
-### Backend (NestJS + MongoDB)
-- **Estructura modular**: cada dominio se organiza como módulo con controladores, servicios, DTOs, entidades y pruebas.
-- **Conexión a MongoDB**: `@nestjs/mongoose` para esquemas y modelos; configuración central en `DatabaseModule`.
-- **Autenticación y autorización**: JWT con `@nestjs/passport` y `passport-jwt`; guards para roles.
-- **Validación y serialización**: `class-validator` y `class-transformer` habilitados globalmente.
-- **Documentación**: OpenAPI/Swagger generado con `@nestjs/swagger`.
-- **Testing**: Jest para unitarias y e2e con `supertest`.
-- **Logs y seguridad**: `nestjs-pino` o `winston` para logging; `helmet` y rate limiting.
+## Estado actual
 
-### Frontend (Vue/Nuxt)
-- **Framework**: Nuxt 3 para SSR/SSG.
-- **Gestión de estado**: Pinia con stores modulares (auth, carrito, catálogo, pedidos).
-- **Ruteo y middlewares**: rutas basadas en archivos (`pages/`) con middlewares para proteger vistas.
-- **Componentes UI**: librería (Element Plus o Tailwind) + componentes propios.
-- **Comunicación con API**: composables para llamadas; manejo de token.
-- **Testing**: Vitest/Jest para unitarias; Playwright/Cypress para e2e.
-- **Optimización**: lazy loading, imágenes optimizadas, PWA opcional.
+- Catálogo con categorías, atributos, tipos de producto, variantes, imágenes e inventario.
+- Storefront público con banners, carrito, checkout, consulta de pedidos y pagos offline.
+- Registro e inicio de sesión de clientes mediante contraseña, código por correo o Google.
+- Sesión customer mediante cookie `HttpOnly`; el token y los datos sensibles no se guardan en `localStorage`.
+- Panel administrativo para productos, categorías, atributos, pedidos, pagos, clientes y banners.
+- Panel de plataforma para administrar tenants, stores y usuarios.
+- Aislamiento por tenant y store en una única base PostgreSQL.
 
-## API Endpoints
+## Aplicaciones
 
-### 1. Catálogo
+| Directorio | Tecnología | Propósito | Puerto habitual |
+| --- | --- | --- | --- |
+| `backend` | NestJS 11 + TypeORM | API y lógica de negocio | `4000` |
+| `frontend-drink` | Vue 3 + Vite + Pinia | Storefront principal de la vertical de bebidas | `5173` |
+| `frontend-admin2` | Vue 3 + Vite + Pinia | Panel administrativo actual | `5173` |
+| `frontend-platform` | Vue 3 + Vite + Pinia | Administración global de tenants y usuarios | `5173` |
+| `frontend-customer` | Nuxt 4 | Storefront de referencia | `3000` |
+| `frontend-admin` | Nuxt 4 | Panel administrativo de referencia | `3000` |
+| `frontend-vue` | Vue 3 + Vite | Storefront básico/legado | `5173` |
 
-#### 1.1 Listar productos
-- **GET** `/api/products`
-- **Query params**: `category`, `search`, `page`, `limit`
-- **Response**
-```json
-[
-  {
-    "id": "64a1f2",
-    "name": "Zapatos Running",
-    "description": "Zapatillas ligeras para correr.",
-    "price": 59.99,
-    "images": ["https://cdn/img1.jpg", "https://cdn/img2.jpg"],
-    "stock": 32,
-    "category": "calzado"
-  }
-]
+`frontend-admin2` reemplaza funcionalmente al panel Nuxt `frontend-admin`. Los servicios incluidos en `docker-compose.yml` levantan `backend`, `frontend-customer`, `frontend-admin` y `frontend-vue`; las aplicaciones Vite restantes se ejecutan de forma independiente.
+
+## Requisitos
+
+- Node.js `20.19+` o `22.12+` (requerido por los frontends Vite más recientes).
+- npm.
+- PostgreSQL 16, o Docker con Docker Compose.
+
+## Inicio rápido con Docker
+
+1. Copia `.env.example` como `.env` y cambia, como mínimo, `DB_PASS` y `JWT_SECRET`.
+2. Levanta los servicios:
+
+```bash
+docker compose up --build
 ```
 
-#### 1.2 Obtener producto
-- **GET** `/api/products/:id`
-- **Response**
-```json
-{
-  "id": "64a1f2",
-  "name": "Zapatos Running",
-  "description": "Zapatillas ligeras para correr.",
-  "price": 59.99,
-  "images": ["https://cdn/img1.jpg", "https://cdn/img2.jpg"],
-  "stock": 32,
-  "category": "calzado"
-}
+Servicios publicados:
+
+- API: `http://localhost:4000`
+- Storefront Nuxt: `http://localhost:3000`
+- Admin Nuxt: `http://localhost:3001`
+- Storefront Vue básico: `http://localhost:3002`
+- PostgreSQL: `localhost:5432`
+
+## Desarrollo local
+
+Instala y ejecuta cada aplicación en una terminal diferente:
+
+```bash
+cd backend
+npm install
+npm run start:dev
 ```
 
-#### 1.3 Crear producto (admin)
-- **POST** `/api/products`
-- **Request**
-```json
-{
-  "name": "Zapatos Running",
-  "description": "Zapatillas ligeras para correr.",
-  "price": 59.99,
-  "images": ["https://cdn/img1.jpg"],
-  "stock": 32,
-  "category": "calzado"
-}
-```
-- **Response**
-```json
-{
-  "id": "64a1f2",
-  "name": "Zapatos Running",
-  "description": "Zapatillas ligeras para correr.",
-  "price": 59.99,
-  "images": ["https://cdn/img1.jpg"],
-  "stock": 32,
-  "category": "calzado"
-}
+```bash
+cd frontend-drink
+npm install
+npm run dev
 ```
 
-#### 1.4 Actualizar producto (admin)
-- **PUT/PATCH** `/api/products/:id`
-- **Request**
-```json
-{
-  "price": 49.99,
-  "stock": 40
-}
-```
-- **Response**
-```json
-{
-  "id": "64a1f2",
-  "name": "Zapatos Running",
-  "description": "Zapatillas ligeras para correr.",
-  "price": 49.99,
-  "images": ["https://cdn/img1.jpg"],
-  "stock": 40,
-  "category": "calzado"
-}
+Para usar otro frontend, sustituye `frontend-drink` por su directorio. Consulta su README para conocer sus variables y cobertura funcional.
+
+### Base de datos
+
+El backend usa `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASS` y `DB_NAME`. En desarrollo, TypeORM sincroniza las entidades automáticamente. En producción, la sincronización está desactivada y deben ejecutarse las migraciones:
+
+```bash
+cd backend
+npm run migration:run
 ```
 
-#### 1.5 Eliminar producto (admin)
-- **DELETE** `/api/products/:id`
-- **Response**
-```json
-{ "message": "Product deleted" }
+Las migraciones actuales agregan la autenticación de clientes y el sistema de banners.
+
+### Datos de demostración
+
+```bash
+cd backend
+npm run seed
 ```
 
-### 2. Carrito
+| Rol | Correo | Contraseña |
+| --- | --- | --- |
+| Platform admin | `platform@eshop.com` | `admin123` |
+| Tenant owner | `owner@cafedeorigen.com` | `admin123` |
+| Store admin | `admin@cafedeorigen.com` | `admin123` |
+| Store staff | `staff@cafedeorigen.com` | `admin123` |
 
-#### 2.1 Ver carrito del usuario
-- **GET** `/api/cart`
-- **Response**
-```json
-{
-  "items": [
-    {
-      "productId": "64a1f2",
-      "name": "Zapatos Running",
-      "quantity": 2,
-      "price": 59.99
-    }
-  ],
-  "total": 119.98
-}
+Estas credenciales son únicamente para desarrollo.
+
+## Configuración
+
+La plantilla raíz [.env.example](.env.example) contiene la configuración compartida. El backend añade opciones para Google y SMTP en [backend/.env.example](backend/.env.example). Los frontends Vite usan sus propias variables `VITE_*`; por ejemplo, [frontend-drink/.env.example](frontend-drink/.env.example).
+
+Variables importantes:
+
+- `CORS_ORIGIN`: lista de orígenes permitidos, separada por comas.
+- `DEFAULT_STORE_SLUG`: store usado como fallback para tráfico público general.
+- `GOOGLE_CLIENT_ID`: habilita Google Sign-In en el backend.
+- `SMTP_*`: permite enviar códigos de acceso y recuperación. Sin SMTP, en desarrollo el código se muestra en la consola del backend.
+
+Los flujos de autenticación customer requieren un contexto explícito mediante `x-store-slug` o `x-store-id`; no usan el store fallback.
+
+## Autenticación
+
+Hay dos mecanismos:
+
+- Administración y plataforma: `POST /auth/login` devuelve un JWT, enviado como `Authorization: Bearer <token>`.
+- Clientes: los endpoints `/auth/customer/*` crean una cookie de sesión `HttpOnly`, `SameSite=Lax` y `Secure` en producción. El frontend debe usar `credentials: 'include'`.
+
+## Scripts útiles del backend
+
+```bash
+npm run build
+npm run test
+npm run test:e2e
+npm run lint
+npm run migration:run
+npm run seed
+npm run seed:clothes
+npm run db:backup
 ```
 
-#### 2.2 Agregar artículo
-- **POST** `/api/cart/items`
-- **Request**
-```json
-{
-  "productId": "64a1f2",
-  "quantity": 1
-}
-```
-- **Response**
-```json
-{
-  "items": [
-    {
-      "productId": "64a1f2",
-      "name": "Zapatos Running",
-      "quantity": 1,
-      "price": 59.99
-    }
-  ],
-  "total": 59.99
-}
-```
+## Documentación
 
-#### 2.3 Modificar cantidad
-- **PUT** `/api/cart/items/:productId`
-- **Request**
-```json
-{ "quantity": 3 }
-```
-- **Response**
-```json
-{
-  "items": [
-    {
-      "productId": "64a1f2",
-      "name": "Zapatos Running",
-      "quantity": 3,
-      "price": 59.99
-    }
-  ],
-  "total": 179.97
-}
-```
+- [Índice de documentación](docs/README.md)
+- [API backend](docs/api-backend.md)
+- [Modelo de datos](docs/database-models.md)
+- [Storefront Nuxt](docs/frontend-customer.md)
+- [Panel admin Nuxt](docs/frontend-admin.md)
+- [Storefront principal de bebidas](frontend-drink/README.md)
+- [Panel admin actual](frontend-admin2/README.md)
+- [Panel de plataforma](frontend-platform/README.md)
 
-#### 2.4 Vaciar carrito
-- **DELETE** `/api/cart`
-- **Response**
-```json
-{ "message": "Cart emptied" }
-```
-
-### 3. Checkout / Pedidos
-
-#### 3.1 Crear pedido
-- **POST** `/api/orders`
-- **Request**
-```json
-{
-  "address": {
-    "street": "Calle 123",
-    "city": "Ciudad",
-    "zip": "12345",
-    "country": "MX"
-  },
-  "paymentMethod": "credit_card",
-  "items": [
-    { "productId": "64a1f2", "quantity": 2 }
-  ]
-}
-```
-- **Response**
-```json
-{
-  "orderId": "ord-001",
-  "status": "pending",
-  "total": 119.98,
-  "createdAt": "2023-07-01T12:00:00Z"
-}
-```
-
-#### 3.2 Listar pedidos del usuario
-- **GET** `/api/orders`
-- **Response**
-```json
-[
-  {
-    "orderId": "ord-001",
-    "status": "pending",
-    "total": 119.98,
-    "createdAt": "2023-07-01T12:00:00Z"
-  }
-]
-```
-
-#### 3.3 Obtener pedido
-- **GET** `/api/orders/:id`
-- **Response**
-```json
-{
-  "orderId": "ord-001",
-  "status": "pending",
-  "items": [
-    {
-      "productId": "64a1f2",
-      "name": "Zapatos Running",
-      "quantity": 2,
-      "price": 59.99
-    }
-  ],
-  "total": 119.98,
-  "shippingInfo": {
-    "address": {
-      "street": "Calle 123",
-      "city": "Ciudad",
-      "zip": "12345",
-      "country": "MX"
-    },
-    "trackingNumber": null
-  }
-}
-```
-
-#### 3.4 Actualizar estado (admin)
-- **PATCH** `/api/orders/:id/status`
-- **Request**
-```json
-{ "status": "shipped" }
-```
-- **Response**
-```json
-{
-  "orderId": "ord-001",
-  "status": "shipped"
-}
-```
-
-### 4. Usuarios / Autenticación
-
-#### 4.1 Registro
-- **POST** `/api/auth/register`
-- **Request**
-```json
-{
-  "name": "Juan Pérez",
-  "email": "juan@example.com",
-  "password": "Secreto123"
-}
-```
-- **Response**
-```json
-{
-  "token": "jwt.token.here",
-  "user": {
-    "id": "u123",
-    "name": "Juan Pérez",
-    "email": "juan@example.com",
-    "role": "user"
-  }
-}
-```
-
-#### 4.2 Login
-- **POST** `/api/auth/login`
-- **Request**
-```json
-{
-  "email": "juan@example.com",
-  "password": "Secreto123"
-}
-```
-- **Response**
-```json
-{
-  "token": "jwt.token.here",
-  "user": {
-    "id": "u123",
-    "name": "Juan Pérez",
-    "email": "juan@example.com",
-    "role": "user"
-  }
-}
-```
-
-#### 4.3 Perfil
-- **GET** `/api/users/me`
-- **Response**
-```json
-{
-  "id": "u123",
-  "name": "Juan Pérez",
-  "email": "juan@example.com",
-  "role": "user"
-}
-```
-
-#### 4.4 Actualizar perfil
-- **PATCH** `/api/users/me`
-- **Request**
-```json
-{ "name": "Juan P." }
-```
-- **Response**
-```json
-{
-  "id": "u123",
-  "name": "Juan P.",
-  "email": "juan@example.com",
-  "role": "user"
-}
-```
-
-#### 4.5 Listar usuarios (admin)
-- **GET** `/api/users`
-- **Response**
-```json
-[
-  {
-    "id": "u123",
-    "name": "Juan Pérez",
-    "email": "juan@example.com",
-    "role": "user"
-  },
-  {
-    "id": "u124",
-    "name": "Admin",
-    "email": "admin@example.com",
-    "role": "admin"
-  }
-]
-```
-
-### 5. Panel Administrativo
-
-#### 5.1 Dashboard (stats)
-- **GET** `/api/admin/dashboard`
-- **Response**
-```json
-{
-  "salesToday": 250.5,
-  "ordersPending": 3,
-  "usersCount": 120,
-  "topProducts": [
-    { "productId": "64a1f2", "name": "Zapatos Running", "sold": 10 }
-  ]
-}
-```
-
-#### 5.2 Gestión de categorías (CRUD)
-Ejemplo de creación:
-- **POST** `/api/categories`
-- **Request**
-```json
-{
-  "name": "Calzado",
-  "parentId": null
-}
-```
-- **Response**
-```json
-{
-  "id": "cat001",
-  "name": "Calzado",
-  "parentId": null
-}
-```
-
-## Plan de Trabajo
-
-### Fase 1 – Preparación
-1. Definir requisitos funcionales.
-2. Configurar repositorios y entorno (`.env`, Docker Compose).
-3. Pipeline base de CI con lint, tests y build.
-
-### Fase 2 – Backend mínimo
-1. Conectar a MongoDB y crear modelos iniciales.
-2. Implementar autenticación (registro/login JWT).
-3. CRUD de productos y usuarios.
-4. Documentar con Swagger y cubrir pruebas unitarias.
-
-### Fase 3 – Frontend mínimo
-1. Estructurar proyecto Nuxt e instalar librería UI y Pinia.
-2. Páginas de registro/login y listado de productos.
-3. Integrar autenticación y proteger rutas.
-
-### Fase 4 – Funcionalidades principales
-1. **Carrito y pedidos**: módulos `Cart` y `Order`; componentes de carrito y checkout.
-2. **Panel admin**: roles y endpoints de gestión; vistas de administración.
-
-### Fase 5 – Calidad y optimización
-1. Cobertura de pruebas (unitarias y e2e).
-2. Logging, manejo de errores y monitorización.
-3. Optimización de rendimiento y seguridad.
-
-### Fase 6 – Despliegue
-1. Contenerización con Docker.
-2. Orquestación y despliegue (Compose/Kubernetes).
-3. Configuración de dominios, SSL y CD.
-
+La lista de endpoints de [docs/api-backend.md](docs/api-backend.md) se deriva de los controladores actuales. Para detalles de payloads y validaciones, consulta los DTOs de `backend/src`.

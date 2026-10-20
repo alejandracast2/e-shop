@@ -112,7 +112,12 @@ un documento de identidad.
 - `GET /platform/tenants/:tenantId/stores`
 
 ### Admin (requiere JWT + roles)
+- `GET /admin/stores`
+- `PATCH /admin/stores/:storeId`
+- `GET /admin/stores/:storeId/settings`
+- `PATCH /admin/stores/:storeId/settings`
 - `GET /admin/products`
+- `GET /admin/products/:id`
 - `POST /admin/products`
 - `PATCH /admin/products/:id`
 - `POST /admin/products/:id/variants`
@@ -123,6 +128,7 @@ un documento de identidad.
 - `PATCH /admin/variants/:id`
 - `GET /admin/categories`
 - `POST /admin/categories`
+- `PATCH /admin/categories/:id`
 - `GET /admin/attributes`
 - `POST /admin/attributes`
 - `GET /admin/product-types`
@@ -136,6 +142,8 @@ un documento de identidad.
 - `POST /admin/payments/:intentId/reject`
 - `GET /admin/customers`
 - `GET /admin/customers/:id`
+- `POST /admin/customers`
+- `PATCH /admin/customers/:id`
 
 Payload de imagenes en `POST /admin/products` y `PATCH /admin/products/:id`:
 
@@ -160,6 +168,7 @@ En `PATCH`, omitir `images` conserva las imagenes actuales; enviar `images: []` 
 - `GET /storefront/products`
 - `GET /storefront/products/:slug`
 - `POST /storefront/cart`
+- `GET /storefront/cart/:id`
 - `POST /storefront/cart/items`
 - `PATCH /storefront/cart/items/:id`
 - `POST /storefront/checkout/confirm`
@@ -167,7 +176,15 @@ En `PATCH`, omitir `images` conserva las imagenes actuales; enviar `images: []` 
 - `GET /storefront/payments/methods`
 - `POST /storefront/payments/:intentId/proof`
 
+### Usuarios (requiere JWT de `platform_admin`)
+- `GET /users`
+- `GET /users/:id`
+- `POST /users`
+- `PATCH /users/:id`
+- `DELETE /users/:id`
+
 ## Notas tecnicas
 - `autoLoadEntities` activo en TypeORM.
 - `synchronize` habilitado fuera de produccion.
 - Toda entidad operativa incluye `tenantId` y `storeId` para aislamiento.
+- Las migraciones de producción incluyen autenticacion customer (`20260802000000`) y banners (`20260809000000`).
